@@ -4,7 +4,10 @@
     <TargetFramework>net5.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
-    <Version>1.0.2</Version>
+    <Version>1.0.3</Version>
+    <Description>
+      netDxf package is changed
+    </Description>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,9 +22,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Extended.Wpf.Toolkit" Version="4.1.0" />
-    <PackageReference Include="Microsoft.Toolkit.Mvvm" Version="7.1.0-rc2" />
-    <PackageReference Include="netDXF" Version="2.2.0.1" />
+    <PackageReference Include="Extended.Wpf.Toolkit" Version="4.2.0" />
+    <PackageReference Include="Microsoft.Toolkit.Mvvm" Version="7.1.2" />
+    <PackageReference Include="netDxf.netstandard" Version="2.4.0" />
     <PackageReference Include="propertychanged.fody" Version="3.4.0" />
   </ItemGroup>
 
