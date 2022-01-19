@@ -1,0 +1,61 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <Version>1.0.2</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Converters\MouseArgsCanvasConverter.cs" />
+    <Compile Remove="Converters\MouseArgsConverter.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Controls\15475245161548336226-16.png" />
+    <None Remove="Controls\15655417491530273517-16.png" />
+    <None Remove="Controls\7362273661548336122-16.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Extended.Wpf.Toolkit" Version="4.1.0" />
+    <PackageReference Include="Microsoft.Toolkit.Mvvm" Version="7.1.0-rc2" />
+    <PackageReference Include="netDXF" Version="2.2.0.1" />
+    <PackageReference Include="propertychanged.fody" Version="3.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Controls\15475245161548336226-16.png" />
+    <Resource Include="Controls\15655417491530273517-16.png" />
+    <Resource Include="Controls\7362273661548336122-16.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Controls\AxisState.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Controls\Indicator.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Controls\ValveStateButton.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Update="Controls\AxisState.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Controls\Indicator.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Controls\ValveStateButton.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
+
+</Project>

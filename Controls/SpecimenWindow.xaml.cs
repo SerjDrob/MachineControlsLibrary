@@ -1,0 +1,221 @@
+﻿using MachineControlsLibrary.Classes;
+using MachineControlsLibrary.Converters;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
+
+namespace MachineControlsLibrary.Controls
+{    
+       
+
+    /// <summary>
+    /// Interaction logic for SpecimenWindow.xaml
+    /// </summary>
+    public partial class SpecimenWindow : UserControl
+    {
+        public SpecimenWindow()
+        {           
+            InitializeComponent();            
+            SpecWin.DataContext = this;
+            
+        }
+              
+
+        private double _scalex;
+        private double _scaley;
+        private double _marginx;
+        private double _marginy;
+
+
+
+        public ObservableCollection<LayerGeometryCollection> LayGeoms
+        {
+            get { return (ObservableCollection<LayerGeometryCollection>)GetValue(LayGeomsProperty); }
+            set { SetValue(LayGeomsProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for LayGeoms.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty LayGeomsProperty =
+            DependencyProperty.Register("LayGeoms", typeof(ObservableCollection<LayerGeometryCollection>), typeof(SpecimenWindow),
+                new PropertyMetadata(null, new PropertyChangedCallback(MyCallBack)));
+
+        private static void MyCallBack(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+           
+        }
+
+        protected override void OnRender(DrawingContext drawingContext)
+        {
+            base.OnRender(drawingContext);
+            var calc = new ScaleCalc(SpecWin.ActualWidth, SpecWin.ActualHeight, SpecSizeX, SpecSizeY, SpecMargin, XProportion, YProportion, AutoProportion);
+            calc.Calc(out _scalex, out _scaley, out _marginx, out _marginy);
+            ScaleX = _scalex;
+            ScaleY = _scaley;
+            MarginX = _marginx;
+            MarginY = _marginy;
+            
+        }
+
+
+
+        public double MarginX
+        {
+            get { return (double)GetValue(MarginXProperty); }
+            protected set { SetValue(MarginXProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for MarginX.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty MarginXProperty =
+            DependencyProperty.Register("MarginX", typeof(double), typeof(SpecimenWindow), new PropertyMetadata((double)0));
+
+
+        public double MarginY
+        {
+            get { return (double)GetValue(MarginYProperty); }
+            protected set { SetValue(MarginYProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for MarginY.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty MarginYProperty =
+            DependencyProperty.Register("MarginY", typeof(double), typeof(SpecimenWindow), new PropertyMetadata((double)0));
+
+
+
+        public double ScaleY
+        {
+            get { return (double)GetValue(ScaleYProperty); }
+            protected set { SetValue(ScaleYProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for ScaleY.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty ScaleYProperty =
+            DependencyProperty.Register("ScaleY", typeof(double), typeof(SpecimenWindow), new PropertyMetadata((double)1));
+
+
+        public double ScaleX
+        {
+            get { return (double)GetValue(ScaleXProperty); }
+            protected set { SetValue(ScaleXProperty, value);
+            }
+        }
+
+        // Using a DependencyProperty as the backing store for ScaleX.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty ScaleXProperty =
+            DependencyProperty.Register("ScaleX", typeof(double), typeof(SpecimenWindow), new PropertyMetadata((double)1));
+
+
+        public double StrokeThickness
+        {
+            get { return (double)GetValue(StrokeThicknessProperty); }
+            set { SetValue(StrokeThicknessProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for StrokeThickness.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty StrokeThicknessProperty =
+            DependencyProperty.Register("StrokeThickness", typeof(double), typeof(SpecimenWindow), new PropertyMetadata((double)1));
+
+
+        public bool XProportion
+        {
+            get { return (bool)GetValue(XProportionProperty); }
+            set { SetValue(XProportionProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for XProportion.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty XProportionProperty =
+            DependencyProperty.Register("XProportion", typeof(bool), typeof(SpecimenWindow), new PropertyMetadata((bool)false));
+
+
+
+        public bool YProportion
+        {
+            get { return (bool)GetValue(YProportionProperty); }
+            set { SetValue(YProportionProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for YProportion.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty YProportionProperty =
+            DependencyProperty.Register("YProportion", typeof(bool), typeof(SpecimenWindow), new PropertyMetadata((bool)false));
+
+
+
+
+
+        public bool AutoProportion
+        {
+            get { return (bool)GetValue(AutoProportionProperty); }
+            set { SetValue(AutoProportionProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for AutoProportion.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty AutoProportionProperty =
+            DependencyProperty.Register("AutoProportion", typeof(bool), typeof(SpecimenWindow), new PropertyMetadata((bool)true));
+
+
+
+
+
+        public double SpecMargin
+        {
+            get { return (double)GetValue(SpecMarginProperty); }
+            set { SetValue(SpecMarginProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for SpecMargin.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty SpecMarginProperty =
+            DependencyProperty.Register("SpecMargin", typeof(double), typeof(SpecimenWindow), new PropertyMetadata((double)0));
+
+
+
+        public double SpecSizeX
+        {
+            get { return (double)GetValue(SpecSizeXProperty); }
+            set { SetValue(SpecSizeXProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for SpecSizeX.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty SpecSizeXProperty =
+            DependencyProperty.Register("SpecSizeX", typeof(double), typeof(SpecimenWindow), new PropertyMetadata((double)1));
+
+
+        public double SpecSizeY
+        {
+            get { return (double)GetValue(SpecSizeYProperty); }
+            set { SetValue(SpecSizeYProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for SpecSizeY.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty SpecSizeYProperty =
+            DependencyProperty.Register("SpecSizeY", typeof(double), typeof(SpecimenWindow), new PropertyMetadata((double)1));
+
+
+
+        public ObservableCollection<GeometryCollection> Shapes
+        {
+            get { return (ObservableCollection<GeometryCollection>)GetValue(ShapesProperty); }
+            set { SetValue(ShapesProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for Shapes.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty ShapesProperty =
+            DependencyProperty.Register("Shapes", typeof(ObservableCollection<GeometryCollection>),
+                typeof(SpecimenWindow), new PropertyMetadata(null, new PropertyChangedCallback(myFunc)));
+
+        private static void myFunc(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+           
+        }
+    }
+}

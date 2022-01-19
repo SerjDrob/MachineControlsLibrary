@@ -1,0 +1,52 @@
+﻿<UserControl x:Class="MachineControlsLibrary.Controls.GraphWindow"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:MachineControlsLibrary.Controls"
+             mc:Ignorable="d"
+             xmlns:converters ="clr-namespace:MachineControlsLibrary.Converters"             
+             x:Name="GraphWin"
+             >
+    <UserControl.Resources>
+        <converters:LgToElConverter x:Key="LgToElConverter"/>
+    </UserControl.Resources>
+    <UserControl.ContentTemplate>
+        <DataTemplate>
+            <Grid DataContext="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=UserControl}, Path=DataContext}">
+                <!--<Grid.RowDefinitions>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>-->
+                <local:GraphEditorMenu x:Name="MyMenu"                                       
+                                       TheItemChecked="GraphEditorMenu_TheItemChecked"                                
+                                       Layers="{Binding LayGeoms, Converter={StaticResource LgToElConverter}}" 
+                                       LayerFiltersChanged="MyMenu_LayerFiltersChanged"                                
+                                       VerticalAlignment="Top"
+                                       SelectedColor="{Binding ElementName=GraphWin, Path=SelectedColor}"
+                                       Panel.ZIndex="1"
+                                       />
+                <Grid >
+                    <local:SpecimenWindow     
+                                      HorizontalAlignment="Stretch"
+                                      VerticalAlignment="Stretch"
+                                      LayGeoms="{Binding LayGeoms}"                            
+                                      SpecMargin="{Binding ElementName=GraphWin, Path=SpecMargin}" 
+                                      SpecSizeX="{Binding ElementName=GraphWin, Path=SpecSizeX}"
+                                      SpecSizeY="{Binding ElementName=GraphWin, Path=SpecSizeY}"
+                                      StrokeThickness="{Binding ElementName=GraphWin, Path=StrokeThickness}"                           
+                                      RenderTransformOrigin="0.5,0.5"     
+                                      Background="{Binding ElementName=MyMenu, Path=SelectedColor}"                     
+                                      >
+                        <local:SpecimenWindow.RenderTransform>
+                            <ScaleTransform ScaleX="1" ScaleY="-1"/>
+                        </local:SpecimenWindow.RenderTransform>
+                    </local:SpecimenWindow>
+                    
+                    <ContentPresenter Content="{TemplateBinding Content}"/>
+                   
+                </Grid>
+            </Grid>
+        </DataTemplate>
+    </UserControl.ContentTemplate>
+</UserControl>

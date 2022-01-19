@@ -1,0 +1,27 @@
+﻿<UserControl x:Class="MachineControlsLibrary.Controls.TestControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:MachineControlsLibrary.Controls"
+             xmlns:converters="clr-namespace:MachineControlsLibrary.Converters"
+             mc:Ignorable="d" 
+             x:Name="MyTemplate"
+             >
+    <UserControl.Resources>
+        <converters:BoolToVisibleConvereter x:Key="fwfw"/>
+    </UserControl.Resources>
+    <UserControl.ContentTemplate>
+        <DataTemplate>
+            <Grid >
+                <StackPanel>
+                    <local:GraphEditorMenu Layers="{Binding ElementName=MyTemplate, Path=Layers}"/>
+                    <TextBlock Text="{Binding ElementName=MyTemplate, Path= MyText}"/>
+                    <TextBlock Text="??????????????"/>
+                    <ContentPresenter Content="{TemplateBinding Content}"/>
+                    <TextBlock Text="!!!!!!!!!!!!!!"/>
+                </StackPanel>
+            </Grid>
+        </DataTemplate>
+    </UserControl.ContentTemplate>    
+</UserControl>
