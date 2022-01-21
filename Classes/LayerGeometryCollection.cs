@@ -9,10 +9,10 @@ namespace MachineControlsLibrary.Classes
 {
     public record LayerGeometryCollection
     (
-     GeometryCollection Geometries,
-     string LayerName,
-     bool LayerEnable,
-     Brush LayerColor,
-     Brush GeometryColor
+         GeometryCollection Geometries,
+         string LayerName,
+         bool LayerEnable,
+         Brush LayerColor,
+         Brush GeometryColor
     );
 }

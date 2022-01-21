@@ -1,5 +1,4 @@
 ﻿using MachineControlsLibrary.Converters;
-using netDxf.Entities;
 using System;
 using System.Collections.ObjectModel;
 using System.Globalization;

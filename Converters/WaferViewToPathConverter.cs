@@ -2,7 +2,6 @@
 using System.Globalization;
 using System.Windows.Data;
 using System.Windows.Media;
-using netDxf.Entities;
 using System.Collections.ObjectModel;
 
 namespace MachineControlsLibrary.Converters
