@@ -8,6 +8,7 @@
     <Description>
       netDxf package is deleted
     </Description>
+    <Platforms>AnyCPU;x86</Platforms>
   </PropertyGroup>
 
   <ItemGroup>

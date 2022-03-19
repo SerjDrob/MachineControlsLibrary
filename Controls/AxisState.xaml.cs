@@ -31,6 +31,19 @@ namespace MachineControlsLibrary.Controls
         }
 
 
+
+        public double CmdCoordinate
+        {
+            get { return (double)GetValue(CmdCoordinateProperty); }
+            set { SetValue(CmdCoordinateProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for CmdCoordinate.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty CmdCoordinateProperty =
+            DependencyProperty.Register("CmdCoordinate", typeof(double), typeof(AxisState), new PropertyMetadata(default(double)));
+
+
+
         public double Coordinate
         {
             get { return (double)GetValue(CoordinateProperty); }
