@@ -4,7 +4,7 @@ using System.Windows.Data;
 
 namespace MachineControlsLibrary.Converters
 {
-    class DivideConverter : IValueConverter
+    public class DivideConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
@@ -13,7 +13,7 @@ namespace MachineControlsLibrary.Converters
             try
             {
                 val = System.Convert.ToDouble(value);
-                par = System.Convert.ToDouble(parameter);
+                par = System.Convert.ToDouble(parameter, NumberFormatInfo.InvariantInfo);
                 if (par==0)
                 {
                     par = 1;

@@ -1,20 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Data;
 
 namespace MachineControlsLibrary.Converters
 {
-    class MulConvereter : IMultiValueConverter
+    public class MulConvereter : IMultiValueConverter
     {
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
             double n = 1;
             double m = 1;
-            if (values.Length==2)
+            if (values.Length == 2)
             {
                 try
                 {
@@ -23,7 +19,7 @@ namespace MachineControlsLibrary.Converters
                 }
                 catch (Exception)
                 {
-                } 
+                }
             }
             return n * m;
 

@@ -9,7 +9,7 @@ using System.Windows.Data;
 
 namespace MachineControlsLibrary.Converters
 {
-    class BoolToVisibleConvereter : IValueConverter
+    public class BoolToVisibleConvereter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
