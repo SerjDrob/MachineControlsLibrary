@@ -20,6 +20,17 @@
     <None Remove="Controls\15475245161548336226-16.png" />
     <None Remove="Controls\15655417491530273517-16.png" />
     <None Remove="Controls\7362273661548336122-16.png" />
+    <None Remove="Controls\GraphWin\Sources\flipvert.png" />
+    <None Remove="Controls\GraphWin\Sources\rotate.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Controls\GraphWin\Sources\flipvert.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Controls\GraphWin\Sources\rotate.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
 
   <ItemGroup>

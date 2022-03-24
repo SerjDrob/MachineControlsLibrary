@@ -1,20 +1,12 @@
 ﻿using MachineControlsLibrary.Classes;
+using Microsoft.Toolkit.Mvvm.Input;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using Microsoft.Toolkit.Mvvm.Input;
 
 
 namespace MachineControlsLibrary.Controls
@@ -30,13 +22,25 @@ namespace MachineControlsLibrary.Controls
             EditorMenu.DataContext = this;
         }
         [ICommand]
+        private void ToMirrorX(object obj)
+        {
+            MirrorXChanged?.Invoke();
+        }
+        public event Action MirrorXChanged;
+        [ICommand]
+        private void ToRotate90()
+        {
+            Rotate90Changed?.Invoke();
+        }
+        public event Action Rotate90Changed;
+        [ICommand]
         private void ItemChecked(object obj)
         {
             var lg = (EnaLayer)obj;
             var index = Layers.IndexOf(lg);
-            TheItemChecked?.Invoke(this, new ItemArgs(index,lg.Enable));
+            TheItemChecked?.Invoke(this, new ItemArgs(index, lg.Enable));
         }
-        public event EventHandler TheItemChecked;   
+        public event EventHandler TheItemChecked;
         public event EventHandler<IEnumerable<LayerFilter>> LayerFiltersChanged;
         public ObservableCollection<EnaLayer> Layers
         {
@@ -48,7 +52,7 @@ namespace MachineControlsLibrary.Controls
         public static readonly DependencyProperty LayersProperty =
             DependencyProperty.Register("Layers", typeof(ObservableCollection<EnaLayer>), typeof(GraphEditorMenu), new PropertyMetadata(null));
 
-       
+
         public Brush SelectedColor
         {
             get { return (Brush)GetValue(SelectedColorProperty); }

@@ -213,6 +213,56 @@ namespace MachineControlsLibrary.Controls
             DependencyProperty.Register("Shapes", typeof(ObservableCollection<GeometryCollection>),
                 typeof(SpecimenWindow), new PropertyMetadata(null, new PropertyChangedCallback(myFunc)));
 
+
+
+
+        public double MirrorX
+        {
+            get { return (double)GetValue(MirrorXProperty); }
+            set { SetValue(MirrorXProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for MirrorX.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty MirrorXProperty =
+            DependencyProperty.Register("MirrorX", typeof(double), typeof(SpecimenWindow), new PropertyMetadata((double)1));
+
+
+
+        public double Angle
+        {
+            get { return (double)GetValue(AngleProperty); }
+            set { SetValue(AngleProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for Angle.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty AngleProperty =
+            DependencyProperty.Register("Angle", typeof(double), typeof(SpecimenWindow), new PropertyMetadata((double)0));
+
+
+
+        public double OffsetX
+        {
+            get { return (double)GetValue(OffsetXProperty); }
+            set { SetValue(OffsetXProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for OffsetX.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty OffsetXProperty =
+            DependencyProperty.Register("OffsetX", typeof(double), typeof(SpecimenWindow), new PropertyMetadata((double)0));
+
+
+
+        public double OffsetY
+        {
+            get { return (double)GetValue(OffsetYProperty); }
+            set { SetValue(OffsetYProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for OffsetY.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty OffsetYProperty =
+            DependencyProperty.Register("OffsetY", typeof(double), typeof(SpecimenWindow), new PropertyMetadata((double)0));
+
+
         private static void myFunc(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
            

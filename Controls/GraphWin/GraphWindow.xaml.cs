@@ -254,7 +254,51 @@ namespace MachineControlsLibrary.Controls
         public static readonly DependencyProperty SpecSizeYProperty =
             DependencyProperty.Register("SpecSizeY", typeof(double), typeof(GraphWindow), new PropertyMetadata((double)1));
 
+        public bool MirrorX
+        {
+            get { return (bool)GetValue(MirrorXProperty); }
+            set { SetValue(MirrorXProperty, value); }
+        }
 
+        // Using a DependencyProperty as the backing store for MirrorX.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty MirrorXProperty =
+            DependencyProperty.Register("MirrorX", typeof(bool), typeof(GraphWindow), new PropertyMetadata(false));
+
+
+
+        public bool Angle90
+        {
+            get { return (bool)GetValue(Angle90Property); }
+            set { SetValue(Angle90Property, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for Angle.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty Angle90Property =
+            DependencyProperty.Register("Angle90", typeof(bool), typeof(GraphWindow), new PropertyMetadata(false));
+
+
+
+        public double OffsetX
+        {
+            get { return (double)GetValue(OffsetXProperty); }
+            set { SetValue(OffsetXProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for OffsetX.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty OffsetXProperty =
+            DependencyProperty.Register("OffsetX", typeof(double), typeof(GraphWindow), new PropertyMetadata((double)0));
+
+
+
+        public double OffsetY
+        {
+            get { return (double)GetValue(OffsetYProperty); }
+            set { SetValue(OffsetYProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for OffsetY.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty OffsetYProperty =
+            DependencyProperty.Register("OffsetY", typeof(double), typeof(GraphWindow), new PropertyMetadata((double)0));
 
         private void GraphEditorMenu_TheItemChecked(object sender, EventArgs e)
         {
@@ -348,6 +392,16 @@ namespace MachineControlsLibrary.Controls
             {
                 throw new NotImplementedException();
             }
+        }
+
+        private void MyMenu_Rotate90Changed()
+        {
+            Angle90 ^= true;
+        }
+
+        private void MyMenu_MirrorXChanged()
+        {
+            MirrorX ^= true;
         }
     }
 }

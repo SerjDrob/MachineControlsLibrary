@@ -9,7 +9,7 @@
              >
 
     <Grid x:Name="SpecWin">
-        <Canvas  Background="Transparent" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        <Canvas  Background="Transparent" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" RenderTransformOrigin="0.5 0.5">
             <Canvas.Resources>
                 <converters:ShapeScalingConverter x:Key="ShapeScalingConverter"/>
                 <converters:TestConverter x:Key="TestConverter"/>
@@ -34,14 +34,22 @@
                                                     <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.YProportion"/>
                                                     <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.AutoProportion"/>
                                                 </MultiBinding>
-                                            </GeometryGroup.Children>
+                                            </GeometryGroup.Children>                                            
                                         </GeometryGroup>
-                                    </Path.Data>
+                                    </Path.Data>                                
                                 </Path>
+                            
                             </Canvas> 
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
-            </ItemsControl>
+            </ItemsControl>           
+            <Canvas.RenderTransform>
+                <TransformGroup>
+                    <RotateTransform Angle="{Binding Angle}"/>
+                    <ScaleTransform ScaleX="{Binding MirrorX}" ScaleY="-1"/>
+                    <TranslateTransform X="{Binding OffsetX}" Y="{Binding OffsetY}"/>
+                </TransformGroup>
+            </Canvas.RenderTransform>
         </Canvas>        
     </Grid>
 </UserControl>

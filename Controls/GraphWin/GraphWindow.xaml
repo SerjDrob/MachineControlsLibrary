@@ -5,28 +5,30 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:MachineControlsLibrary.Controls"
              mc:Ignorable="d"
-             xmlns:converters ="clr-namespace:MachineControlsLibrary.Converters"             
+             xmlns:converters ="clr-namespace:MachineControlsLibrary.Converters" 
+             xmlns:cnvr="clr-namespace:MachineControlsLibrary.Controls.GraphWin"
              x:Name="GraphWin"
              >
     <UserControl.Resources>
         <converters:LgToElConverter x:Key="LgToElConverter"/>
+        <cnvr:BoolMirrorConverter x:Key="BoolMirrorConverter"/>
+        <cnvr:BoolAngleConverter x:Key="BoolAngleConverter"/>
     </UserControl.Resources>
     <UserControl.ContentTemplate>
         <DataTemplate>
             <Grid DataContext="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=UserControl}, Path=DataContext}">
-                <!--<Grid.RowDefinitions>
-                    <RowDefinition Height="auto"/>
-                    <RowDefinition/>
-                </Grid.RowDefinitions>-->
+                
                 <local:GraphEditorMenu x:Name="MyMenu"                                       
-                                       TheItemChecked="GraphEditorMenu_TheItemChecked"                                
+                                       TheItemChecked="GraphEditorMenu_TheItemChecked" 
+                                       Rotate90Changed="MyMenu_Rotate90Changed"
+                                       MirrorXChanged="MyMenu_MirrorXChanged"
                                        Layers="{Binding LayGeoms, Converter={StaticResource LgToElConverter}}" 
                                        LayerFiltersChanged="MyMenu_LayerFiltersChanged"                                
                                        VerticalAlignment="Top"
                                        SelectedColor="{Binding ElementName=GraphWin, Path=SelectedColor}"
                                        Panel.ZIndex="1"
                                        />
-                <Grid >
+                <Grid>
                     <local:SpecimenWindow     
                                       HorizontalAlignment="Stretch"
                                       VerticalAlignment="Stretch"
@@ -36,11 +38,13 @@
                                       SpecSizeY="{Binding ElementName=GraphWin, Path=SpecSizeY}"
                                       StrokeThickness="{Binding ElementName=GraphWin, Path=StrokeThickness}"                           
                                       RenderTransformOrigin="0.5,0.5"     
-                                      Background="{Binding ElementName=MyMenu, Path=SelectedColor}"                     
+                                      Background="{Binding ElementName=MyMenu, Path=SelectedColor}"  
+                                      Angle="{Binding Angle90, Converter={StaticResource BoolAngleConverter}}"
+                                      MirrorX="{Binding MirrorX, Converter={StaticResource BoolMirrorConverter}}"
+                                      OffsetX="{Binding OffsetX}"
+                                      OffsetY="{Binding OffsetY}"
                                       >
-                        <local:SpecimenWindow.RenderTransform>
-                            <ScaleTransform ScaleX="1" ScaleY="-1"/>
-                        </local:SpecimenWindow.RenderTransform>
+                        
                     </local:SpecimenWindow>
                     
                     <ContentPresenter Content="{TemplateBinding Content}"/>
