@@ -16,21 +16,23 @@ namespace MachineControlsLibrary.Converters
         {
             double width = 1;
             double height = 1;
-            double sizex = width;
-            double sizey = height;
+            double fieldSizeX = width;
+            double fieldSizeY = height;
+            double specSizeX = 0;
+            double specSizeY = 0;
             double margin = 0;
             bool xProportion;
             bool yProportion;
             bool autoProportion;
             var ScaledShapes = new GeometryCollection();
-            if (values.Length == 9)
+            if (values.Length  >= 9)
             {
                 try
                 {
                     width = (double)values[1];
                     height = (double)values[2];
-                    sizex = (double)values[3];
-                    sizey = (double)values[4];
+                    fieldSizeX = (double)values[3];
+                    fieldSizeY = (double)values[4];
                     margin = (double)values[5];
                     if (margin > 1)
                     {
@@ -39,6 +41,8 @@ namespace MachineControlsLibrary.Converters
                     xProportion = (bool)values[6];
                     yProportion = (bool)values[7];
                     autoProportion = (bool)values[8];
+                    specSizeX = (double)values[9];
+                    specSizeY = (double)values[10];
                     ScaledShapes = (GeometryCollection)values[0];
                 }
                 catch (Exception)
@@ -51,17 +55,27 @@ namespace MachineControlsLibrary.Converters
                 var scaley = (double)0; //((height - 2 * margin * width) / sizey);
                 var marginx = (double)0;
                 var marginy = (double)0;
-
-                var calc = new ScaleCalc(width, height, sizex, sizey, margin, xProportion, yProportion, autoProportion);
+                GeometryCollection geometries;
+                var calc = new ScaleCalc(width, height, fieldSizeX, fieldSizeY, margin, xProportion, yProportion, autoProportion, specSizeX, specSizeY);
                 calc.Calc(out scalex, out scaley, out marginx, out marginy);
 
                 foreach (var item in ScaledShapes)
                 {
-                    var scaleTrans = new ScaleTransform(scalex, scaley);
-                    var translateTrans = new TranslateTransform(marginx, marginy);
+                    //var scaleTrans = new ScaleTransform(scalex, scaley);
+                    //var translateTrans = new TranslateTransform(marginx, marginy);
+                    //var transGroup = new TransformGroup();
+                    //transGroup.Children.Add(scaleTrans);
+                    //transGroup.Children.Add(translateTrans);
+                    //item.Transform = transGroup;
+
+                    var scaleTrans = new ScaleTransform(scalex, scaley);                    
+                    var translateTrans1 = new TranslateTransform(-specSizeX/2, -specSizeY/2);
+                    var translateTrans2 = new TranslateTransform(width/2, height/2);
+
                     var transGroup = new TransformGroup();
+                    transGroup.Children.Add(translateTrans1);
                     transGroup.Children.Add(scaleTrans);
-                    transGroup.Children.Add(translateTrans);
+                    transGroup.Children.Add(translateTrans2);
                     item.Transform = transGroup;
                 }
             }

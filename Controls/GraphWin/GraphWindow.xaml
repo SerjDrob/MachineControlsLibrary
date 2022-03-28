@@ -16,9 +16,10 @@
     </UserControl.Resources>
     <UserControl.ContentTemplate>
         <DataTemplate>
-            <Grid DataContext="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=UserControl}, Path=DataContext}">
+            <DockPanel DataContext="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=UserControl}, Path=DataContext}">
                 
-                <local:GraphEditorMenu x:Name="MyMenu"                                       
+                <local:GraphEditorMenu x:Name="MyMenu"
+                                       DockPanel.Dock="Top"
                                        TheItemChecked="GraphEditorMenu_TheItemChecked" 
                                        Rotate90Changed="MyMenu_Rotate90Changed"
                                        MirrorXChanged="MyMenu_MirrorXChanged"
@@ -28,29 +29,31 @@
                                        SelectedColor="{Binding ElementName=GraphWin, Path=SelectedColor}"
                                        Panel.ZIndex="1"
                                        />
-                <Grid>
-                    <local:SpecimenWindow     
+                <Grid ClipToBounds="True">
+                        <local:SpecimenWindow  
+                        
                                       HorizontalAlignment="Stretch"
                                       VerticalAlignment="Stretch"
                                       LayGeoms="{Binding LayGeoms}"                            
                                       SpecMargin="{Binding ElementName=GraphWin, Path=SpecMargin}" 
                                       SpecSizeX="{Binding ElementName=GraphWin, Path=SpecSizeX}"
                                       SpecSizeY="{Binding ElementName=GraphWin, Path=SpecSizeY}"
+                                      FieldSizeX="{Binding ElementName=GraphWin, Path=FieldSizeX}"
+                                      FieldSizeY="{Binding ElementName=GraphWin, Path=FieldSizeY}"
                                       StrokeThickness="{Binding ElementName=GraphWin, Path=StrokeThickness}"                           
                                       RenderTransformOrigin="0.5,0.5"     
                                       Background="{Binding ElementName=MyMenu, Path=SelectedColor}"  
-                                      Angle="{Binding Angle90, Converter={StaticResource BoolAngleConverter}}"
-                                      MirrorX="{Binding MirrorX, Converter={StaticResource BoolMirrorConverter}}"
+                                      Angle="{Binding Angle90, Mode=TwoWay, Converter={StaticResource BoolAngleConverter}}"
+                                      MirrorX="{Binding MirrorX, Mode=TwoWay, Converter={StaticResource BoolMirrorConverter}}"
                                       OffsetX="{Binding OffsetX}"
                                       OffsetY="{Binding OffsetY}"
                                       >
-                        
-                    </local:SpecimenWindow>
-                    
-                    <ContentPresenter Content="{TemplateBinding Content}"/>
+
+                        </local:SpecimenWindow>
+                    <ContentPresenter Content="{TemplateBinding Content}" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
                    
                 </Grid>
-            </Grid>
+            </DockPanel>
         </DataTemplate>
     </UserControl.ContentTemplate>
 </UserControl>

@@ -1,24 +1,13 @@
 ﻿using MachineControlsLibrary.Classes;
 using MachineControlsLibrary.Converters;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace MachineControlsLibrary.Controls
-{    
-       
+{
+
 
     /// <summary>
     /// Interaction logic for SpecimenWindow.xaml
@@ -26,12 +15,12 @@ namespace MachineControlsLibrary.Controls
     public partial class SpecimenWindow : UserControl
     {
         public SpecimenWindow()
-        {           
-            InitializeComponent();            
+        {
+            InitializeComponent();
             SpecWin.DataContext = this;
-            
+
         }
-              
+
 
         private double _scalex;
         private double _scaley;
@@ -53,20 +42,20 @@ namespace MachineControlsLibrary.Controls
 
         private static void MyCallBack(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-           
+
         }
 
-        protected override void OnRender(DrawingContext drawingContext)
-        {
-            base.OnRender(drawingContext);
-            var calc = new ScaleCalc(SpecWin.ActualWidth, SpecWin.ActualHeight, SpecSizeX, SpecSizeY, SpecMargin, XProportion, YProportion, AutoProportion);
-            calc.Calc(out _scalex, out _scaley, out _marginx, out _marginy);
-            ScaleX = _scalex;
-            ScaleY = _scaley;
-            MarginX = _marginx;
-            MarginY = _marginy;
-            
-        }
+        //protected override void OnRender(DrawingContext drawingContext)
+        //{
+        //    base.OnRender(drawingContext);
+        //    var calc = new ScaleCalc(SpecWin.ActualWidth, SpecWin.ActualHeight, SpecSizeX, SpecSizeY, SpecMargin, XProportion, YProportion, AutoProportion);
+        //    calc.Calc(out _scalex, out _scaley, out _marginx, out _marginy);
+        //    ScaleX = _scalex;
+        //    ScaleY = _scaley;
+        //    MarginX = _marginx;
+        //    MarginY = _marginy;
+
+        //}
 
 
 
@@ -107,7 +96,9 @@ namespace MachineControlsLibrary.Controls
         public double ScaleX
         {
             get { return (double)GetValue(ScaleXProperty); }
-            protected set { SetValue(ScaleXProperty, value);
+            protected set
+            {
+                SetValue(ScaleXProperty, value);
             }
         }
 
@@ -200,7 +191,26 @@ namespace MachineControlsLibrary.Controls
         public static readonly DependencyProperty SpecSizeYProperty =
             DependencyProperty.Register("SpecSizeY", typeof(double), typeof(SpecimenWindow), new PropertyMetadata((double)1));
 
+        public double FieldSizeX
+        {
+            get { return (double)GetValue(FieldSizeXProperty); }
+            set { SetValue(FieldSizeXProperty, value); }
+        }
 
+        // Using a DependencyProperty as the backing store for FieldSizeX.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty FieldSizeXProperty =
+            DependencyProperty.Register("FieldSizeX", typeof(double), typeof(SpecimenWindow), new PropertyMetadata((double)1));
+
+
+        public double FieldSizeY
+        {
+            get { return (double)GetValue(FieldSizeYProperty); }
+            set { SetValue(FieldSizeYProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for SpecSizeY.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty FieldSizeYProperty =
+            DependencyProperty.Register("FieldSizeY", typeof(double), typeof(SpecimenWindow), new PropertyMetadata((double)1));
 
         public ObservableCollection<GeometryCollection> Shapes
         {
@@ -265,7 +275,7 @@ namespace MachineControlsLibrary.Controls
 
         private static void myFunc(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-           
+
         }
     }
 }

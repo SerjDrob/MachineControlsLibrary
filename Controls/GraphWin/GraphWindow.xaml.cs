@@ -31,6 +31,7 @@ namespace MachineControlsLibrary.Controls
         {
             InitializeComponent();            
             GraphWin.DataContext = this;
+            DefaultStyleKey = typeof(GraphWindow);
         }
         private double _scalex;
         private double _scaley;
@@ -113,15 +114,25 @@ namespace MachineControlsLibrary.Controls
         }
 
 
-        protected override void OnRender(DrawingContext drawingContext)
+        //protected override void OnRender(DrawingContext drawingContext)
+        //{
+        //    base.OnRender(drawingContext);
+        //    var calc = new ScaleCalc(GraphWin.ActualWidth, GraphWin.ActualHeight, SpecSizeX, SpecSizeY, SpecMargin, XProportion, YProportion, AutoProportion);
+        //    //calc.Calc(out _scalex, out _scaley, out _marginx, out _marginy);
+        //    //ScaleX = _scalex;
+        //    //ScaleY = _scaley;
+        //    //MarginX = _marginx;
+        //    //MarginY = _marginy;
+        //}
+        protected override Size MeasureOverride(Size constraint)
         {
-            base.OnRender(drawingContext);
-            var calc = new ScaleCalc(GraphWin.ActualWidth, GraphWin.ActualHeight, SpecSizeX, SpecSizeY, SpecMargin, XProportion, YProportion, AutoProportion);
+            var calc = new ScaleCalc(GraphWin.ActualWidth, GraphWin.ActualHeight, FieldSizeX, FieldSizeY, SpecMargin, XProportion, YProportion, AutoProportion, SpecSizeX, SpecSizeY);
             calc.Calc(out _scalex, out _scaley, out _marginx, out _marginy);
             ScaleX = _scalex;
             ScaleY = _scaley;
             MarginX = _marginx;
             MarginY = _marginy;
+            return base.MeasureOverride(constraint);
         }
 
         public double MarginX
@@ -253,6 +264,27 @@ namespace MachineControlsLibrary.Controls
         // Using a DependencyProperty as the backing store for SpecSizeY.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty SpecSizeYProperty =
             DependencyProperty.Register("SpecSizeY", typeof(double), typeof(GraphWindow), new PropertyMetadata((double)1));
+
+        public double FieldSizeX
+        {
+            get { return (double)GetValue(FieldSizeXProperty); }
+            set { SetValue(FieldSizeXProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for FieldSizeX.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty FieldSizeXProperty =
+            DependencyProperty.Register("FieldSizeX", typeof(double), typeof(GraphWindow), new PropertyMetadata((double)1));
+
+
+        public double FieldSizeY
+        {
+            get { return (double)GetValue(FieldSizeYProperty); }
+            set { SetValue(FieldSizeYProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for FieldSizeY.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty FieldSizeYProperty =
+            DependencyProperty.Register("FieldSizeY", typeof(double), typeof(GraphWindow), new PropertyMetadata((double)1));
 
         public bool MirrorX
         {

@@ -14,8 +14,18 @@ namespace MachineControlsLibrary.Converters
             {
                 try
                 {
-                    n = (double)values[0];
-                    m = (double)values[1];
+                    n = values[0] switch
+                    {
+                        double d => d,
+                        int i => i,
+                        float f => f
+                    };
+                    m = values[1] switch
+                    {
+                        double d => d,
+                        int i => i,
+                        float f => f
+                    };
                 }
                 catch (Exception)
                 {
@@ -26,6 +36,20 @@ namespace MachineControlsLibrary.Converters
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+    public class MulParameterConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            var m1 = (double)value;
+            var m2 = (double)parameter;
+            return m1 * m2;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
             throw new NotImplementedException();
         }
