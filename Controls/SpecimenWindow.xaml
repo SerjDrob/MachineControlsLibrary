@@ -35,7 +35,7 @@
                                                     <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.AutoProportion"/>
                                                     <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.SpecSizeX"/>
                                                     <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.SpecSizeY"/>
-                                            </MultiBinding>
+                                                </MultiBinding>
                                             </GeometryGroup.Children>                                            
                                         </GeometryGroup>
                                     </Path.Data>                                

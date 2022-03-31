@@ -37,7 +37,8 @@ namespace MachineControlsLibrary.Controls
         private double _scaley;
         private double _marginx;
         private double _marginy;
-
+        private double _fieldmarginx;
+        private double _fieldmarginy;
 
         public Brush SelectedColor
         {
@@ -114,27 +115,33 @@ namespace MachineControlsLibrary.Controls
         }
 
 
-        //protected override void OnRender(DrawingContext drawingContext)
-        //{
-        //    base.OnRender(drawingContext);
-        //    var calc = new ScaleCalc(GraphWin.ActualWidth, GraphWin.ActualHeight, SpecSizeX, SpecSizeY, SpecMargin, XProportion, YProportion, AutoProportion);
-        //    //calc.Calc(out _scalex, out _scaley, out _marginx, out _marginy);
-        //    //ScaleX = _scalex;
-        //    //ScaleY = _scaley;
-        //    //MarginX = _marginx;
-        //    //MarginY = _marginy;
-        //}
-        protected override Size MeasureOverride(Size constraint)
+        protected override void OnRender(DrawingContext drawingContext)
         {
+            base.OnRender(drawingContext);
             var calc = new ScaleCalc(GraphWin.ActualWidth, GraphWin.ActualHeight, FieldSizeX, FieldSizeY, SpecMargin, XProportion, YProportion, AutoProportion, SpecSizeX, SpecSizeY);
-            calc.Calc(out _scalex, out _scaley, out _marginx, out _marginy);
+            calc.Calc(out _scalex, out _scaley, out _marginx, out _marginy, out _fieldmarginx, out _fieldmarginy);
             ScaleX = _scalex;
             ScaleY = _scaley;
             MarginX = _marginx;
             MarginY = _marginy;
+            FieldMarginX = _fieldmarginx;
+            FieldMarginY = _fieldmarginy;
+        }
+       
+        protected override Size MeasureOverride(Size constraint)
+        {
+            var calc = new ScaleCalc(GraphWin.ActualWidth, GraphWin.ActualHeight, FieldSizeX, FieldSizeY, SpecMargin, XProportion, YProportion, AutoProportion, SpecSizeX, SpecSizeY);
+            calc.Calc(out _scalex, out _scaley, out _marginx, out _marginy, out _fieldmarginx, out _fieldmarginy);
+            ScaleX = _scalex;
+            ScaleY = _scaley;
+            MarginX = _marginx;
+            MarginY = _marginy;
+            FieldMarginX = _fieldmarginx;
+            FieldMarginY = _fieldmarginy;
             return base.MeasureOverride(constraint);
         }
-
+        
+        
         public double MarginX
         {
             get { return (double)GetValue(MarginXProperty); }
@@ -156,7 +163,26 @@ namespace MachineControlsLibrary.Controls
         public static readonly DependencyProperty MarginYProperty =
             DependencyProperty.Register("MarginY", typeof(double), typeof(GraphWindow), new PropertyMetadata((double)0));
 
+        public double FieldMarginX
+        {
+            get { return (double)GetValue(FieldMarginXProperty); }
+            protected set { SetValue(FieldMarginXProperty, value); }
+        }
 
+        // Using a DependencyProperty as the backing store for FieldMarginX.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty FieldMarginXProperty =
+            DependencyProperty.Register("FieldMarginX", typeof(double), typeof(GraphWindow), new PropertyMetadata((double)0));
+
+
+        public double FieldMarginY
+        {
+            get { return (double)GetValue(FieldMarginYProperty); }
+            protected set { SetValue(FieldMarginYProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for FieldMarginY.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty FieldMarginYProperty =
+            DependencyProperty.Register("FieldMarginY", typeof(double), typeof(GraphWindow), new PropertyMetadata((double)0));
 
         public double ScaleY
         {

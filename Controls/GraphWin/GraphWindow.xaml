@@ -30,7 +30,7 @@
                                        Panel.ZIndex="1"
                                        />
                 <Grid ClipToBounds="True">
-                        <local:SpecimenWindow  
+                        <local:SpecimenWindow  x:Name="Specimen"
                         
                                       HorizontalAlignment="Stretch"
                                       VerticalAlignment="Stretch"
@@ -50,8 +50,7 @@
                                       >
 
                         </local:SpecimenWindow>
-                    <ContentPresenter Content="{TemplateBinding Content}" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
-                   
+                        <ContentPresenter Content="{TemplateBinding Content}" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
                 </Grid>
             </DockPanel>
         </DataTemplate>

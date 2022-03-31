@@ -1,6 +1,6 @@
 ﻿namespace MachineControlsLibrary.Converters
 {
-    internal class ScaleCalc
+    public class ScaleCalc
     {
         private readonly double _width;// = 1;
         private readonly double _height;// = 1;
@@ -27,33 +27,33 @@
             _specSizeX = specSizeX;
             _specSizeY = specSizeY;
         }
-        public void Calc(out double scalex, out double scaley, out double marginx, out double marginy)
+        public void Calc(out double scalex, out double scaley, out double marginx, out double marginy, out double fieldmarginx, out double fieldmarginy)
         {
             scalex = (_width - _margin * _width) / _fieldSizeX;
-            scaley = (_height - _margin * _width) / _fieldSizeY;
+            scaley = (_height - _margin * _height) / _fieldSizeY;
             marginx = (double)0;
             marginy = (double)0;
+            fieldmarginx = (double)0;
+            fieldmarginy = (double)0;
             if (_autoProportion & !(_xProportion | _yProportion))
             {
-                //(scalex, scaley) = (_fieldSizeX / _width) > (_fieldSizeY / _height) ? (scalex, scalex) : (scaley, scaley);
-                //(marginx, marginy) = (_fieldSizeX / _width) > (_fieldSizeY / _height) ? (_margin * _width/2, (_height - _fieldSizeY * scaley) / 2) : ((_width - _fieldSizeX * scalex) / 2, _margin * _height/2);
-
                 var selector = (_fieldSizeX / _width) > (_fieldSizeY / _height);
                 (scalex, scaley) = selector ? (scalex, scalex) : (scaley, scaley);
                 (marginx, marginy) = selector ? (_margin * _width / 2, (_height - _specSizeY * scaley) / 2) : ((_width - _specSizeX * scalex) / 2, _margin * _height / 2);
+                (fieldmarginx, fieldmarginy) = selector ? (_margin * _width / 2, (_height - _fieldSizeY * scaley) / 2) : ((_width - _fieldSizeX * scalex) / 2, _margin * _height / 2);
             }
             else if (!_xProportion & _yProportion)
             {
                 if (_xProportion)
                 {
                     (scalex, scaley) = (scalex, scalex);
-                    //(marginx, marginy) = (_margin, (_height - _fieldSizeY * scaley) / 2);
+                    (fieldmarginx, fieldmarginy) = (_margin, (_height - _fieldSizeY * scaley) / 2);
                     (marginx, marginy) = (_margin, (_height - _specSizeY * scaley) / 2);
                 }
                 if (_yProportion)
                 {
                     (scalex, scaley) = (scaley, scaley);
-                    //(marginx, marginy) = ((_width - _fieldSizeX * scalex) / 2, _margin);
+                    (fieldmarginx, fieldmarginy) = ((_width - _fieldSizeX * scalex) / 2, _margin);
                     (marginx, marginy) = ((_width - _specSizeX * scalex) / 2, _margin);
 
                 }
