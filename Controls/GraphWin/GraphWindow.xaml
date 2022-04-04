@@ -13,6 +13,7 @@
         <converters:LgToElConverter x:Key="LgToElConverter"/>
         <cnvr:BoolMirrorConverter x:Key="BoolMirrorConverter"/>
         <cnvr:BoolAngleConverter x:Key="BoolAngleConverter"/>
+        <converters:GetTransformMatrixConverter x:Key="GetMatrixConverter"/>
     </UserControl.Resources>
     <UserControl.ContentTemplate>
         <DataTemplate>
@@ -50,7 +51,29 @@
                                       >
 
                         </local:SpecimenWindow>
-                        <ContentPresenter Content="{TemplateBinding Content}" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
+                    <ContentPresenter x:Name="ContentPresenter" Content="{TemplateBinding Content}" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
+                    <Canvas>
+                        <Rectangle     Height="{Binding ElementName=GraphWin, Path=FieldSizeY}"
+                                       Width="{Binding ElementName=GraphWin, Path=FieldSizeX}"
+                                       Stroke="White"
+                                       StrokeThickness="200"
+                                       StrokeDashArray="5,5,5"
+                                       />
+                        <Canvas.RenderTransform>
+                            <MatrixTransform>
+                                <MatrixTransform.Matrix>
+                                    <MultiBinding Converter="{StaticResource GetMatrixConverter}">
+                                        <Binding ElementName="Specimen" Path="ActualWidth"/>
+                                        <Binding ElementName="Specimen" Path="ActualHeight"/>
+                                        <Binding ElementName="GraphWin" Path="SpecMargin"/>
+                                        <Binding ElementName="GraphWin" Path="FieldSizeX"/>
+                                        <Binding ElementName="GraphWin" Path="FieldSizeY"/>
+                                        <Binding ElementName="GraphWin"  Path="DataContext"/>
+                                    </MultiBinding>
+                                </MatrixTransform.Matrix>                                
+                            </MatrixTransform>
+                        </Canvas.RenderTransform>
+                    </Canvas>
                 </Grid>
             </DockPanel>
         </DataTemplate>

@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Windows.Media;
 
@@ -61,28 +57,27 @@ namespace MachineControlsLibrary.Converters
                 GeometryCollection geometries;
                 var calc = new ScaleCalc(width, height, fieldSizeX, fieldSizeY, margin, xProportion, yProportion, autoProportion, specSizeX, specSizeY);
                 calc.Calc(out scalex, out scaley, out marginx, out marginy, out fieldmarginx, out fieldmarginy);
+                
 
-                foreach (var item in ScaledShapes)
-                {
-                    //var scaleTrans = new ScaleTransform(scalex, scaley);
-                    //var translateTrans = new TranslateTransform(marginx, marginy);
-                    //var transGroup = new TransformGroup();
-                    //transGroup.Children.Add(scaleTrans);
-                    //transGroup.Children.Add(translateTrans);
-                    //item.Transform = transGroup;
+                var scaleTrans = new ScaleTransform(scalex, scaley);
+                var translateTrans1 = new TranslateTransform(-specSizeX / 2, -specSizeY / 2);
+                var translateTrans2 = new TranslateTransform(width / 2, height / 2);
 
-                    var scaleTrans = new ScaleTransform(scalex, scaley);
-                    var translateTrans1 = new TranslateTransform(-specSizeX / 2, -specSizeY / 2);
-                    var translateTrans2 = new TranslateTransform(width / 2, height / 2);
+                var transGroup = new TransformGroup();
+                transGroup.Children.Add(translateTrans1);
+                transGroup.Children.Add(scaleTrans);
+                transGroup.Children.Add(translateTrans2);
+               
+                var points = ScaledShapes.OfType<EllipseGeometry>().Where(e => e.RadiusX == 0 | e.RadiusY == 0).ToList();
+                var crosses = points?.Aggregate(new GeometryCollection(),(acc,p) => new GeometryCollection(acc.Concat(new Geometry[]
+                            {
+                                new LineGeometry(new System.Windows.Point(p.Center.X - 500,p.Center.Y), new System.Windows.Point(p.Center.X+500,p.Center.Y)),
+                                new LineGeometry(new System.Windows.Point(p.Center.X,p.Center.Y - 500), new System.Windows.Point(p.Center.X,p.Center.Y + 500))
+                            })));
+                ScaledShapes = new GeometryCollection(ScaledShapes.Except(points).Concat(crosses).Select(s => { s.Transform = transGroup; return s; }));
 
-                    var transGroup = new TransformGroup();
-                    transGroup.Children.Add(translateTrans1);
-                    transGroup.Children.Add(scaleTrans);
-                    transGroup.Children.Add(translateTrans2);
-                    item.Transform = transGroup;
-                }
             }
-            //ScaledShapes.Freeze();
+           
             return ScaledShapes;
         }
 
@@ -91,6 +86,65 @@ namespace MachineControlsLibrary.Converters
             throw new NotImplementedException();
         }
     }
+
+
+    public class GetTransformMatrixConverter : IMultiValueConverter
+    {
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            double _width = 1;
+            double _height = 1;
+            double _fieldSizeX = _width;
+            double _fieldSizeY = _height;
+            double _margin = 0;
+            double _scale = 1;
+            if (values.Length >= 5)
+            {
+                try
+                {
+                    _width = (double)values[0];
+                    _height = (double)values[1];
+                    _margin = (double)values[2];
+                    _fieldSizeX = (double)values[3];
+                    _fieldSizeY = (double)values[4];
+
+
+                    if (_margin > 1)
+                    {
+                        _margin = 0;
+                    }
+                }
+                catch (Exception)
+                {
+                    return null;
+                }
+                var scalex = (_width - _margin * _width) / _fieldSizeX;
+                var scaley = (_height - _margin * _height) / _fieldSizeY;
+                var selector = (_fieldSizeX / _width) > (_fieldSizeY / _height);
+                _scale = selector ? scalex : scaley;
+            }
+            var scaleTrans = new ScaleTransform(_scale, _scale, _width / 2, _height / 2);
+            var translateTrans2 = new TranslateTransform(_width / 2, _height / 2);
+            var translateTrans0 = new TranslateTransform(-_fieldSizeX / 2, -_fieldSizeY / 2);
+            var transGroup = new TransformGroup();
+
+            transGroup.Children.Add(translateTrans0);
+            transGroup.Children.Add(translateTrans2);
+            transGroup.Children.Add(scaleTrans);
+            var obj = values[5] as Controls.GraphWindow;
+            var marginX = (_width - _scale * _fieldSizeX) / 2;
+            var marginY = (_height - _scale * _fieldSizeY) / 2;
+            obj?.SetMargins(marginX, marginY);
+            obj?.SetScale(_scale, _scale);
+            return transGroup.Value;
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
 
     public class GetScaleConverter : IMultiValueConverter
     {

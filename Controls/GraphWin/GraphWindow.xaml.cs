@@ -115,33 +115,42 @@ namespace MachineControlsLibrary.Controls
         }
 
 
-        protected override void OnRender(DrawingContext drawingContext)
-        {
-            base.OnRender(drawingContext);
-            var calc = new ScaleCalc(GraphWin.ActualWidth, GraphWin.ActualHeight, FieldSizeX, FieldSizeY, SpecMargin, XProportion, YProportion, AutoProportion, SpecSizeX, SpecSizeY);
-            calc.Calc(out _scalex, out _scaley, out _marginx, out _marginy, out _fieldmarginx, out _fieldmarginy);
-            ScaleX = _scalex;
-            ScaleY = _scaley;
-            MarginX = _marginx;
-            MarginY = _marginy;
-            FieldMarginX = _fieldmarginx;
-            FieldMarginY = _fieldmarginy;
-        }
+        //protected override void OnRender(DrawingContext drawingContext)
+        //{
+        //    base.OnRender(drawingContext);
+        //    var calc = new ScaleCalc(GraphWin.ActualWidth, GraphWin.ActualHeight, FieldSizeX, FieldSizeY, SpecMargin, XProportion, YProportion, AutoProportion, SpecSizeX, SpecSizeY);
+        //    calc.Calc(out _scalex, out _scaley, out _marginx, out _marginy, out _fieldmarginx, out _fieldmarginy);
+        //    ScaleX = _scalex;
+        //    ScaleY = _scaley;
+        //    MarginX = _marginx;
+        //    MarginY = _marginy;
+        //    FieldMarginX = _fieldmarginx;
+        //    FieldMarginY = _fieldmarginy;
+        //}
        
-        protected override Size MeasureOverride(Size constraint)
+        //protected override Size MeasureOverride(Size constraint)
+        //{
+        //    var calc = new ScaleCalc(GraphWin.ActualWidth, GraphWin.ActualHeight, FieldSizeX, FieldSizeY, SpecMargin, XProportion, YProportion, AutoProportion, SpecSizeX, SpecSizeY);
+        //    calc.Calc(out _scalex, out _scaley, out _marginx, out _marginy, out _fieldmarginx, out _fieldmarginy);
+        //    ScaleX = _scalex;
+        //    ScaleY = _scaley;
+        //    MarginX = _marginx;
+        //    MarginY = _marginy;
+        //    FieldMarginX = _fieldmarginx;
+        //    FieldMarginY = _fieldmarginy;
+        //    return base.MeasureOverride(constraint);
+        //}
+        
+        public void SetScale(double scaleX, double scaleY)
         {
-            var calc = new ScaleCalc(GraphWin.ActualWidth, GraphWin.ActualHeight, FieldSizeX, FieldSizeY, SpecMargin, XProportion, YProportion, AutoProportion, SpecSizeX, SpecSizeY);
-            calc.Calc(out _scalex, out _scaley, out _marginx, out _marginy, out _fieldmarginx, out _fieldmarginy);
-            ScaleX = _scalex;
-            ScaleY = _scaley;
-            MarginX = _marginx;
-            MarginY = _marginy;
-            FieldMarginX = _fieldmarginx;
-            FieldMarginY = _fieldmarginy;
-            return base.MeasureOverride(constraint);
+            ScaleX = scaleX;
+            ScaleY = scaleY;
         }
-        
-        
+        public void SetMargins(double marginX, double marginY)
+        {
+            MarginX = marginX;
+            MarginY = marginY;
+        }
         public double MarginX
         {
             get { return (double)GetValue(MarginXProperty); }

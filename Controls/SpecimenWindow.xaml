@@ -25,8 +25,8 @@
                                             <GeometryGroup.Children>
                                                 <MultiBinding Converter="{StaticResource ShapeScalingConverter}">
                                                     <Binding Path="Geometries"/>
-                                                    <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="ActualWidth"/>
-                                                    <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="ActualHeight"/>
+                                                    <Binding ElementName="SpecWin" Path="ActualWidth"/>
+                                                    <Binding ElementName="SpecWin" Path="ActualHeight"/>
                                                     <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.FieldSizeX"/>
                                                     <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.FieldSizeY"/>
                                                     <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.SpecMargin"/>
