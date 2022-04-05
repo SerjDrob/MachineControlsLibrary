@@ -54,11 +54,11 @@
         <MenuItem Header="Настройки">
             <local:EditorSettings FiltersChanged="EditorSettings_FiltersChanged"/>
         </MenuItem>
-        <Button Command="{Binding ToRotate90Command}" Width="24">
-            <Image Source="Sources/rotate.png" Height="20"/>
+        <Button Command="{Binding ToRotate90Command}">
+            <Image Source="Sources/rotate.png"/>
         </Button>
-        <Button Command="{Binding ToMirrorXCommand}" Width="24">
-            <Image Source="Sources/flipvert.png" Height="20"/>
+        <Button Command="{Binding ToMirrorXCommand}">
+            <Image Source="Sources/flipvert.png"/>
         </Button>
     </Menu>
 </UserControl>

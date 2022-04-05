@@ -83,12 +83,18 @@
                                 <i:ControlStoryboardAction Storyboard="{StaticResource DisappearingPointer}"/>
                             </i:DataTrigger>
                         </i:Interaction.Triggers>
-                        <Rectangle     Height="{Binding ElementName=GraphWin, Path=FieldSizeY}"
-                                       Width="{Binding ElementName=GraphWin, Path=FieldSizeX}"
+                        <Grid Height="{Binding ElementName=GraphWin, Path=FieldSizeY}"
+                                       Width="{Binding ElementName=GraphWin, Path=FieldSizeX}">
+                            <Rectangle HorizontalAlignment="Stretch"
+                                       VerticalAlignment="Stretch"
                                        Stroke="White"
                                        StrokeThickness="200"
                                        StrokeDashArray="5,5,5"
                                        />
+                            <Button Background="Red" Width="5000" Height="5000" HorizontalAlignment="Left" VerticalAlignment="Bottom"/>
+                            <Path Stroke="Yellow" StrokeThickness="2000" Fill="Gray"
+      Data="M -200,-3000 V 6000" VerticalAlignment="Center" HorizontalAlignment="Left" />
+                        </Grid>
                         <Ellipse x:Name="Pointer"
                                  Width="{Binding PointerDiameter}"
                                  Height="{Binding PointerDiameter}"
