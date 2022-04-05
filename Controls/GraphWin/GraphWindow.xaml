@@ -7,6 +7,7 @@
              mc:Ignorable="d"
              xmlns:converters ="clr-namespace:MachineControlsLibrary.Converters" 
              xmlns:cnvr="clr-namespace:MachineControlsLibrary.Controls.GraphWin"
+             xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
              x:Name="GraphWin"
              >
     <UserControl.Resources>
@@ -14,11 +15,11 @@
         <cnvr:BoolMirrorConverter x:Key="BoolMirrorConverter"/>
         <cnvr:BoolAngleConverter x:Key="BoolAngleConverter"/>
         <converters:GetTransformMatrixConverter x:Key="GetMatrixConverter"/>
-    </UserControl.Resources>
+        <converters:DivideConverter x:Key="DivideConverter"/>        
+    </UserControl.Resources>    
     <UserControl.ContentTemplate>
         <DataTemplate>
-            <DockPanel DataContext="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=UserControl}, Path=DataContext}">
-                
+            <DockPanel DataContext="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=UserControl}, Path=DataContext}">                
                 <local:GraphEditorMenu x:Name="MyMenu"
                                        DockPanel.Dock="Top"
                                        TheItemChecked="GraphEditorMenu_TheItemChecked" 
@@ -53,12 +54,57 @@
                         </local:SpecimenWindow>
                     <ContentPresenter x:Name="ContentPresenter" Content="{TemplateBinding Content}" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
                     <Canvas>
+                        <Canvas.Resources>
+                            <Storyboard x:Key="BlinkingPointer">
+                                <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Pointer"
+                                           Storyboard.TargetProperty="Visibility"                                           
+                                           Duration="0:0:1" 
+                                           RepeatBehavior="Forever" 
+                                           >
+                                    <ObjectAnimationUsingKeyFrames.KeyFrames>
+                                        <DiscreteObjectKeyFrame KeyTime="0:0:0.8" Value="{x:Static Visibility.Visible}"/>
+                                    </ObjectAnimationUsingKeyFrames.KeyFrames>
+                                </ObjectAnimationUsingKeyFrames>
+                            </Storyboard>
+                            <Storyboard x:Key="DisappearingPointer">
+                                <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Pointer"
+                                           Storyboard.TargetProperty="Visibility">
+                                    <ObjectAnimationUsingKeyFrames.KeyFrames>
+                                        <DiscreteObjectKeyFrame Value="{x:Static Visibility.Hidden}"/>
+                                    </ObjectAnimationUsingKeyFrames.KeyFrames>
+                                </ObjectAnimationUsingKeyFrames>
+                            </Storyboard>
+                        </Canvas.Resources>
+                        <i:Interaction.Triggers>
+                            <i:DataTrigger Binding="{Binding ElementName=GraphWin, Path=PointerVisibility}" Value="True">
+                                <i:ControlStoryboardAction Storyboard="{StaticResource BlinkingPointer}"/>
+                            </i:DataTrigger>
+                            <i:DataTrigger Binding="{Binding ElementName=GraphWin, Path=PointerVisibility}" Value="False">
+                                <i:ControlStoryboardAction Storyboard="{StaticResource DisappearingPointer}"/>
+                            </i:DataTrigger>
+                        </i:Interaction.Triggers>
                         <Rectangle     Height="{Binding ElementName=GraphWin, Path=FieldSizeY}"
                                        Width="{Binding ElementName=GraphWin, Path=FieldSizeX}"
                                        Stroke="White"
                                        StrokeThickness="200"
                                        StrokeDashArray="5,5,5"
                                        />
+                        <Ellipse x:Name="Pointer"
+                                 Width="{Binding PointerDiameter}"
+                                 Height="{Binding PointerDiameter}"
+                                 StrokeThickness="{Binding PointerThickness}"
+                                 Stroke="Red"
+                                 Canvas.Left="{Binding PointerX}"
+                                 Canvas.Top="{Binding PointerY}"
+                                 >                            
+                            <Ellipse.RenderTransform>
+                                <TranslateTransform
+                                    X="{Binding PointerDiameter, Converter={StaticResource DivideConverter}, ConverterParameter=-2}"
+                                    Y="{Binding PointerDiameter, Converter={StaticResource DivideConverter}, ConverterParameter=-2}"                                    
+                                    />
+                            </Ellipse.RenderTransform>
+                        </Ellipse>
+                        
                         <Canvas.RenderTransform>
                             <MatrixTransform>
                                 <MatrixTransform.Matrix>

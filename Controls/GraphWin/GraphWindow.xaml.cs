@@ -33,12 +33,12 @@ namespace MachineControlsLibrary.Controls
             GraphWin.DataContext = this;
             DefaultStyleKey = typeof(GraphWindow);
         }
-        private double _scalex;
-        private double _scaley;
-        private double _marginx;
-        private double _marginy;
-        private double _fieldmarginx;
-        private double _fieldmarginy;
+        //private double _scalex;
+        //private double _scaley;
+        //private double _marginx;
+        //private double _marginy;
+        //private double _fieldmarginx;
+        //private double _fieldmarginy;
 
         public Brush SelectedColor
         {
@@ -127,7 +127,7 @@ namespace MachineControlsLibrary.Controls
         //    FieldMarginX = _fieldmarginx;
         //    FieldMarginY = _fieldmarginy;
         //}
-       
+
         //protected override Size MeasureOverride(Size constraint)
         //{
         //    var calc = new ScaleCalc(GraphWin.ActualWidth, GraphWin.ActualHeight, FieldSizeX, FieldSizeY, SpecMargin, XProportion, YProportion, AutoProportion, SpecSizeX, SpecSizeY);
@@ -140,7 +140,79 @@ namespace MachineControlsLibrary.Controls
         //    FieldMarginY = _fieldmarginy;
         //    return base.MeasureOverride(constraint);
         //}
-        
+
+
+        //PointerDiameter
+        //PointerThickness
+        //PointerX
+        //PointerY
+
+
+
+
+        public bool PointerVisibility
+        {
+            get { return (bool)GetValue(PointerVisibilityProperty); }
+            set { SetValue(PointerVisibilityProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for PointerVisibility.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty PointerVisibilityProperty =
+            DependencyProperty.Register("PointerVisibility", typeof(bool), typeof(GraphWindow), new PropertyMetadata((bool)false));
+
+
+
+
+        public double PointerDiameter
+        {   
+            get { return (double)GetValue(PointerDiameterProperty); }
+            set { SetValue(PointerDiameterProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for PointerDiameter.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty PointerDiameterProperty =
+            DependencyProperty.Register("PointerDiameter", typeof(double), typeof(GraphWindow), new PropertyMetadata((double)0));
+
+
+
+        public double PointerThickness
+        {   
+            get { return (double)GetValue(PointerThicknessProperty); }
+            set { SetValue(PointerThicknessProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for PointerThickness.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty PointerThicknessProperty =
+            DependencyProperty.Register("PointerThickness", typeof(double), typeof(GraphWindow), new PropertyMetadata((double)0));
+
+
+
+        public double PointerX
+        {
+            get { return (double)GetValue(PointerXProperty); }
+            set { SetValue(PointerXProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for PointerX.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty PointerXProperty =
+            DependencyProperty.Register("PointerX", typeof(double), typeof(GraphWindow), new PropertyMetadata((double)0));
+
+
+
+        public double PointerY
+        {
+            get { return (double)GetValue(PointerYProperty); }
+            set { SetValue(PointerYProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for PointerY.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty PointerYProperty =
+            DependencyProperty.Register("PointerY", typeof(double), typeof(GraphWindow), new PropertyMetadata((double)0));
+
+
+
+
+
         public void SetScale(double scaleX, double scaleY)
         {
             ScaleX = scaleX;
