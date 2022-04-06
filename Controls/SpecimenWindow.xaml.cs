@@ -45,17 +45,30 @@ namespace MachineControlsLibrary.Controls
 
         }
 
-        //protected override void OnRender(DrawingContext drawingContext)
-        //{
-        //    base.OnRender(drawingContext);
-        //    var calc = new ScaleCalc(SpecWin.ActualWidth, SpecWin.ActualHeight, SpecSizeX, SpecSizeY, SpecMargin, XProportion, YProportion, AutoProportion);
-        //    calc.Calc(out _scalex, out _scaley, out _marginx, out _marginy);
-        //    ScaleX = _scalex;
-        //    ScaleY = _scaley;
-        //    MarginX = _marginx;
-        //    MarginY = _marginy;
+        protected override void OnRender(DrawingContext drawingContext)
+        {
+            base.OnRender(drawingContext);
+            //var calc = new ScaleCalc(SpecWin.ActualWidth, SpecWin.ActualHeight, SpecSizeX, SpecSizeY, SpecMargin, XProportion, YProportion, AutoProportion);
+            //calc.Calc(out _scalex, out _scaley, out _marginx, out _marginy);
+            //ScaleX = _scalex;
+            //ScaleY = _scaley;
+            //MarginX = _marginx;
+            //MarginY = _marginy;
+            IsVisible = true;
 
-        //}
+        }
+
+
+
+        public bool IsVisible
+        {
+            get { return (bool)GetValue(IsVisibleProperty); }
+            set { SetValue(IsVisibleProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for IsVisible.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty IsVisibleProperty =
+            DependencyProperty.Register("IsVisible", typeof(bool), typeof(SpecimenWindow), new PropertyMetadata(false));
 
 
 

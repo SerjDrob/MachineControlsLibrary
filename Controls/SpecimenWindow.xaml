@@ -14,12 +14,13 @@
                 <converters:ShapeScalingConverter x:Key="ShapeScalingConverter"/>
                 <converters:TestConverter x:Key="TestConverter"/>
                 <converters:BoolToVisibleConvereter x:Key="BoolToVisibleConvereter"/>
+                <converters:GetTransformMatrixConverter2 x:Key="GetMatrix2"/>
             </Canvas.Resources>
-            <ItemsControl ItemsSource="{Binding LayGeoms, Mode=OneWay}">
+            <ItemsControl ItemsSource="{Binding LayGeoms, Mode=OneWay}" Visibility="{Binding IsVisible, Converter={StaticResource BoolToVisibleConvereter}}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>                        
                             <Canvas>
-                                <Path Stroke="{Binding Path=LayerColor}" StrokeThickness="{Binding StrokeThickness}" Visibility="{Binding Path=LayerEnable, Converter={StaticResource BoolToVisibleConvereter}}">
+                                <!--<Path Stroke="{Binding Path=LayerColor}" StrokeThickness="{Binding StrokeThickness}" Visibility="{Binding Path=LayerEnable, Converter={StaticResource BoolToVisibleConvereter}}">
                                     <Path.Data>
                                         <GeometryGroup>
                                             <GeometryGroup.Children>
@@ -39,13 +40,94 @@
                                             </GeometryGroup.Children>                                            
                                         </GeometryGroup>
                                     </Path.Data>                                
-                                </Path>                            
-                            </Canvas> 
+                                </Path>-->
+                            <Path Stroke="{Binding Path=LayerColor}" 
+                                  StrokeThickness="1" 
+                                  Visibility="{Binding Path=LayerEnable, 
+                                  Converter={StaticResource BoolToVisibleConvereter}}">
+                                <Path.Data>
+                                    <GeometryGroup Children="{Binding Geometries}">
+                                        <GeometryGroup.Transform>
+                                            <MatrixTransform>
+                                                <MatrixTransform.Matrix>
+                                                    <MultiBinding Converter="{StaticResource GetMatrix2}">
+                                                        <Binding ElementName="SpecWin" Path="ActualWidth"/>
+                                                        <Binding ElementName="SpecWin" Path="ActualHeight"/>
+                                                        <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.FieldSizeX"/>
+                                                        <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.FieldSizeY"/>
+                                                        <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.SpecMargin"/>
+                                                        <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.XProportion"/>
+                                                        <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.YProportion"/>
+                                                        <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.AutoProportion"/>
+                                                        <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.SpecSizeX"/>
+                                                        <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.SpecSizeY"/>
+                                                    </MultiBinding>
+                                                </MatrixTransform.Matrix>
+                                            </MatrixTransform>
+                                        </GeometryGroup.Transform>
+                                    </GeometryGroup>
+                                </Path.Data>
+                                <!--<Path.RenderTransform>
+                                    <MatrixTransform>
+                                        <MatrixTransform.Matrix>
+                                            <MultiBinding Converter="{StaticResource GetMatrix2}">
+                                                <Binding ElementName="SpecWin" Path="ActualWidth"/>
+                                                <Binding ElementName="SpecWin" Path="ActualHeight"/>
+                                                <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.FieldSizeX"/>
+                                                <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.FieldSizeY"/>
+                                                <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.SpecMargin"/>
+                                                <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.XProportion"/>
+                                                <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.YProportion"/>
+                                                <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.AutoProportion"/>
+                                                <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.SpecSizeX"/>
+                                                <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.SpecSizeY"/>
+                                            </MultiBinding>
+                                        </MatrixTransform.Matrix>
+                                    </MatrixTransform>
+                                </Path.RenderTransform>-->
+                            </Path>
+                            <!--<Canvas.RenderTransform>
+                                <TransformGroup>
+                                    <MatrixTransform>
+                                        <MatrixTransform.Matrix>
+                                            <MultiBinding Converter="{StaticResource GetMatrix2}">
+                                                <Binding ElementName="SpecWin" Path="ActualWidth"/>
+                                                <Binding ElementName="SpecWin" Path="ActualHeight"/>
+                                                <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.FieldSizeX"/>
+                                                <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.FieldSizeY"/>
+                                                <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.SpecMargin"/>
+                                                <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.XProportion"/>
+                                                <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.YProportion"/>
+                                                <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.AutoProportion"/>
+                                                <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.SpecSizeX"/>
+                                                <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.SpecSizeY"/>
+                                            </MultiBinding>
+                                        </MatrixTransform.Matrix>
+                                    </MatrixTransform>
+                                </TransformGroup>
+                            </Canvas.RenderTransform>-->
+                        </Canvas> 
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>            
             <Canvas.RenderTransform>
                 <TransformGroup>
+                    <!--<MatrixTransform>
+                        <MatrixTransform.Matrix>
+                            <MultiBinding Converter="{StaticResource GetMatrix2}">
+                                <Binding ElementName="SpecWin" Path="ActualWidth"/>
+                                <Binding ElementName="SpecWin" Path="ActualHeight"/>
+                                <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.FieldSizeX"/>
+                                <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.FieldSizeY"/>
+                                <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.SpecMargin"/>
+                                <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.XProportion"/>
+                                <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.YProportion"/>
+                                <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.AutoProportion"/>
+                                <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.SpecSizeX"/>
+                                <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.SpecSizeY"/>
+                            </MultiBinding>
+                        </MatrixTransform.Matrix>
+                    </MatrixTransform>-->
                     <RotateTransform Angle="{Binding Angle}"/>
                     <ScaleTransform ScaleX="{Binding MirrorX}" ScaleY="-1"/>
                     <TranslateTransform X="{Binding OffsetX}" Y="{Binding OffsetY}"/>
