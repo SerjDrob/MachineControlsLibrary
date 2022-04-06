@@ -57,7 +57,7 @@ namespace MachineControlsLibrary.Converters
                 GeometryCollection geometries;
                 var calc = new ScaleCalc(width, height, fieldSizeX, fieldSizeY, margin, xProportion, yProportion, autoProportion, specSizeX, specSizeY);
                 calc.Calc(out scalex, out scaley, out marginx, out marginy, out fieldmarginx, out fieldmarginy);
-                
+
 
                 var scaleTrans = new ScaleTransform(scalex, scaley);
                 var translateTrans1 = new TranslateTransform(-specSizeX / 2, -specSizeY / 2);
@@ -67,17 +67,17 @@ namespace MachineControlsLibrary.Converters
                 transGroup.Children.Add(translateTrans1);
                 transGroup.Children.Add(scaleTrans);
                 transGroup.Children.Add(translateTrans2);
-               
+
                 var points = ScaledShapes.OfType<EllipseGeometry>().Where(e => e.RadiusX == 0 | e.RadiusY == 0).ToList();
-                var crosses = points?.Aggregate(new GeometryCollection(),(acc,p) => new GeometryCollection(acc.Concat(new Geometry[]
-                            {
+                var crosses = points?.Aggregate(new GeometryCollection(), (acc, p) => new GeometryCollection(acc.Concat(new Geometry[]
+                             {
                                 new LineGeometry(new System.Windows.Point(p.Center.X - 500,p.Center.Y), new System.Windows.Point(p.Center.X+500,p.Center.Y)),
                                 new LineGeometry(new System.Windows.Point(p.Center.X,p.Center.Y - 500), new System.Windows.Point(p.Center.X,p.Center.Y + 500))
-                            })));
+                             })));
                 ScaledShapes = new GeometryCollection(ScaledShapes.Except(points).Concat(crosses).Select(s => { s.Transform = transGroup; return s; }));
 
             }
-           
+
             return ScaledShapes;
         }
 
@@ -92,38 +92,35 @@ namespace MachineControlsLibrary.Converters
     {
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            double _width = 1;
-            double _height = 1;
-            double _fieldSizeX = _width;
-            double _fieldSizeY = _height;
-            double _margin = 0;
-            double _scale = 1;
-            if (values.Length >= 5)
+            
+            double _offsetX = 0;
+            double _offsetY = 0;
+            bool _mirrorX = false;
+            bool _angle90 = false;
+
+
+            double _width = values[0] is double ? (double)values[0] : 1;
+            double _height = values[1] is double ? (double)values[1] : 1;
+            double _margin = values[2] is double ? (double)values[2] : 0;
+            double _fieldSizeX = values[3] is double ? (double)values[3] : 1;
+            double _fieldSizeY = values[4] is double ? (double)values[4] : 1;
+
+            if (values.Length > 6)
             {
-                try
-                {
-                    _width = (double)values[0];
-                    _height = (double)values[1];
-                    _margin = (double)values[2];
-                    _fieldSizeX = (double)values[3];
-                    _fieldSizeY = (double)values[4];
-
-
-                    if (_margin > 1)
-                    {
-                        _margin = 0;
-                    }
-                }
-                catch (Exception)
-                {
-                    return null;
-                }
-                var scalex = (_width - _margin * _width) / _fieldSizeX;
-                var scaley = (_height - _margin * _height) / _fieldSizeY;
-                var selector = (_fieldSizeX / _width) > (_fieldSizeY / _height);
-                _scale = selector ? scalex : scaley;
+                _mirrorX = values[6] is bool ? (bool)values[6] : false;
+                _offsetX = values[7] is double ? (double)values[7] : 0;
+                _offsetY = values[8] is double ? (double)values[8] : 0;
+                _angle90 = values[9] is bool ? (bool)values[9] : false;
             }
-            var scaleTrans = new ScaleTransform(_scale, _scale, _width / 2, _height / 2);
+
+            
+            var scalex = (_width - _margin * _width) / _fieldSizeX;
+            var scaley = (_height - _margin * _height) / _fieldSizeY;
+            var selector = (_fieldSizeX / _width) > (_fieldSizeY / _height);
+            var _scale = selector ? scalex : scaley;
+
+            var scaleTrans = new ScaleTransform(_scale * (_mirrorX ? -1 : 1), _scale, _width / 2, _height / 2);
+            var rotateTransform = new RotateTransform(_angle90 ? 90 : 0, _width / 2, _height / 2);
             var translateTrans2 = new TranslateTransform(_width / 2, _height / 2);
             var translateTrans0 = new TranslateTransform(-_fieldSizeX / 2, -_fieldSizeY / 2);
             var transGroup = new TransformGroup();
@@ -131,9 +128,10 @@ namespace MachineControlsLibrary.Converters
             transGroup.Children.Add(translateTrans0);
             transGroup.Children.Add(translateTrans2);
             transGroup.Children.Add(scaleTrans);
+            transGroup.Children.Add(rotateTransform);            
+            var marginX = _offsetX + (_width - _scale * _fieldSizeX) / 2;
+            var marginY = _offsetY + (_height - _scale * _fieldSizeY) / 2;
             var obj = values[5] as Controls.GraphWindow;
-            var marginX = (_width - _scale * _fieldSizeX) / 2;
-            var marginY = (_height - _scale * _fieldSizeY) / 2;
             obj?.SetMargins(marginX, marginY);
             obj?.SetScale(_scale, _scale);
             return transGroup.Value;

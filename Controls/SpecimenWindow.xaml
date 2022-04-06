@@ -43,7 +43,7 @@
                             </Canvas> 
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
-            </ItemsControl>           
+            </ItemsControl>            
             <Canvas.RenderTransform>
                 <TransformGroup>
                     <RotateTransform Angle="{Binding Angle}"/>

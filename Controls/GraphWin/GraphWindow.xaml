@@ -32,8 +32,7 @@
                                        Panel.ZIndex="1"
                                        />
                 <Grid ClipToBounds="True">
-                        <local:SpecimenWindow  x:Name="Specimen"
-                        
+                        <local:SpecimenWindow  x:Name="Specimen"                        
                                       HorizontalAlignment="Stretch"
                                       VerticalAlignment="Stretch"
                                       LayGeoms="{Binding LayGeoms}"                            
@@ -82,19 +81,7 @@
                             <i:DataTrigger Binding="{Binding ElementName=GraphWin, Path=PointerVisibility}" Value="False">
                                 <i:ControlStoryboardAction Storyboard="{StaticResource DisappearingPointer}"/>
                             </i:DataTrigger>
-                        </i:Interaction.Triggers>
-                        <Grid Height="{Binding ElementName=GraphWin, Path=FieldSizeY}"
-                                       Width="{Binding ElementName=GraphWin, Path=FieldSizeX}">
-                            <Rectangle HorizontalAlignment="Stretch"
-                                       VerticalAlignment="Stretch"
-                                       Stroke="White"
-                                       StrokeThickness="200"
-                                       StrokeDashArray="5,5,5"
-                                       />
-                            <Button Background="Red" Width="5000" Height="5000" HorizontalAlignment="Left" VerticalAlignment="Bottom"/>
-                            <Path Stroke="Yellow" StrokeThickness="2000" Fill="Gray"
-      Data="M -200,-3000 V 6000" VerticalAlignment="Center" HorizontalAlignment="Left" />
-                        </Grid>
+                        </i:Interaction.Triggers>                        
                         <Ellipse x:Name="Pointer"
                                  Width="{Binding PointerDiameter}"
                                  Height="{Binding PointerDiameter}"
@@ -110,7 +97,66 @@
                                     />
                             </Ellipse.RenderTransform>
                         </Ellipse>
-                        
+                        <!--<Ellipse 
+                                 Width="2000"
+                                 Height="2000"
+                                 StrokeThickness="200"
+                                 Stroke="GreenYellow"
+                                 Canvas.Left="1000"
+                                 Canvas.Top="1000"
+                                 >
+                            <Ellipse.RenderTransform>
+                                <TranslateTransform
+                                    X="-1000"
+                                    Y="-1000"                                    
+                                    />
+                            </Ellipse.RenderTransform>
+                        </Ellipse>
+                        <Ellipse 
+                                 Width="2000"
+                                 Height="2000"
+                                 StrokeThickness="200"
+                                 Stroke="GreenYellow"
+                                 Canvas.Left="1000"
+                                 Canvas.Top="47000"
+                                 >
+                            <Ellipse.RenderTransform>
+                                <TranslateTransform
+                                    X="-1000"
+                                    Y="-1000"                                    
+                                    />
+                            </Ellipse.RenderTransform>
+                        </Ellipse>
+                        <Ellipse 
+                                 Width="2000"
+                                 Height="2000"
+                                 StrokeThickness="200"
+                                 Stroke="GreenYellow"
+                                 Canvas.Left="59000"
+                                 Canvas.Top="1000"
+                                 >
+                            <Ellipse.RenderTransform>
+                                <TranslateTransform
+                                    X="-1000"
+                                    Y="-1000"                                    
+                                    />
+                            </Ellipse.RenderTransform>
+                        </Ellipse>
+                        <Ellipse 
+                                 Width="2000"
+                                 Height="2000"
+                                 StrokeThickness="200"
+                                 Stroke="GreenYellow"
+                                 Canvas.Left="59000"
+                                 Canvas.Top="47000"
+                                 >
+                            <Ellipse.RenderTransform>
+                                <TranslateTransform
+                                    X="-1000"
+                                    Y="-1000"                                    
+                                    />
+                            </Ellipse.RenderTransform>
+                        </Ellipse>-->
                         <Canvas.RenderTransform>
                             <MatrixTransform>
                                 <MatrixTransform.Matrix>
@@ -121,8 +167,39 @@
                                         <Binding ElementName="GraphWin" Path="FieldSizeX"/>
                                         <Binding ElementName="GraphWin" Path="FieldSizeY"/>
                                         <Binding ElementName="GraphWin"  Path="DataContext"/>
+                                        <Binding ElementName="GraphWin" Path="MirrorX"/>
+                                        <Binding ElementName="GraphWin" Path="OffsetX"/>
+                                        <Binding ElementName="GraphWin"  Path="OffsetY"/>
+                                        <Binding ElementName="GraphWin"  Path="Angle90"/>
                                     </MultiBinding>
                                 </MatrixTransform.Matrix>                                
+                            </MatrixTransform>
+                        </Canvas.RenderTransform>
+                    </Canvas>
+                    <Canvas>                       
+                        <Grid Height="{Binding ElementName=GraphWin, Path=FieldSizeY}"
+                                       Width="{Binding ElementName=GraphWin, Path=FieldSizeX}">
+                            <Rectangle HorizontalAlignment="Stretch"
+                                       VerticalAlignment="Stretch"
+                                       Stroke="White"
+                                       StrokeThickness="200"
+                                       StrokeDashArray="5,5,5"
+                                       />
+                            <Path Stroke="Yellow" StrokeThickness="2000" Fill="Gray" Data="M -200,-3000 V 6000" VerticalAlignment="Center" HorizontalAlignment="Left" />
+                        </Grid>                       
+                        <Canvas.RenderTransform>
+                            <MatrixTransform>
+                                <MatrixTransform.Matrix>
+                                    <MultiBinding Converter="{StaticResource GetMatrixConverter}">
+                                        <Binding ElementName="Specimen" Path="ActualWidth"/>
+                                        <Binding ElementName="Specimen" Path="ActualHeight"/>
+                                        <Binding ElementName="GraphWin" Path="SpecMargin"/>
+                                        <Binding ElementName="GraphWin" Path="FieldSizeX"/>
+                                        <Binding ElementName="GraphWin" Path="FieldSizeY"/>
+                                        <Binding ElementName="GraphWin"  Path="DataContext"/>
+                                        
+                                    </MultiBinding>
+                                </MatrixTransform.Matrix>
                             </MatrixTransform>
                         </Canvas.RenderTransform>
                     </Canvas>
