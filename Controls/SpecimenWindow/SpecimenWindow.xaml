@@ -1,0 +1,138 @@
+﻿<UserControl x:Class="MachineControlsLibrary.Controls.SpecimenWindow"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:MachineControlsLibrary.Controls"
+             xmlns:converters="clr-namespace:MachineControlsLibrary.Converters" xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+             mc:Ignorable="d"             
+             >
+
+    <Grid x:Name="SpecWin">
+        <Grid.Resources>
+            <converters:GetTransformMatrixConverter2 x:Key="GetMatrix2"/>
+            <converters:ShapeScalingConverter x:Key="ShapeScalingConverter"/>
+            <converters:TestConverter x:Key="TestConverter"/>
+            <converters:BoolToVisibleConvereter x:Key="BoolToVisibleConvereter"/>
+            <converters:DivideConverter x:Key="DivideConverter"/>
+            <converters:XYToPointConverter x:Key="XYToPointConverter"/>
+
+            <Storyboard x:Key="BlinkingPointer">
+                <ObjectAnimationUsingKeyFrames 
+                                           Storyboard.TargetName="Pointer"
+                                           Storyboard.TargetProperty="Visibility"                                           
+                                           Duration="0:0:1" 
+                                           RepeatBehavior="Forever"
+                                           AutoReverse="True"
+                                           >
+                    <ObjectAnimationUsingKeyFrames.KeyFrames>
+                        <DiscreteObjectKeyFrame KeyTime="0:0:0.8" Value="{x:Static Visibility.Visible}"/>
+                    </ObjectAnimationUsingKeyFrames.KeyFrames>
+                </ObjectAnimationUsingKeyFrames>
+            </Storyboard>
+            <!--<Storyboard x:Key="DisappearingPointer">
+                <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Pointer"
+                                           Storyboard.TargetProperty="Visibility">
+                    <ObjectAnimationUsingKeyFrames.KeyFrames>
+                        <DiscreteObjectKeyFrame Value="{x:Static Visibility.Hidden}"/>
+                    </ObjectAnimationUsingKeyFrames.KeyFrames>
+                </ObjectAnimationUsingKeyFrames>
+            </Storyboard>-->            
+        </Grid.Resources>
+        <i:Interaction.Triggers>
+            <i:DataTrigger Binding="{Binding PointerVisibility}" Value="True">
+                <i:ControlStoryboardAction Storyboard="{StaticResource BlinkingPointer}"/>
+            </i:DataTrigger>
+            <!--<i:DataTrigger Binding="{Binding PointerVisibility}" Value="False">
+                <i:ControlStoryboardAction Storyboard="{StaticResource DisappearingPointer}"/>
+            </i:DataTrigger>-->
+        </i:Interaction.Triggers>
+        <Canvas  Background="Transparent" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" RenderTransformOrigin="0.5 0.5">            
+            <ItemsControl ItemsSource="{Binding LayGeoms, Mode=OneWay}" Visibility="{Binding IsVisible, Converter={StaticResource BoolToVisibleConvereter}}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>                        
+                        <Canvas>                               
+                            <Path Stroke="{Binding Path=LayerColor}" 
+                                  StrokeThickness="{Binding StrokeThickness}" 
+                                  Visibility="{Binding Path=LayerEnable, 
+                                  Converter={StaticResource BoolToVisibleConvereter}}">
+                                <Path.Data>
+                                    <GeometryGroup Children="{Binding Geometries}">
+                                        <GeometryGroup.Transform>
+                                            <MatrixTransform>
+                                                <MatrixTransform.Matrix>
+                                                    <MultiBinding Converter="{StaticResource GetMatrix2}">
+                                                        <Binding ElementName="SpecWin" Path="ActualWidth"/>
+                                                        <Binding ElementName="SpecWin" Path="ActualHeight"/>
+                                                        <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.FieldSizeX"/>
+                                                        <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.FieldSizeY"/>
+                                                        <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.SpecMargin"/>
+                                                        <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.XProportion"/>
+                                                        <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.YProportion"/>
+                                                        <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.AutoProportion"/>
+                                                        <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.SpecSizeX"/>
+                                                        <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.SpecSizeY"/>
+                                                        <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext"/>                                                        
+                                                    </MultiBinding>
+                                                </MatrixTransform.Matrix>
+                                            </MatrixTransform>
+                                        </GeometryGroup.Transform>
+                                    </GeometryGroup>
+                                </Path.Data>                                
+                            </Path>                            
+                        </Canvas> 
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>            
+            <Canvas.RenderTransform>
+                <TransformGroup>
+                    <RotateTransform Angle="{Binding Angle}"/>
+                    <ScaleTransform ScaleX="{Binding MirrorX}" ScaleY="-1"/>
+                    <TranslateTransform X="{Binding OffsetX}" Y="{Binding OffsetY}"/>                   
+                </TransformGroup>
+            </Canvas.RenderTransform>
+        </Canvas>
+        <Canvas RenderTransformOrigin="0.5 0.5">            
+            <Path x:Name="Pointer" Visibility="Hidden" Stroke="Yellow" StrokeThickness="{Binding PointerThickness}">
+                <Path.Data>
+                    <EllipseGeometry RadiusX="{Binding PointerDiameter, Converter={StaticResource DivideConverter}, ConverterParameter=2}" 
+                                     RadiusY="{Binding PointerDiameter, Converter={StaticResource DivideConverter}, ConverterParameter=2}"
+                                     >
+                        <EllipseGeometry.Center>
+                            <MultiBinding Converter="{StaticResource XYToPointConverter}">
+                                <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.PointerX"/>
+                                <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.PointerY"/>
+                            </MultiBinding>
+                        </EllipseGeometry.Center>
+                        <EllipseGeometry.Transform>
+                            <MatrixTransform>
+                                <MatrixTransform.Matrix>
+                                    <MultiBinding Converter="{StaticResource GetMatrix2}">
+                                        <Binding ElementName="SpecWin" Path="ActualWidth"/>
+                                        <Binding ElementName="SpecWin" Path="ActualHeight"/>
+                                        <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.FieldSizeX"/>
+                                        <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.FieldSizeY"/>
+                                        <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.SpecMargin"/>
+                                        <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.XProportion"/>
+                                        <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.YProportion"/>
+                                        <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.AutoProportion"/>
+                                        <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.SpecSizeX"/>
+                                        <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext.SpecSizeY"/>
+                                        <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Grid}" Path="DataContext"/>
+                                    </MultiBinding>
+                                </MatrixTransform.Matrix>
+                            </MatrixTransform>
+                        </EllipseGeometry.Transform>
+                    </EllipseGeometry>
+                </Path.Data>
+            </Path>            
+            <Canvas.RenderTransform>
+                <TransformGroup>
+                    <RotateTransform Angle="{Binding Angle}"/>
+                    <ScaleTransform ScaleX="{Binding MirrorX}" ScaleY="-1"/>
+                    <TranslateTransform X="{Binding OffsetX}" Y="{Binding OffsetY}"/>
+                </TransformGroup>
+            </Canvas.RenderTransform>
+        </Canvas>
+    </Grid>
+</UserControl>

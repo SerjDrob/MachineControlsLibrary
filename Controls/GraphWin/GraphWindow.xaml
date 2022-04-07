@@ -48,6 +48,11 @@
                                       MirrorX="{Binding MirrorX, Mode=TwoWay, Converter={StaticResource BoolMirrorConverter}}"
                                       OffsetX="{Binding OffsetX}"
                                       OffsetY="{Binding OffsetY}"
+                                      PointerDiameter="{Binding PointerDiameter}"
+                                      PointerThickness="{Binding PointerThickness}"
+                                      PointerX="{Binding PointerX}"
+                                      PointerY="{Binding PointerY}"
+                                      PointerVisibility="{Binding PointerVisibility}"
                                       >
 
                         </local:SpecimenWindow>

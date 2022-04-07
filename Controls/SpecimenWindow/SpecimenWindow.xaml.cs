@@ -45,18 +45,18 @@ namespace MachineControlsLibrary.Controls
 
         }
 
-        protected override void OnRender(DrawingContext drawingContext)
-        {
-            base.OnRender(drawingContext);
-            //var calc = new ScaleCalc(SpecWin.ActualWidth, SpecWin.ActualHeight, SpecSizeX, SpecSizeY, SpecMargin, XProportion, YProportion, AutoProportion);
-            //calc.Calc(out _scalex, out _scaley, out _marginx, out _marginy);
-            //ScaleX = _scalex;
-            //ScaleY = _scaley;
-            //MarginX = _marginx;
-            //MarginY = _marginy;
-            IsVisible = true;
+        //protected override void OnRender(DrawingContext drawingContext)
+        //{
+        //    base.OnRender(drawingContext);
+        //    //var calc = new ScaleCalc(SpecWin.ActualWidth, SpecWin.ActualHeight, SpecSizeX, SpecSizeY, SpecMargin, XProportion, YProportion, AutoProportion);
+        //    //calc.Calc(out _scalex, out _scaley, out _marginx, out _marginy);
+        //    //ScaleX = _scalex;
+        //    //ScaleY = _scaley;
+        //    //MarginX = _marginx;
+        //    //MarginY = _marginy;
+        //   // IsVisible = true;
 
-        }
+        //}
 
 
 
@@ -237,8 +237,6 @@ namespace MachineControlsLibrary.Controls
                 typeof(SpecimenWindow), new PropertyMetadata(null, new PropertyChangedCallback(myFunc)));
 
 
-
-
         public double MirrorX
         {
             get { return (double)GetValue(MirrorXProperty); }
@@ -250,7 +248,6 @@ namespace MachineControlsLibrary.Controls
             DependencyProperty.Register("MirrorX", typeof(double), typeof(SpecimenWindow), new PropertyMetadata((double)1));
 
 
-
         public double Angle
         {
             get { return (double)GetValue(AngleProperty); }
@@ -260,7 +257,6 @@ namespace MachineControlsLibrary.Controls
         // Using a DependencyProperty as the backing store for Angle.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty AngleProperty =
             DependencyProperty.Register("Angle", typeof(double), typeof(SpecimenWindow), new PropertyMetadata((double)0));
-
 
 
         public double OffsetX
@@ -285,6 +281,65 @@ namespace MachineControlsLibrary.Controls
         public static readonly DependencyProperty OffsetYProperty =
             DependencyProperty.Register("OffsetY", typeof(double), typeof(SpecimenWindow), new PropertyMetadata((double)0));
 
+
+        public bool PointerVisibility
+        {
+            get { return (bool)GetValue(PointerVisibilityProperty); }
+            set { SetValue(PointerVisibilityProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for PointerVisibility.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty PointerVisibilityProperty =
+            DependencyProperty.Register("PointerVisibility", typeof(bool), typeof(SpecimenWindow), new PropertyMetadata((bool)false));
+
+
+
+
+        public double PointerDiameter
+        {
+            get { return (double)GetValue(PointerDiameterProperty); }
+            set { SetValue(PointerDiameterProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for PointerDiameter.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty PointerDiameterProperty =
+            DependencyProperty.Register("PointerDiameter", typeof(double), typeof(SpecimenWindow), new PropertyMetadata((double)0));
+
+
+
+        public double PointerThickness
+        {
+            get { return (double)GetValue(PointerThicknessProperty); }
+            set { SetValue(PointerThicknessProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for PointerThickness.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty PointerThicknessProperty =
+            DependencyProperty.Register("PointerThickness", typeof(double), typeof(SpecimenWindow), new PropertyMetadata((double)0));
+
+
+
+        public double PointerX
+        {
+            get { return (double)GetValue(PointerXProperty); }
+            set { SetValue(PointerXProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for PointerX.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty PointerXProperty =
+            DependencyProperty.Register("PointerX", typeof(double), typeof(SpecimenWindow), new PropertyMetadata((double)0));
+
+
+
+        public double PointerY
+        {
+            get { return (double)GetValue(PointerYProperty); }
+            set { SetValue(PointerYProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for PointerY.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty PointerYProperty =
+            DependencyProperty.Register("PointerY", typeof(double), typeof(SpecimenWindow), new PropertyMetadata((double)0));
 
         private static void myFunc(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {

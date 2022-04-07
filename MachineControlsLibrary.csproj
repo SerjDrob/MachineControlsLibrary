@@ -17,11 +17,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="Controls\15475245161548336226-16.png" />
-    <None Remove="Controls\15655417491530273517-16.png" />
-    <None Remove="Controls\7362273661548336122-16.png" />
     <None Remove="Controls\GraphWin\Sources\flipvert.png" />
     <None Remove="Controls\GraphWin\Sources\rotate.png" />
+    <None Remove="Controls\Sources\15475245161548336226-16.png" />
+    <None Remove="Controls\Sources\15655417491530273517-16.png" />
+    <None Remove="Controls\Sources\7362273661548336122-16.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -41,33 +41,39 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="Controls\15475245161548336226-16.png" />
-    <Resource Include="Controls\15655417491530273517-16.png" />
-    <Resource Include="Controls\7362273661548336122-16.png" />
+    <Resource Include="Controls\Sources\15475245161548336226-16.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Controls\Sources\15655417491530273517-16.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Controls\Sources\7362273661548336122-16.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Controls\AxisState.xaml.cs">
+    <Compile Update="Controls\AxisState\AxisState.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="Controls\Indicator.xaml.cs">
+    <Compile Update="Controls\Indicator\Indicator.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="Controls\ValveStateButton.xaml.cs">
+    <Compile Update="Controls\ValveStateButton\ValveStateButton.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
 
   <ItemGroup>
-    <Page Update="Controls\AxisState.xaml">
+    <Page Update="Controls\AxisState\AxisState.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="Controls\Indicator.xaml">
+    <Page Update="Controls\Indicator\Indicator.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="Controls\ValveStateButton.xaml">
+    <Page Update="Controls\ValveStateButton\ValveStateButton.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
       <SubType>Designer</SubType>
     </Page>

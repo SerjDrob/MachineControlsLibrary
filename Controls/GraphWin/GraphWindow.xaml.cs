@@ -114,42 +114,6 @@ namespace MachineControlsLibrary.Controls
          //   ((GraphWindow)d).MyMenu.GetBindingExpression(GraphEditorMenu.LayersProperty).UpdateTarget();
         }
 
-
-        //protected override void OnRender(DrawingContext drawingContext)
-        //{
-        //    base.OnRender(drawingContext);
-        //    var calc = new ScaleCalc(GraphWin.ActualWidth, GraphWin.ActualHeight, FieldSizeX, FieldSizeY, SpecMargin, XProportion, YProportion, AutoProportion, SpecSizeX, SpecSizeY);
-        //    calc.Calc(out _scalex, out _scaley, out _marginx, out _marginy, out _fieldmarginx, out _fieldmarginy);
-        //    ScaleX = _scalex;
-        //    ScaleY = _scaley;
-        //    MarginX = _marginx;
-        //    MarginY = _marginy;
-        //    FieldMarginX = _fieldmarginx;
-        //    FieldMarginY = _fieldmarginy;
-        //}
-
-        //protected override Size MeasureOverride(Size constraint)
-        //{
-        //    var calc = new ScaleCalc(GraphWin.ActualWidth, GraphWin.ActualHeight, FieldSizeX, FieldSizeY, SpecMargin, XProportion, YProportion, AutoProportion, SpecSizeX, SpecSizeY);
-        //    calc.Calc(out _scalex, out _scaley, out _marginx, out _marginy, out _fieldmarginx, out _fieldmarginy);
-        //    ScaleX = _scalex;
-        //    ScaleY = _scaley;
-        //    MarginX = _marginx;
-        //    MarginY = _marginy;
-        //    FieldMarginX = _fieldmarginx;
-        //    FieldMarginY = _fieldmarginy;
-        //    return base.MeasureOverride(constraint);
-        //}
-
-
-        //PointerDiameter
-        //PointerThickness
-        //PointerX
-        //PointerY
-
-
-
-
         public bool PointerVisibility
         {
             get { return (bool)GetValue(PointerVisibilityProperty); }
