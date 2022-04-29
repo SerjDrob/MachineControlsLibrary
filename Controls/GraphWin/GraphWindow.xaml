@@ -190,7 +190,7 @@
                                        StrokeThickness="200"
                                        StrokeDashArray="5,5,5"
                                        />
-                            <Path Stroke="Yellow" StrokeThickness="2000" Fill="Gray" Data="M -200,-3000 V 6000" VerticalAlignment="Center" HorizontalAlignment="Left" />
+                            <!--<Path Stroke="Yellow" StrokeThickness="2000" Fill="Gray" Data="M -200,-3000 V 6000" VerticalAlignment="Center" HorizontalAlignment="Left" />-->
                         </Grid>                       
                         <Canvas.RenderTransform>
                             <MatrixTransform>
