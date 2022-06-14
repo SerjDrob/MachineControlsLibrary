@@ -6,6 +6,7 @@
              xmlns:local="clr-namespace:MachineControlsLibrary.Controls"
              xmlns:xtk="http://schemas.xceed.com/wpf/xaml/toolkit"
              xmlns:converters="clr-namespace:MachineControlsLibrary.Converters"
+             xmlns:hc="https://handyorg.github.io/handycontrol"
              mc:Ignorable="d" 
              
              >
@@ -28,17 +29,20 @@
                     <DataTemplate>
                         <MenuItem >
                             <MenuItem.Icon>
-                                <Rectangle Width="10" Height="10" Fill="{Binding Path=Color}"/>
+                                <Rectangle Width="20" Height="20" Fill="{Binding Path=Color}"/>
                             </MenuItem.Icon>
                             <MenuItem.Header>                                
-                                <StackPanel Orientation="Horizontal">
-                                    <ToggleButton Style="{StaticResource EyeToggleButton}"
-                                                  IsChecked="{Binding Path=Enable}"
-                                                  Command="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Menu},
-                                                    Path=DataContext.ItemCheckedCommand }" 
-                                                    CommandParameter="{Binding}"/>
-                                    <TextBlock Text="{Binding Path=Layer}"/>
-                                </StackPanel>
+                                <hc:ElementGroup Orientation="Horizontal">                                   
+                                    <ToggleButton IsChecked="{Binding Path=Enable}"
+                                          hc:IconSwitchElement.Geometry="{StaticResource EyeCloseGeometry}"
+                                          hc:IconSwitchElement.GeometrySelected="{StaticResource EyeOpenGeometry}"
+                                          Style="{StaticResource ToggleButtonIcon}"
+                                          Command="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Menu},
+                                          Path=DataContext.ItemCheckedCommand }" 
+                                          CommandParameter="{Binding}"                                                  
+                                          />
+                                    <TextBlock Text="{Binding Path=Layer}" VerticalAlignment="Center" Margin="5,0,0,0"/>
+                                </hc:ElementGroup>
                             </MenuItem.Header>                            
                         </MenuItem>
                     </DataTemplate>
