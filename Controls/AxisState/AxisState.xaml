@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:MachineControlsLibrary.Controls"
+             xmlns:hc="https://handyorg.github.io/handycontrol"
              mc:Ignorable="d" 
              >
     <Grid x:Name="TheAxis">
@@ -17,6 +18,7 @@
                 <Setter Property="RadiusX" Value="5" />
                 <Setter Property="RadiusY" Value="5" />
             </Style>
+            <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockBaseStyle}"/>
         </Grid.Resources>
 
         <Grid.ColumnDefinitions>
@@ -29,9 +31,11 @@
             <RowDefinition />
         </Grid.RowDefinitions>
         <DockPanel Grid.Column="1" LastChildFill="True">
-            <TextBlock DockPanel.Dock="Left" Text="{Binding StringFormat='{}{0}: ', Path=CoordinateName}" Background="{Binding TextBackground}"/>
-            <TextBlock DockPanel.Dock="Left" Text="{Binding Coordinate}" Background="{Binding TextBackground}"/>
-            <TextBlock DockPanel.Dock="Left" Margin="10,0,0,0" Text="{Binding CmdCoordinate}" Background="{Binding TextBackground}"/>
+            <TextBlock DockPanel.Dock="Left" 
+                       Text="{Binding StringFormat='{}{0}: ', Path=CoordinateName}"/>
+            <TextBlock DockPanel.Dock="Left" 
+                       Text="{Binding Coordinate}"/>
+            <TextBlock DockPanel.Dock="Left" Margin="10,0,0,0" Text="{Binding CmdCoordinate}"/>
 
         </DockPanel>
         <UniformGrid Columns="3" Grid.RowSpan="1">
