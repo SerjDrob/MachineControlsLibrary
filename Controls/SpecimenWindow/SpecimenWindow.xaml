@@ -78,7 +78,7 @@
                                             </MatrixTransform>
                                         </GeometryGroup.Transform>
                                     </GeometryGroup>
-                                </Path.Data>                                
+                                </Path.Data>
                             </Path>                            
                         </Canvas> 
                     </DataTemplate>
@@ -134,6 +134,6 @@
                     <TranslateTransform X="{Binding OffsetX}" Y="{Binding OffsetY}"/>
                 </TransformGroup>
             </Canvas.RenderTransform>
-        </Canvas>
+        </Canvas>        
     </Grid>
 </UserControl>
