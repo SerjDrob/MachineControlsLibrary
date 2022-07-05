@@ -48,7 +48,9 @@
             </i:DataTrigger>-->
         </i:Interaction.Triggers>
         <Canvas  Background="Transparent" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" RenderTransformOrigin="0.5 0.5">            
-            <ItemsControl ItemsSource="{Binding LayGeoms, Mode=OneWay}" Visibility="{Binding IsVisible, Converter={StaticResource BoolToVisibleConvereter}}">
+            <ItemsControl ItemsSource="{Binding LayGeoms, Mode=OneWay}" 
+                          Visibility="{Binding IsVisible, 
+                          Converter={StaticResource BoolToVisibleConvereter}}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>                        
                         <Canvas>                               
