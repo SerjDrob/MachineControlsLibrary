@@ -29,9 +29,9 @@
             <RowDefinition />
         </Grid.RowDefinitions>
         <DockPanel Grid.Column="1" LastChildFill="True">
-            <TextBlock DockPanel.Dock="Left" Text="{Binding StringFormat='{}{0}: ', Path=CoordinateName}" Background="{Binding TextBackground}"/>
-            <TextBlock DockPanel.Dock="Left" Text="{Binding Coordinate}" Background="{Binding TextBackground}"/>
-            <TextBlock DockPanel.Dock="Left" Margin="10,0,0,0" Text="{Binding CmdCoordinate}" Background="{Binding TextBackground}"/>
+            <TextBlock DockPanel.Dock="Left" Text="{Binding StringFormat='{}{0}: ', Path=CoordinateName}"/>
+            <TextBlock DockPanel.Dock="Left" Text="{Binding Coordinate}"/>
+            <TextBlock DockPanel.Dock="Left" Margin="10,0,0,0" Text="{Binding CmdCoordinate}"/>
 
         </DockPanel>
         <UniformGrid Columns="3" Grid.RowSpan="1">
