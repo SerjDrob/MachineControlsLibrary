@@ -10,23 +10,23 @@ namespace MachineControlsLibrary.Converters
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
 
-            double _offsetX = 0;
-            double _offsetY = 0;
-            bool _mirrorX = false;
-            bool _angle90 = false;
+            var _offsetX = 0d;
+            var _offsetY = 0d;
+            var _mirrorX = false;
+            var _angle90 = false;
 
 
-            double _width = values[0].ConvertObject((double)1);
-            double _height = values[1].ConvertObject((double)1);
-            double _margin = values[2].ConvertObject((double)0);
-            double _fieldSizeX = values[3].ConvertObject((double)1);
-            double _fieldSizeY = values[4].ConvertObject((double)1);
+            var _width = values[0].ConvertObject(1d);
+            var _height = values[1].ConvertObject(1d);
+            var _margin = values[2].ConvertObject(0d);
+            var _fieldSizeX = values[3].ConvertObject(1d);
+            var _fieldSizeY = values[4].ConvertObject(1d);
 
             if (values.Length > 6)
             {
                 _mirrorX = values[6].ConvertObject(false);
-                _offsetX = values[7].ConvertObject((double)0);
-                _offsetY = values[8].ConvertObject((double)0);
+                _offsetX = values[7].ConvertObject(0);
+                _offsetY = values[8].ConvertObject(0);
                 _angle90 = values[9].ConvertObject(false);
             }
 
@@ -46,10 +46,17 @@ namespace MachineControlsLibrary.Converters
             transGroup.Children.Add(translateTrans2);
             transGroup.Children.Add(scaleTrans);
             transGroup.Children.Add(rotateTransform);
-            var marginX = _offsetX + (_width - _scale * _fieldSizeX) / 2;
-            var marginY = _offsetY + (_height - _scale * _fieldSizeY) / 2;
+
+
+            var fieldMarginX = (_width - _scale * _fieldSizeX) / 2;
+            var fieldMarginY = (_height - _scale * _fieldSizeY) / 2;
+            var fileMarginX = _offsetX + fieldMarginX;
+            var fileMarginY = _offsetY + fieldMarginY;
+
+
             var obj = values[5] as Controls.GraphWindow;
-            obj?.SetMargins(marginX, marginY);
+            obj?.SetMargins(fileMarginX, fileMarginY);
+            obj?.SetFieldMargins(fieldMarginX, fieldMarginY);
             obj?.SetScale(_scale, _scale);
             return transGroup.Value;
         }

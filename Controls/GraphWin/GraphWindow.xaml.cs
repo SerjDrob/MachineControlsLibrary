@@ -229,6 +229,14 @@ namespace MachineControlsLibrary.Controls
         public static readonly DependencyProperty FieldMarginYProperty =
             DependencyProperty.Register("FieldMarginY", typeof(double), typeof(GraphWindow), new PropertyMetadata((double)0));
 
+
+        public void SetFieldMargins(double marginX, double marginY)
+        {
+            FieldMarginX = marginX;
+            FieldMarginY = marginY;
+        }
+
+
         public double ScaleY
         {
             get { return (double)GetValue(ScaleYProperty); }
