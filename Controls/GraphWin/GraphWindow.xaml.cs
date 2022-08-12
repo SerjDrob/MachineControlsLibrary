@@ -68,6 +68,23 @@ namespace MachineControlsLibrary.Controls
             var layers = ((GraphWindow)d).LayGeoms;
             ProcIgnored(ignoredLayers, layers);
         }
+
+
+
+
+        public string FileName
+        {
+            get { return (string)GetValue(FileNameProperty); }
+            set { SetValue(FileNameProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for FileName.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty FileNameProperty =
+            DependencyProperty.Register("FileName", typeof(string), typeof(GraphWindow), new PropertyMetadata(null));
+
+
+
+
         private static void ProcIgnored(IDictionary<string, bool> igLayers, IList<LayerGeometryCollection> layers)
         {
             if ((igLayers is not null) && (layers is not null))

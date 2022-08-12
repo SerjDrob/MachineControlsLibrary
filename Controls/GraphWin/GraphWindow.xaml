@@ -30,6 +30,7 @@
                                        Layers="{Binding LayGeoms, Converter={StaticResource LgToElConverter}}" 
                                        LayerFiltersChanged="MyMenu_LayerFiltersChanged"                                
                                        VerticalAlignment="Top"
+                                       FileName="{Binding FileName}"
                                        SelectedColor="{Binding ElementName=GraphWin, Path=SelectedColor}"
                                        Panel.ZIndex="1"
                                        />

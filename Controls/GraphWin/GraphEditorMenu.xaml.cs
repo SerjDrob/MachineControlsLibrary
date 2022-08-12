@@ -63,6 +63,21 @@ namespace MachineControlsLibrary.Controls
         public static readonly DependencyProperty SelectedColorProperty =
             DependencyProperty.Register("SelectedColor", typeof(Brush), typeof(GraphEditorMenu), new PropertyMetadata(Brushes.Gray));
 
+
+
+
+        public string FileName
+        {
+            get { return (string)GetValue(FileNameProperty); }
+            set { SetValue(FileNameProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for FileName.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty FileNameProperty =
+            DependencyProperty.Register("FileName", typeof(string), typeof(GraphEditorMenu), new PropertyMetadata(null));
+
+
+
         public void EditorSettings_FiltersChanged(object? obj, IEnumerable<LayerFilter> layerFilters)
         {
             LayerFiltersChanged(this, layerFilters);

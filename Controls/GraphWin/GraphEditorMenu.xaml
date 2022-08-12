@@ -17,23 +17,22 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
-    
-    <Menu x:Name="EditorMenu">
-        <Menu.Resources>
-            
-            <converters:BrushToColorConvereter x:Key="BrushToColorConvereter"/>
-        </Menu.Resources>
-        <MenuItem Header="Слои">
-            <ItemsControl ItemsSource="{Binding Layers}">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <MenuItem >
-                            <MenuItem.Icon>
-                                <Rectangle Width="20" Height="20" Fill="{Binding Path=Color}"/>
-                            </MenuItem.Icon>
-                            <MenuItem.Header>                                
-                                <hc:ElementGroup Orientation="Horizontal">                                   
-                                    <ToggleButton IsChecked="{Binding Path=Enable}"
+
+        <Menu x:Name="EditorMenu">
+            <Menu.Resources>
+                <converters:BrushToColorConvereter x:Key="BrushToColorConvereter"/>
+            </Menu.Resources>
+            <MenuItem Header="Слои">
+                <ItemsControl ItemsSource="{Binding Layers}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <MenuItem >
+                                <MenuItem.Icon>
+                                    <Rectangle Width="20" Height="20" Fill="{Binding Path=Color}"/>
+                                </MenuItem.Icon>
+                                <MenuItem.Header>
+                                    <hc:ElementGroup Orientation="Horizontal">
+                                        <ToggleButton IsChecked="{Binding Path=Enable}"
                                           hc:IconSwitchElement.Geometry="{StaticResource EyeCloseGeometry}"
                                           hc:IconSwitchElement.GeometrySelected="{StaticResource EyeOpenGeometry}"
                                           Style="{StaticResource ToggleButtonIcon}"
@@ -41,28 +40,30 @@
                                           Path=DataContext.ItemCheckedCommand }" 
                                           CommandParameter="{Binding}"                                                  
                                           />
-                                    <TextBlock Text="{Binding Path=Layer}" VerticalAlignment="Center" Margin="5,0,0,0"/>
-                                </hc:ElementGroup>
-                            </MenuItem.Header>                            
-                        </MenuItem>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </MenuItem>
-        
-        <MenuItem Header="Фон">
-            <xtk:ColorPicker ShowStandardColors="True"                                                            
+                                        <TextBlock Text="{Binding Path=Layer}" VerticalAlignment="Center" Margin="5,0,0,0"/>
+                                    </hc:ElementGroup>
+                                </MenuItem.Header>
+                            </MenuItem>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </MenuItem>
+
+            <MenuItem Header="Фон">
+                <xtk:ColorPicker ShowStandardColors="True"                                                            
                              SelectedColor="{Binding SelectedColor, Converter={StaticResource BrushToColorConvereter}}"
                              />
-        </MenuItem>
-        <MenuItem Header="Настройки">
-            <local:EditorSettings FiltersChanged="EditorSettings_FiltersChanged"/>
-        </MenuItem>
-        <Button Command="{Binding ToRotate90Command}">
-            <Image Source="Sources/rotate.png"/>
-        </Button>
-        <Button Command="{Binding ToMirrorXCommand}">
-            <Image Source="Sources/flipvert.png"/>
-        </Button>
-    </Menu>
+            </MenuItem>
+            <MenuItem Header="Настройки">
+                <local:EditorSettings FiltersChanged="EditorSettings_FiltersChanged"/>
+            </MenuItem>
+            <Button Command="{Binding ToRotate90Command}">
+                <Image Source="Sources/rotate.png"/>
+            </Button>
+            <Button Command="{Binding ToMirrorXCommand}">
+                <Image Source="Sources/flipvert.png"/>
+            </Button>
+            <TextBlock Text="Файл:" Style="{DynamicResource TextBlockDefault}"/>
+            <TextBlock Text="{Binding FileName}" Style="{DynamicResource TextBlockDefaultDanger}"/>
+        </Menu>
 </UserControl>
