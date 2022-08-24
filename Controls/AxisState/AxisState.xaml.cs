@@ -138,7 +138,22 @@ namespace MachineControlsLibrary.Controls
 
 
 
+        public AxStateLayout Layout
+        {
+            get { return (AxStateLayout)GetValue(LayoutProperty); }
+            set { SetValue(LayoutProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for Layout.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty LayoutProperty =
+            DependencyProperty.Register("Layout", typeof(AxStateLayout), typeof(AxisState), new PropertyMetadata(AxStateLayout.Vertical));
 
 
+    }
+
+    public enum AxStateLayout
+    {
+        Horizontal,
+        Vertical
     }
 }
