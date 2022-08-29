@@ -104,7 +104,7 @@
             </UniformGrid>
         </Grid>
         <Border>
-            <Grid x:Name="VerticalGrid">
+            <Grid x:Name="VerticalGrid" DataContext="{Binding ElementName=TheAxis, Path=DataContext}">
                 <Grid.Resources>
                     <SolidColorBrush x:Key="SignalGreen" Color="MediumSpringGreen" />
                     <SolidColorBrush x:Key="SignalRed" Color="IndianRed" />
