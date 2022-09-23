@@ -1,23 +1,14 @@
 ﻿using MachineControlsLibrary.Classes;
-using MachineControlsLibrary.Converters;
-using PropertyChanged;
+using MachineControlsLibrary.Controls.GraphWin;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace MachineControlsLibrary.Controls
 {
@@ -29,7 +20,7 @@ namespace MachineControlsLibrary.Controls
     {
         public GraphWindow()
         {
-            InitializeComponent();            
+            InitializeComponent();
             GraphWin.DataContext = this;
             DefaultStyleKey = typeof(GraphWindow);
         }
@@ -39,6 +30,45 @@ namespace MachineControlsLibrary.Controls
         //private double _marginy;
         //private double _fieldmarginx;
         //private double _fieldmarginy;
+
+
+
+        public TextPosition TextPosition
+        {
+            get { return (TextPosition)GetValue(TextPositionProperty); }
+            set { SetValue(TextPositionProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for TextPosition.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty TextPositionProperty =
+            DependencyProperty.Register("TextPosition", typeof(TextPosition), typeof(GraphWindow), new PropertyMetadata(TextPosition.W));
+
+
+
+
+        public string MarkText
+        {
+            get { return (string)GetValue(MarkTextProperty); }
+            set { SetValue(MarkTextProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for MarkText.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty MarkTextProperty =
+            DependencyProperty.Register("MarkText", typeof(string), typeof(GraphWindow), new PropertyMetadata(null));
+
+
+
+        public int FontSize
+        {
+            get { return (int)GetValue(FontSizeProperty); }
+            set { SetValue(FontSizeProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for FontSize.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty FontSizeProperty =
+            DependencyProperty.Register("FontSize", typeof(int), typeof(GraphWindow), new PropertyMetadata(0));
+
+
 
         public Brush SelectedColor
         {
@@ -128,7 +158,7 @@ namespace MachineControlsLibrary.Controls
         private static void IgnoredLayersChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             LayGeomsChanged(d, e);
-         //   ((GraphWindow)d).MyMenu.GetBindingExpression(GraphEditorMenu.LayersProperty).UpdateTarget();
+            //   ((GraphWindow)d).MyMenu.GetBindingExpression(GraphEditorMenu.LayersProperty).UpdateTarget();
         }
 
         public bool PointerVisibility
@@ -145,7 +175,7 @@ namespace MachineControlsLibrary.Controls
 
 
         public double PointerDiameter
-        {   
+        {
             get { return (double)GetValue(PointerDiameterProperty); }
             set { SetValue(PointerDiameterProperty, value); }
         }
@@ -157,7 +187,7 @@ namespace MachineControlsLibrary.Controls
 
 
         public double PointerThickness
-        {   
+        {
             get { return (double)GetValue(PointerThicknessProperty); }
             set { SetValue(PointerThicknessProperty, value); }
         }

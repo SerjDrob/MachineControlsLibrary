@@ -17,7 +17,7 @@
         <cnvr:RectToGeometryConverter x:Key="RectToGeomConverter"/>
         <cnvr:RectToGeometryConverter2 x:Key="RectToGeomConverter2"/>
         <converters:GetTransformMatrixConverter x:Key="GetMatrixConverter"/>
-        <converters:DivideConverter x:Key="DivideConverter"/>        
+        <converters:DivideConverter x:Key="DivideConverter"/>       
     </UserControl.Resources>    
     <UserControl.ContentTemplate>
         <DataTemplate>
@@ -35,6 +35,20 @@
                                        Panel.ZIndex="1"
                                        />
                 <Grid ClipToBounds="True">
+                    <Grid.Resources>
+                        <MatrixTransform x:Key="MTrans">
+                            <MatrixTransform.Matrix>
+                                <MultiBinding Converter="{StaticResource GetMatrixConverter}">
+                                    <Binding ElementName="Specimen" Path="ActualWidth"/>
+                                    <Binding ElementName="Specimen" Path="ActualHeight"/>
+                                    <Binding ElementName="GraphWin" Path="SpecMargin"/>
+                                    <Binding ElementName="GraphWin" Path="FieldSizeX"/>
+                                    <Binding ElementName="GraphWin" Path="FieldSizeY"/>
+                                    <Binding ElementName="GraphWin"  Path="DataContext"/>
+                                </MultiBinding>
+                            </MatrixTransform.Matrix>
+                        </MatrixTransform>
+                    </Grid.Resources>
                     <local:SpecimenWindow  x:Name="Specimen"                        
                                       HorizontalAlignment="Stretch"
                                       VerticalAlignment="Stretch"
@@ -59,6 +73,58 @@
                                       >
 
                         </local:SpecimenWindow>
+                    <Grid Width="{Binding FieldSizeX}"
+                          Height="{Binding FieldSizeY}"
+                          LayoutTransform="{StaticResource MTrans}"
+                          >
+                        <TextBlock Text="{Binding MarkText}" 
+                                   Foreground="Red"
+                                   FontSize="{Binding FontSize}"                                   
+                                   >
+                            <i:Interaction.Triggers>
+                                <i:DataTrigger Binding="{Binding TextPosition}" Value="{x:Static cnvr:TextPosition.W}">
+                                    <i:ChangePropertyAction PropertyName="VerticalAlignment" Value="Center"/>
+                                    <i:ChangePropertyAction PropertyName="HorizontalAlignment" Value="Left"/>
+                                    <i:ChangePropertyAction PropertyName="RenderTransform">
+                                        <i:ChangePropertyAction.Value>
+                                            <RotateTransform Angle="-90"/>
+                                        </i:ChangePropertyAction.Value>
+                                    </i:ChangePropertyAction>
+                                    <i:ChangePropertyAction PropertyName="RenderTransformOrigin" Value="0,0"/>
+                                </i:DataTrigger>
+                                <i:DataTrigger Binding="{Binding TextPosition}" Value="{x:Static cnvr:TextPosition.N}">
+                                    <i:ChangePropertyAction PropertyName="VerticalAlignment" Value="Top"/>
+                                    <i:ChangePropertyAction PropertyName="HorizontalAlignment" Value="Center"/>
+                                    <i:ChangePropertyAction PropertyName="RenderTransform">
+                                        <i:ChangePropertyAction.Value>
+                                            <RotateTransform Angle="0"/>
+                                        </i:ChangePropertyAction.Value>
+                                    </i:ChangePropertyAction>
+                                    <i:ChangePropertyAction PropertyName="RenderTransformOrigin" Value="0,0"/>                                    
+                                </i:DataTrigger>
+                                <i:DataTrigger Binding="{Binding TextPosition}" Value="{x:Static cnvr:TextPosition.E}">
+                                    <i:ChangePropertyAction PropertyName="VerticalAlignment" Value="Center"/>
+                                    <i:ChangePropertyAction PropertyName="HorizontalAlignment" Value="Right"/>
+                                    <i:ChangePropertyAction PropertyName="RenderTransform">
+                                        <i:ChangePropertyAction.Value>
+                                            <RotateTransform Angle="-90"/>
+                                        </i:ChangePropertyAction.Value>
+                                    </i:ChangePropertyAction>
+                                    <i:ChangePropertyAction PropertyName="RenderTransformOrigin" Value="1,1"/>                                    
+                                </i:DataTrigger>
+                                <i:DataTrigger Binding="{Binding TextPosition}" Value="{x:Static cnvr:TextPosition.S}">
+                                    <i:ChangePropertyAction PropertyName="VerticalAlignment" Value="Bottom"/>
+                                    <i:ChangePropertyAction PropertyName="HorizontalAlignment" Value="Center"/>
+                                    <i:ChangePropertyAction PropertyName="RenderTransform">
+                                        <i:ChangePropertyAction.Value>
+                                            <RotateTransform Angle="0"/>
+                                        </i:ChangePropertyAction.Value>
+                                    </i:ChangePropertyAction>
+                                    <i:ChangePropertyAction PropertyName="RenderTransformOrigin" Value="0,0"/>
+                                </i:DataTrigger>
+                            </i:Interaction.Triggers>
+                        </TextBlock>
+                    </Grid>
                     <ContentPresenter x:Name="ContentPresenter" 
                                       Panel.ZIndex="2"
                                       Content="{TemplateBinding Content}" 
@@ -188,15 +254,16 @@
                             </MatrixTransform>
                         </Canvas.RenderTransform>
                     </Canvas>
-                    <Canvas Panel.ZIndex="1">
+                    <Canvas Panel.ZIndex="1">                        
                         <Grid HorizontalAlignment="Stretch"                                       
                               VerticalAlignment="Stretch">
-                            <Path Fill="Black" Opacity="0.7"
+                            <Path Fill="Black" Opacity="0.7"                                  
                                   HorizontalAlignment="Center"
                                   VerticalAlignment="Center"
                                   Stroke="White"
                                   StrokeDashArray="5,5,5"                                  
                                   StrokeThickness="200"
+                                  RenderTransform="{StaticResource MTrans}"
                                   >
                                 <Path.Data>
                                     <CombinedGeometry GeometryCombineMode="Exclude">
@@ -211,45 +278,8 @@
                                         </CombinedGeometry.Geometry2>
                                     </CombinedGeometry>
                                 </Path.Data>
-                                <Path.RenderTransform>
-                                    <MatrixTransform>
-                                        <MatrixTransform.Matrix>
-                                            <MultiBinding Converter="{StaticResource GetMatrixConverter}">
-                                                <Binding ElementName="Specimen" Path="ActualWidth"/>
-                                                <Binding ElementName="Specimen" Path="ActualHeight"/>
-                                                <Binding ElementName="GraphWin" Path="SpecMargin"/>
-                                                <Binding ElementName="GraphWin" Path="FieldSizeX"/>
-                                                <Binding ElementName="GraphWin" Path="FieldSizeY"/>
-                                                <Binding ElementName="GraphWin"  Path="DataContext"/>
-                                            </MultiBinding>
-                                        </MatrixTransform.Matrix>
-                                    </MatrixTransform>
-                                </Path.RenderTransform>
-                            </Path>
-                            <!--<Rectangle x:Name="SubstrateRect"
-                                       Stroke="White"
-                                       StrokeThickness="200"
-                                       StrokeDashArray="5,5,5"
-                                       Height="{Binding ElementName=GraphWin, Path=FieldSizeY}"
-                                       Width="{Binding ElementName=GraphWin, Path=FieldSizeX}"
-                                       >
-                                <Rectangle.RenderTransform>
-                                    <MatrixTransform>
-                                        <MatrixTransform.Matrix>
-                                            <MultiBinding Converter="{StaticResource GetMatrixConverter}">
-                                                <Binding ElementName="Specimen" Path="ActualWidth"/>
-                                                <Binding ElementName="Specimen" Path="ActualHeight"/>
-                                                <Binding ElementName="GraphWin" Path="SpecMargin"/>
-                                                <Binding ElementName="GraphWin" Path="FieldSizeX"/>
-                                                <Binding ElementName="GraphWin" Path="FieldSizeY"/>
-                                                <Binding ElementName="GraphWin"  Path="DataContext"/>
-                                            </MultiBinding>
-                                        </MatrixTransform.Matrix>
-                                    </MatrixTransform>
-                                </Rectangle.RenderTransform>
-                            </Rectangle>-->
-                            <!--<Path Stroke="Yellow" StrokeThickness="2000" Fill="Gray" Data="M -200,-3000 V 6000" VerticalAlignment="Center" HorizontalAlignment="Left" />-->
-                        </Grid>                                               
+                            </Path>                            
+                        </Grid>                        
                     </Canvas>
                 </Grid>
             </DockPanel>
