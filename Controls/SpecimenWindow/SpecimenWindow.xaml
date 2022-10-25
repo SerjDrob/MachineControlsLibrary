@@ -8,7 +8,10 @@
              mc:Ignorable="d"             
              >
 
-    <Grid x:Name="SpecWin">
+    <Grid x:Name="SpecWin" MouseLeftButtonDown="SpecWin_MouseLeftButtonDown"
+          MouseMove="SpecWin_MouseMove"
+          MouseLeftButtonUp="SpecWin_MouseLeftButtonUp"
+          >
         <Grid.Resources>
             <converters:GetTransformMatrixConverter2 x:Key="GetMatrix2"/>
             <converters:ShapeScalingConverter x:Key="ShapeScalingConverter"/>
@@ -63,9 +66,17 @@
             <!--<i:DataTrigger Binding="{Binding PointerVisibility}" Value="False">
                 <i:ControlStoryboardAction Storyboard="{StaticResource DisappearingPointer}"/>
             </i:DataTrigger>-->
+            <!--<i:EventTrigger EventName="MouseLeftButtonDown">
+                <i:InvokeCommandAction Command="{Binding InitSelectionCommand}" PassEventArgsToCommand="True"/>
+            </i:EventTrigger>-->
         </i:Interaction.Triggers>
-        <Canvas  Background="Transparent" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" RenderTransformOrigin="0.5 0.5">            
-            <ItemsControl ItemsSource="{Binding LayGeoms, Mode=OneWay}" 
+        <Canvas  Background="Transparent" 
+                 HorizontalAlignment="Stretch" 
+                 VerticalAlignment="Stretch" 
+                 RenderTransformOrigin="0.5 0.5"
+                 >            
+            <ItemsControl x:Name="DxfItems"
+                          ItemsSource="{Binding LayGeoms, Mode=OneWay}" 
                           Visibility="{Binding IsVisible, 
                           Converter={StaticResource BoolToVisibleConvereter}}">
                 <ItemsControl.ItemTemplate>
@@ -74,9 +85,11 @@
                             <Path Stroke="{Binding Path=LayerColor}" 
                                   StrokeThickness="{Binding StrokeThickness}" 
                                   Visibility="{Binding Path=LayerEnable, 
-                                  Converter={StaticResource BoolToVisibleConvereter}}">
+                                  Converter={StaticResource BoolToVisibleConvereter}}"
+                                  >
                                 <Path.Data>
-                                    <GeometryGroup Children="{Binding Geometries}" Transform="{StaticResource MTrans}"/>
+                                    <GeometryGroup Children="{Binding Geometries}" 
+                                                   Transform="{StaticResource MTrans}"/>
                                 </Path.Data>
                             </Path>                            
                         </Canvas> 
@@ -133,6 +146,21 @@
                     <TranslateTransform X="{Binding OffsetX}" Y="{Binding OffsetY}"/>
                 </TransformGroup>
             </Canvas.RenderTransform>
-        </Canvas>        
+        </Canvas>
+        <Canvas>
+            <Rectangle Canvas.Top="{Binding SelectionBoxY}" 
+                       Canvas.Left="{Binding SelectionBoxX}" 
+                       Width="{Binding SelectionBoxWidth}" 
+                       Height="{Binding SelectionBoxHeight}" 
+                       Fill="AliceBlue"
+                       Stroke="Red"
+                       StrokeThickness="2"
+                       StrokeDashArray="10 10"
+                       Opacity="0.5"
+                       RenderTransform="{Binding SelectionBoxScaleTransform}"
+                       Visibility="{Binding IsSelectionBoxVisible, Converter={StaticResource Boolean2VisibilityConverter}}"
+                       >
+            </Rectangle>
+        </Canvas>
     </Grid>
 </UserControl>

@@ -31,7 +31,7 @@ namespace MachineControlsLibrary.Controls
         //private double _fieldmarginx;
         //private double _fieldmarginy;
 
-
+        public event RoutedPropertyChangedEventHandler<Rect> GotSelectionEvent;
 
         public TextPosition TextPosition
         {
@@ -560,6 +560,11 @@ namespace MachineControlsLibrary.Controls
         private void MyMenu_MirrorXChanged()
         {
             MirrorX ^= true;
+        }
+
+        private void Specimen_GotSelectionEvent(object sender, Rect e)
+        {
+            GotSelectionEvent?.Invoke(sender, new RoutedPropertyChangedEventArgs<Rect>(e,e));
         }
     }
 }

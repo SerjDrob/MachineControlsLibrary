@@ -1,9 +1,15 @@
 ﻿using MachineControlsLibrary.Classes;
 using MachineControlsLibrary.Converters;
+using Microsoft.Toolkit.Mvvm.ComponentModel;
+using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
+using System.Windows.Shapes;
+using Xceed.Wpf.AvalonDock.Controls;
 
 namespace MachineControlsLibrary.Controls
 {
@@ -12,6 +18,8 @@ namespace MachineControlsLibrary.Controls
     /// <summary>
     /// Interaction logic for SpecimenWindow.xaml
     /// </summary>
+    
+    [INotifyPropertyChanged]
     public partial class SpecimenWindow : UserControl
     {
         public SpecimenWindow()
@@ -25,8 +33,17 @@ namespace MachineControlsLibrary.Controls
         private double _scalex;
         private double _scaley;
         private double _marginx;
-        private double _marginy;
+        private double _marginy; private bool _isSelectionInitiated = false;
+        private Point _sbStartPoint;
+        private ItemsControl? _itemsControl;
 
+        public event EventHandler<Rect> GotSelectionEvent;
+        public bool IsSelectionBoxVisible { get; set; }
+        public double SelectionBoxX { get; set; }
+        public double SelectionBoxY { get; set; }
+        public double SelectionBoxWidth { get; set; }
+        public double SelectionBoxHeight { get; set; }        
+        public ScaleTransform SelectionBoxScaleTransform { get; set; } = new ScaleTransform(1, 1);
 
 
         public ObservableCollection<LayerGeometryCollection> LayGeoms
@@ -42,23 +59,7 @@ namespace MachineControlsLibrary.Controls
 
         private static void MyCallBack(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-
         }
-
-        //protected override void OnRender(DrawingContext drawingContext)
-        //{
-        //    base.OnRender(drawingContext);
-        //    //var calc = new ScaleCalc(SpecWin.ActualWidth, SpecWin.ActualHeight, SpecSizeX, SpecSizeY, SpecMargin, XProportion, YProportion, AutoProportion);
-        //    //calc.Calc(out _scalex, out _scaley, out _marginx, out _marginy);
-        //    //ScaleX = _scalex;
-        //    //ScaleY = _scaley;
-        //    //MarginX = _marginx;
-        //    //MarginY = _marginy;
-        //   // IsVisible = true;
-
-        //}
-
-
 
         public bool IsVisible
         {
@@ -153,10 +154,6 @@ namespace MachineControlsLibrary.Controls
         public static readonly DependencyProperty YProportionProperty =
             DependencyProperty.Register("YProportion", typeof(bool), typeof(SpecimenWindow), new PropertyMetadata((bool)false));
 
-
-
-
-
         public bool AutoProportion
         {
             get { return (bool)GetValue(AutoProportionProperty); }
@@ -166,10 +163,6 @@ namespace MachineControlsLibrary.Controls
         // Using a DependencyProperty as the backing store for AutoProportion.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty AutoProportionProperty =
             DependencyProperty.Register("AutoProportion", typeof(bool), typeof(SpecimenWindow), new PropertyMetadata((bool)true));
-
-
-
-
 
         public double SpecMargin
         {
@@ -344,6 +337,59 @@ namespace MachineControlsLibrary.Controls
         private static void myFunc(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
 
+        }
+
+        private void SpecWin_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            _isSelectionInitiated = true;
+            IsSelectionBoxVisible = true;
+            var grid = sender as Grid;
+            var position = e.GetPosition(grid);
+            SelectionBoxX = position.X;
+            SelectionBoxY = position.Y;
+
+            _itemsControl = grid.FindVisualChildren<ItemsControl>().SingleOrDefault(ch => ch.Name == "DxfItems");
+            if (_itemsControl is not null) _sbStartPoint = e.GetPosition(_itemsControl);
+
+            e.Handled = true;
+        }
+
+
+        private void SpecWin_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            if (_isSelectionInitiated)
+            {
+                var grid = sender as Grid;
+                var position = e.GetPosition(grid);
+                var width = position.X - SelectionBoxX;
+                var height = position.Y - SelectionBoxY;
+                SelectionBoxWidth = Math.Abs(width);
+                SelectionBoxHeight = Math.Abs(height);
+                SelectionBoxScaleTransform = new ScaleTransform(Math.Sign(width), Math.Sign(height));
+            }
+            e.Handled = true;
+        }
+
+        private void SpecWin_MouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            var grid = sender as Grid;
+            var matrix = grid?.Resources["MTrans"] as MatrixTransform;
+            var invMatrix = matrix?.Inverse;
+
+            if (invMatrix is not null && _itemsControl is not null)
+            {
+                var endPoint = e.GetPosition(_itemsControl);
+                var rect = new Rect(_sbStartPoint, endPoint);
+                var rect1 = invMatrix.TransformBounds(rect);
+
+                GotSelectionEvent?.Invoke(this, rect1);
+            }
+
+            _isSelectionInitiated = false;
+            IsSelectionBoxVisible = false;
+            SelectionBoxWidth = 0;
+            SelectionBoxHeight = 0;
+            e.Handled = true;
         }
     }
 }

@@ -70,6 +70,7 @@
                                       PointerX="{Binding PointerX}"
                                       PointerY="{Binding PointerY}"
                                       PointerVisibility="{Binding PointerVisibility}"
+                                      GotSelectionEvent="Specimen_GotSelectionEvent"
                                       >
 
                         </local:SpecimenWindow>
