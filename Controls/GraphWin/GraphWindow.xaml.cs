@@ -22,7 +22,6 @@ namespace MachineControlsLibrary.Controls
         {
             InitializeComponent();
             GraphWin.DataContext = this;
-            DefaultStyleKey = typeof(GraphWindow);
         }
         //private double _scalex;
         //private double _scaley;
@@ -42,6 +41,18 @@ namespace MachineControlsLibrary.Controls
         // Using a DependencyProperty as the backing store for TextPosition.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty TextPositionProperty =
             DependencyProperty.Register("TextPosition", typeof(TextPosition), typeof(GraphWindow), new PropertyMetadata(TextPosition.W));
+
+
+
+        public bool CutCursor
+        {
+            get { return (bool)GetValue(CutCursorProperty); }
+            set { SetValue(CutCursorProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for CutCursor.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty CutCursorProperty =
+            DependencyProperty.Register("CutCursor", typeof(bool), typeof(GraphWindow), new PropertyMetadata(false));
 
 
 

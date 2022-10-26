@@ -71,6 +71,7 @@
                                       PointerY="{Binding PointerY}"
                                       PointerVisibility="{Binding PointerVisibility}"
                                       GotSelectionEvent="Specimen_GotSelectionEvent"
+                                      CutCursor="{Binding CutCursor}"
                                       >
 
                         </local:SpecimenWindow>

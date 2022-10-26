@@ -4,6 +4,8 @@ using Microsoft.Toolkit.Mvvm.ComponentModel;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reflection.Metadata;
+using System.Threading.Channels;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -44,6 +46,17 @@ namespace MachineControlsLibrary.Controls
         public double SelectionBoxWidth { get; set; }
         public double SelectionBoxHeight { get; set; }        
         public ScaleTransform SelectionBoxScaleTransform { get; set; } = new ScaleTransform(1, 1);
+
+
+        public bool CutCursor
+        {
+            get { return (bool)GetValue(CutCursorProperty); }
+            set { SetValue(CutCursorProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for CutCursor.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty CutCursorProperty =
+            DependencyProperty.Register("CutCursor", typeof(bool), typeof(SpecimenWindow), new PropertyMetadata(false));
 
 
         public ObservableCollection<LayerGeometryCollection> LayGeoms
@@ -341,17 +354,20 @@ namespace MachineControlsLibrary.Controls
 
         private void SpecWin_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            _isSelectionInitiated = true;
-            IsSelectionBoxVisible = true;
-            var grid = sender as Grid;
-            var position = e.GetPosition(grid);
-            SelectionBoxX = position.X;
-            SelectionBoxY = position.Y;
+            if (CutCursor)
+            {
+                _isSelectionInitiated = true;
+                IsSelectionBoxVisible = true;
+                var grid = sender as Grid;
+                var position = e.GetPosition(grid);
+                SelectionBoxX = position.X;
+                SelectionBoxY = position.Y;
 
-            _itemsControl = grid.FindVisualChildren<ItemsControl>().SingleOrDefault(ch => ch.Name == "DxfItems");
-            if (_itemsControl is not null) _sbStartPoint = e.GetPosition(_itemsControl);
+                _itemsControl = grid.FindVisualChildren<ItemsControl>().SingleOrDefault(ch => ch.Name == "DxfItems");
+                if (_itemsControl is not null) _sbStartPoint = e.GetPosition(_itemsControl);
 
-            e.Handled = true;
+                e.Handled = true; 
+            }
         }
 
 
@@ -372,24 +388,28 @@ namespace MachineControlsLibrary.Controls
 
         private void SpecWin_MouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            var grid = sender as Grid;
-            var matrix = grid?.Resources["MTrans"] as MatrixTransform;
-            var invMatrix = matrix?.Inverse;
-
-            if (invMatrix is not null && _itemsControl is not null)
+            if (CutCursor)
             {
-                var endPoint = e.GetPosition(_itemsControl);
-                var rect = new Rect(_sbStartPoint, endPoint);
-                var rect1 = invMatrix.TransformBounds(rect);
+                var grid = sender as Grid;
+                var matrix = grid?.Resources["MTrans"] as MatrixTransform;
+                var invMatrix = matrix?.Inverse;
 
-                GotSelectionEvent?.Invoke(this, rect1);
+                if (invMatrix is not null && _itemsControl is not null)
+                {
+                    var endPoint = e.GetPosition(_itemsControl);
+                    var rect = new Rect(_sbStartPoint, endPoint);
+                    var rect1 = invMatrix.TransformBounds(rect);
+
+                    GotSelectionEvent?.Invoke(this, rect1);
+                }
+
+                _isSelectionInitiated = false;
+                IsSelectionBoxVisible = false;
+                SelectionBoxWidth = 0;
+                SelectionBoxHeight = 0;
+                e.Handled = true; 
             }
-
-            _isSelectionInitiated = false;
-            IsSelectionBoxVisible = false;
-            SelectionBoxWidth = 0;
-            SelectionBoxHeight = 0;
-            e.Handled = true;
         }
+
     }
 }

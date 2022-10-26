@@ -5,13 +5,14 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:MachineControlsLibrary.Controls"
              xmlns:converters="clr-namespace:MachineControlsLibrary.Converters" xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
-             mc:Ignorable="d"             
+             mc:Ignorable="d" 
              >
 
     <Grid x:Name="SpecWin" MouseLeftButtonDown="SpecWin_MouseLeftButtonDown"
           MouseMove="SpecWin_MouseMove"
           MouseLeftButtonUp="SpecWin_MouseLeftButtonUp"
           >
+            
         <Grid.Resources>
             <converters:GetTransformMatrixConverter2 x:Key="GetMatrix2"/>
             <converters:ShapeScalingConverter x:Key="ShapeScalingConverter"/>
@@ -62,6 +63,12 @@
         <i:Interaction.Triggers>
             <i:DataTrigger Binding="{Binding PointerVisibility}" Value="True">
                 <i:ControlStoryboardAction Storyboard="{StaticResource BlinkingPointer}"/>
+            </i:DataTrigger>
+            <i:DataTrigger Binding="{Binding CutCursor}" Value="True">
+                <i:ChangePropertyAction PropertyName="Cursor" Value="Cross"/>
+            </i:DataTrigger>
+            <i:DataTrigger Binding="{Binding CutCursor}" Value="False">
+                <i:ChangePropertyAction PropertyName="Cursor" Value="Arrow"/>
             </i:DataTrigger>
             <!--<i:DataTrigger Binding="{Binding PointerVisibility}" Value="False">
                 <i:ControlStoryboardAction Storyboard="{StaticResource DisappearingPointer}"/>
