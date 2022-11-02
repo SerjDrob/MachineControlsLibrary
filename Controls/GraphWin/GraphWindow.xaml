@@ -72,6 +72,8 @@
                                       PointerVisibility="{Binding PointerVisibility}"
                                       GotSelectionEvent="Specimen_GotSelectionEvent"
                                       CutCursor="{Binding CutCursor}"
+                                      IsFillPath="{Binding IsFillPath}"
+                                      LightPathModeOn="{Binding LightPathModeOn}"
                                       >
 
                         </local:SpecimenWindow>

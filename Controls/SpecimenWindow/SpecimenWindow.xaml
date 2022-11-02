@@ -5,14 +5,14 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:MachineControlsLibrary.Controls"
              xmlns:converters="clr-namespace:MachineControlsLibrary.Converters" xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
-             mc:Ignorable="d" 
+             mc:Ignorable="d"
              >
 
     <Grid x:Name="SpecWin" MouseLeftButtonDown="SpecWin_MouseLeftButtonDown"
           MouseMove="SpecWin_MouseMove"
           MouseLeftButtonUp="SpecWin_MouseLeftButtonUp"
           >
-            
+
         <Grid.Resources>
             <converters:GetTransformMatrixConverter2 x:Key="GetMatrix2"/>
             <converters:ShapeScalingConverter x:Key="ShapeScalingConverter"/>
@@ -20,7 +20,9 @@
             <converters:BoolToVisibleConvereter x:Key="BoolToVisibleConvereter"/>
             <converters:DivideConverter x:Key="DivideConverter"/>
             <converters:XYToPointConverter x:Key="XYToPointConverter"/>
-
+            <local:FillPathConverter x:Key="FillPathConverter"/>
+            <local:BoolToOpacityInverseConverter x:Key="BoolToOpacityConverter"/>
+            <local:OnLayGeomMouseDownArgsConverter x:Key="MouseDownArgsConverter"/>
             <Storyboard x:Key="BlinkingPointer">
                 <ObjectAnimationUsingKeyFrames 
                                            Storyboard.TargetName="Pointer"
@@ -51,6 +53,9 @@
                     </MultiBinding>
                 </MatrixTransform.Matrix>
             </MatrixTransform>
+            <i:ConditionalExpression x:Key="IsLightLayer">
+                <i:ComparisonCondition LeftOperand="{Binding Path=DataContext.LightPathModeOn, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Grid}}" RightOperand="True" Operator="Equal"/>
+            </i:ConditionalExpression>
             <!--<Storyboard x:Key="DisappearingPointer">
                 <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Pointer"
                                            Storyboard.TargetProperty="Visibility">
@@ -58,7 +63,7 @@
                         <DiscreteObjectKeyFrame Value="{x:Static Visibility.Hidden}"/>
                     </ObjectAnimationUsingKeyFrames.KeyFrames>
                 </ObjectAnimationUsingKeyFrames>
-            </Storyboard>-->            
+            </Storyboard>-->
         </Grid.Resources>
         <i:Interaction.Triggers>
             <i:DataTrigger Binding="{Binding PointerVisibility}" Value="True">
@@ -81,38 +86,70 @@
                  HorizontalAlignment="Stretch" 
                  VerticalAlignment="Stretch" 
                  RenderTransformOrigin="0.5 0.5"
-                 >            
+                 >
+
             <ItemsControl x:Name="DxfItems"
                           ItemsSource="{Binding LayGeoms, Mode=OneWay}" 
                           Visibility="{Binding IsVisible, 
                           Converter={StaticResource BoolToVisibleConvereter}}">
                 <ItemsControl.ItemTemplate>
-                    <DataTemplate>                        
-                        <Canvas>                               
+                    <DataTemplate>
+                        <Canvas>
                             <Path Stroke="{Binding Path=LayerColor}" 
-                                  StrokeThickness="{Binding StrokeThickness}" 
-                                  Visibility="{Binding Path=LayerEnable, 
-                                  Converter={StaticResource BoolToVisibleConvereter}}"
-                                  >
+                                      StrokeThickness="{Binding StrokeThickness}" 
+                                      Visibility="{Binding Path=LayerEnable, 
+                                      Converter={StaticResource BoolToVisibleConvereter}}"
+                                      Opacity="{Binding Path=DataContext.LightPathModeOn, 
+                                                Converter={StaticResource BoolToOpacityConverter},
+                                                RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Grid}}"
+                                      >
+                                <Path.Fill>
+                                    <MultiBinding Converter="{StaticResource FillPathConverter}">
+                                        <Binding Path="LayerColor"/>
+                                        <Binding ElementName="SpecWin" Path="DataContext.IsFillPath"/>
+                                    </MultiBinding>
+                                </Path.Fill>
                                 <Path.Data>
                                     <GeometryGroup Children="{Binding Geometries}" 
                                                    Transform="{StaticResource MTrans}"/>
                                 </Path.Data>
+                                <i:Interaction.Triggers>
+                                    <i:EventTrigger EventName="MouseEnter">
+                                        <i:Interaction.Behaviors>
+                                            <i:ConditionBehavior Condition="{StaticResource IsLightLayer}"/>
+                                        </i:Interaction.Behaviors>
+                                        <i:ChangePropertyAction PropertyName="Opacity" Value="1"/>
+                                    </i:EventTrigger>
+                                    <i:EventTrigger EventName="MouseLeave">
+                                        <i:Interaction.Behaviors>
+                                            <i:ConditionBehavior Condition="{StaticResource IsLightLayer}"/>
+                                        </i:Interaction.Behaviors>
+                                        <i:ChangePropertyAction PropertyName="Opacity" Value="0"/>
+                                    </i:EventTrigger>
+                                    <i:EventTrigger EventName="MouseDown">
+                                        <i:InvokeCommandAction Command="{Binding Path=DataContext.OnLayGeomClickedCommand, 
+                                                RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Grid}}"
+                                                               PassEventArgsToCommand="True"
+                                                               EventArgsConverter="{StaticResource MouseDownArgsConverter}"
+                                                               EventArgsConverterParameter="{StaticResource MTrans}"/>
+                                    </i:EventTrigger>
+                                </i:Interaction.Triggers>
                             </Path>                            
-                        </Canvas> 
+                        </Canvas>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
-            </ItemsControl>            
+                
+            </ItemsControl>
             <Canvas.RenderTransform>
-                <TransformGroup>
+                <TransformGroup x:Name="MyTransform">
                     <ScaleTransform ScaleX="{Binding MirrorX}" ScaleY="1"/>
                     <RotateTransform Angle="{Binding Angle}"/>
                     <ScaleTransform ScaleX="1" ScaleY="-1"/>
-                    <TranslateTransform X="{Binding OffsetX}" Y="{Binding OffsetY}"/>                   
+                    <TranslateTransform X="{Binding OffsetX}" Y="{Binding OffsetY}"/>
                 </TransformGroup>
             </Canvas.RenderTransform>
         </Canvas>
-        <Canvas RenderTransformOrigin="0.5 0.5">            
+        <Canvas RenderTransformOrigin="0.5 0.5">
             <Path x:Name="Pointer" Visibility="Hidden" Stroke="Yellow" StrokeThickness="{Binding PointerThickness}">
                 <Path.Data>
                     <EllipseGeometry RadiusX="{Binding PointerDiameter, Converter={StaticResource DivideConverter}, ConverterParameter=2}" 
@@ -145,7 +182,7 @@
                         </EllipseGeometry.Transform>
                     </EllipseGeometry>
                 </Path.Data>
-            </Path>            
+            </Path>
             <Canvas.RenderTransform>
                 <TransformGroup>
                     <RotateTransform Angle="{Binding Angle}"/>

@@ -30,7 +30,32 @@ namespace MachineControlsLibrary.Controls
         //private double _fieldmarginx;
         //private double _fieldmarginy;
 
-        public event RoutedPropertyChangedEventHandler<Rect> GotSelectionEvent;
+        public event RoutedSelectionEventHandler GotSelectionEvent;
+
+
+        public bool IsFillPath
+        {
+            get { return (bool)GetValue(IsFillPathProperty); }
+            set { SetValue(IsFillPathProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for IsFillPath.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty IsFillPathProperty =
+            DependencyProperty.Register("IsFillPath", typeof(bool), typeof(GraphWindow), new PropertyMetadata(false));
+
+
+
+        public bool LightPathModeOn
+        {
+            get { return (bool)GetValue(LightPathModeOnProperty); }
+            set { SetValue(LightPathModeOnProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for LightPathModeOn.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty LightPathModeOnProperty =
+            DependencyProperty.Register("LightPathModeOn", typeof(bool), typeof(GraphWindow), new PropertyMetadata(false));
+
+
 
         public TextPosition TextPosition
         {
@@ -575,7 +600,21 @@ namespace MachineControlsLibrary.Controls
 
         private void Specimen_GotSelectionEvent(object sender, Rect e)
         {
-            GotSelectionEvent?.Invoke(sender, new RoutedPropertyChangedEventArgs<Rect>(e,e));
+            GotSelectionEvent?.Invoke(sender, e);
         }
+    }
+
+    public delegate void RoutedSelectionEventHandler(object sender, RoutedSelectionEventArgs e);
+
+    public class RoutedSelectionEventArgs:RoutedEventArgs
+    {
+        public Rect Selection { get; init; }
+
+        public RoutedSelectionEventArgs(Rect selection)
+        {
+            Selection = selection;
+        }
+        public static explicit operator Rect(RoutedSelectionEventArgs e) => e.Selection;
+        public static implicit operator RoutedSelectionEventArgs(Rect rect) => new RoutedSelectionEventArgs(rect);
     }
 }

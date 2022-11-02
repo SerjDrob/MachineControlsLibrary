@@ -1,6 +1,7 @@
 ﻿using MachineControlsLibrary.Classes;
 using MachineControlsLibrary.Converters;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
+using Microsoft.Toolkit.Mvvm.Input;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -46,6 +47,31 @@ namespace MachineControlsLibrary.Controls
         public double SelectionBoxWidth { get; set; }
         public double SelectionBoxHeight { get; set; }        
         public ScaleTransform SelectionBoxScaleTransform { get; set; } = new ScaleTransform(1, 1);
+
+
+
+        public bool IsFillPath
+        {
+            get { return (bool)GetValue(IsFillPathProperty); }
+            set { SetValue(IsFillPathProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for IsFillPath.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty IsFillPathProperty =
+            DependencyProperty.Register("IsFillPath", typeof(bool), typeof(SpecimenWindow), new PropertyMetadata(false));
+
+
+
+        public bool LightPathModeOn
+        {
+            get { return (bool)GetValue(LightPathModeOnProperty); }
+            set { SetValue(LightPathModeOnProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for LightPathModeOn.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty LightPathModeOnProperty =
+            DependencyProperty.Register("LightPathModeOn", typeof(bool), typeof(SpecimenWindow), new PropertyMetadata(false));
+
 
 
         public bool CutCursor
@@ -411,5 +437,34 @@ namespace MachineControlsLibrary.Controls
             }
         }
 
+        [ICommand]
+        private void OnLayGeomClicked(object? obj)
+        {
+            try
+            {
+                var point = (Point)obj;
+                OnGeometryClickEvent?.Invoke(this, point);
+            }
+            catch (Exception)
+            {
+
+                //throw;
+            }
+        }
+
+        public event RoutedGeomClickEventHandler OnGeometryClickEvent;
+
+    }
+    public delegate void RoutedGeomClickEventHandler(object? obj, GeomClickEventArgs clickEventArgs);
+    public class GeomClickEventArgs : RoutedEventArgs
+    {
+        public Point Coordinate { get; init; }
+
+        public GeomClickEventArgs(Point coordinate)
+        {
+            Coordinate = coordinate;
+        }
+        public static explicit operator Point(GeomClickEventArgs e) => e.Coordinate;
+        public static implicit operator GeomClickEventArgs(Point point) => new GeomClickEventArgs(point);
     }
 }
