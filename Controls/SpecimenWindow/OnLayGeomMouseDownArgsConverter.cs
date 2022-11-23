@@ -23,7 +23,7 @@ namespace MachineControlsLibrary.Controls
                 var source = mouseDownArgs.Source as System.Windows.Shapes.Path;
 
                 var lgc = source?.DataContext as LayerGeometryCollection;
-                var ellipse = lgc?.Geometries.SingleOrDefault() as EllipseGeometry;
+                var ellipse = lgc?.Geometries.SingleOrDefault() as EllipseGeometry;//TODO can be more entities. Exception occured.
                 var center = ellipse?.Center;
                 return center;
             }
