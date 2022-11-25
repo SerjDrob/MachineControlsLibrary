@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:MachineControlsLibrary.Controls"
-             mc:Ignorable="d"            
+             mc:Ignorable="d"
              >
     <Grid x:Name="TheValveButton">
         <Grid.Resources>
@@ -12,7 +12,7 @@
         </Grid.Resources>
 
 
-        <Button Name="Toggle" Command="{Binding ValveCommand}" Background="{Binding MyBackground}" HorizontalContentAlignment="Stretch">
+        <Button Name="Toggle" Background="{TemplateBinding Background}" Command="{Binding ValveCommand}" HorizontalContentAlignment="Stretch">
             <Button.Style>
                 <Style TargetType="Button">
                     <Setter Property="Template">
@@ -63,14 +63,16 @@
                         </Style>
                     </Rectangle.Style>
                 </Rectangle>
-                <Label Content="{Binding ValveName}" DockPanel.Dock="Bottom" HorizontalContentAlignment="Center"
+                <Label Content="{Binding ValveName}" 
+                       DockPanel.Dock="Bottom" 
+                       HorizontalContentAlignment="Center"
                        FontWeight="UltraBold"
-                       FontStretch="ExtraExpanded"
-                       
+                       FontStretch="ExtraExpanded"    
+                       Background="{TemplateBinding Background}"
+                       BorderBrush="{TemplateBinding Background}"
                        />
                
             </DockPanel>
         </Button>
-
     </Grid>
 </UserControl>

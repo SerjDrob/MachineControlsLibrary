@@ -22,7 +22,7 @@
                     <Setter Property="RadiusX" Value="5" />
                     <Setter Property="RadiusY" Value="5" />
                 </Style>
-                <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockBaseStyle}"/>
+                <!--<Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockBaseStyle}"/>-->
             </Grid.Resources>
 
             <Grid.ColumnDefinitions>
@@ -115,7 +115,7 @@
                         <Setter Property="RadiusX" Value="5" />
                         <Setter Property="RadiusY" Value="5" />
                     </Style>
-                    <Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockBaseStyle}"/>
+                    <!--<Style TargetType="TextBlock" BasedOn="{StaticResource TextBlockBaseStyle}"/>-->
                 </Grid.Resources>
 
                 <Grid.ColumnDefinitions>
@@ -137,13 +137,14 @@
                 <i:DataTrigger Binding="{Binding Layout}" Value="{x:Static local:AxStateLayout.Vertical}">
                     <i:ChangePropertyAction PropertyName="Visibility" Value="Collapsed"/>
                 </i:DataTrigger>
-            </i:Interaction.Triggers>-->
+                </i:Interaction.Triggers>-->
 
 
                 <TextBlock Grid.ColumnSpan="3"
                        Text="{Binding StringFormat='{}{0}', Path=CoordinateName}"
                        FontWeight="Bold"
                        FontSize="20"
+                       HorizontalAlignment="Center"
                        />
 
                 <TextBlock Grid.ColumnSpan="3"
