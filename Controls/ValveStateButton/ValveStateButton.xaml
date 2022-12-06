@@ -12,7 +12,7 @@
         </Grid.Resources>
 
 
-        <Button Name="Toggle" Background="{TemplateBinding Background}" Command="{Binding ValveCommand}" HorizontalContentAlignment="Stretch">
+        <Button Name="Toggle" Command="{Binding ValveCommand}" HorizontalContentAlignment="Stretch">
             <Button.Style>
                 <Style TargetType="Button">
                     <Setter Property="Template">
@@ -68,8 +68,6 @@
                        HorizontalContentAlignment="Center"
                        FontWeight="UltraBold"
                        FontStretch="ExtraExpanded"    
-                       Background="{TemplateBinding Background}"
-                       BorderBrush="{TemplateBinding Background}"
                        />
                
             </DockPanel>
