@@ -12,13 +12,15 @@
         </Grid.Resources>
 
 
-        <Button Name="Toggle" Background="{TemplateBinding Background}" Command="{Binding ValveCommand}" HorizontalContentAlignment="Stretch">
+        <Button Name="Toggle" Background="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Background}" Command="{Binding ValveCommand}" HorizontalContentAlignment="Stretch">
             <Button.Style>
                 <Style TargetType="Button">
                     <Setter Property="Template">
                         <Setter.Value>
                             <ControlTemplate TargetType="Button">
-                                <Border CornerRadius="{Binding ActualHeight, RelativeSource={RelativeSource Self}, Converter={StaticResource HeightToRadiusConverter}}" Background="{TemplateBinding Background}">
+                                <Border CornerRadius="{Binding ActualHeight, RelativeSource={RelativeSource Self}, 
+                                    Converter={StaticResource HeightToRadiusConverter}}" 
+                                        Background="{TemplateBinding Background}">
                                     <Border Background="{TemplateBinding Background}" Margin="5" BorderThickness="3" CornerRadius="{Binding ActualHeight, RelativeSource={RelativeSource Self}, Converter={StaticResource HeightToRadiusConverter}}">                                        
                                         <Border.Style>
                                             <Style TargetType="Border">
@@ -68,8 +70,8 @@
                        HorizontalContentAlignment="Center"
                        FontWeight="UltraBold"
                        FontStretch="ExtraExpanded"    
-                       Background="{TemplateBinding Background}"
-                       BorderBrush="{TemplateBinding Background}"
+                       Background="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Background}"
+                       BorderBrush="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Background}"
                        />
                
             </DockPanel>
