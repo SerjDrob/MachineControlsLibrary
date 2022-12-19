@@ -9,6 +9,9 @@
       netDxf package is deleted
     </Description>
     <Platforms>AnyCPU;x86</Platforms>
+    <ApplicationIcon />
+    <OutputType>Library</OutputType>
+    <StartupObject />
   </PropertyGroup>
 
   <ItemGroup>
