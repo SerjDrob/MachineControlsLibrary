@@ -50,6 +50,18 @@ namespace MachineControlsLibrary.Controls
 
 
 
+        public bool IsLoading
+        {
+            get { return (bool)GetValue(IsLoadingProperty); }
+            set { SetValue(IsLoadingProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for IsLoading.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty IsLoadingProperty =
+            DependencyProperty.Register("IsLoading", typeof(bool), typeof(SpecimenWindow), new PropertyMetadata(false));
+
+
+
         public bool IsFillPath
         {
             get { return (bool)GetValue(IsFillPathProperty); }
@@ -94,11 +106,18 @@ namespace MachineControlsLibrary.Controls
         // Using a DependencyProperty as the backing store for LayGeoms.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty LayGeomsProperty =
             DependencyProperty.Register("LayGeoms", typeof(ObservableCollection<LayerGeometryCollection>), typeof(SpecimenWindow),
-                new PropertyMetadata(null, new PropertyChangedCallback(MyCallBack)));
+                new PropertyMetadata(null, new PropertyChangedCallback(LayGeomsChanged)));
 
-        private static void MyCallBack(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        private static void LayGeomsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
+            var spec = d as SpecimenWindow;
+            if (spec is not null)
+            {
+                spec.IsLoading = false;
+            }
         }
+
+        
 
         public bool IsVisible
         {
