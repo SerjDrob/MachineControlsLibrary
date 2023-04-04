@@ -6,9 +6,11 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Security.Cryptography.Xml;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using Xceed.Wpf.AvalonDock.Controls;
 
 namespace MachineControlsLibrary.Controls
 {
@@ -23,16 +25,10 @@ namespace MachineControlsLibrary.Controls
             InitializeComponent();
             GraphWin.DataContext = this;
         }
-        //private double _scalex;
-        //private double _scaley;
-        //private double _marginx;
-        //private double _marginy;
-        //private double _fieldmarginx;
-        //private double _fieldmarginy;
 
         public event RoutedSelectionEventHandler GotSelectionEvent;
-
-
+        public float Zoomfactor { get; set; } = 1.1f;
+        private readonly MatrixTransform _transform = new MatrixTransform();
         public bool IsFillPath
         {
             get { return (bool)GetValue(IsFillPathProperty); }
@@ -601,6 +597,33 @@ namespace MachineControlsLibrary.Controls
         private void Specimen_GotSelectionEvent(object sender, Rect e)
         {
             GotSelectionEvent?.Invoke(sender, e);
+        }
+
+        private void CanvasView_MouseWheel(object sender, System.Windows.Input.MouseWheelEventArgs e)
+        {
+            var viewBox = sender as Viewbox;
+            float scaleFactor = Zoomfactor;
+            if (e.Delta < 0)
+            {
+                scaleFactor = 1f / scaleFactor;
+            }
+
+            Point mousePosition = e.GetPosition(viewBox);
+
+            Matrix scaleMatrix = _transform.Matrix;
+            scaleMatrix.ScaleAt(scaleFactor, scaleFactor, mousePosition.X, mousePosition.Y);
+            _transform.Matrix = scaleMatrix;
+
+            var x = Canvas.GetLeft(viewBox.Child);
+            var y = Canvas.GetTop(viewBox.Child);
+
+            var sx = x * scaleFactor;
+            var sy = y * scaleFactor;
+
+            //Canvas.SetLeft(child, sx);
+            //Canvas.SetTop(child, sy);
+
+            viewBox.Child.RenderTransform = _transform;
         }
     }
 

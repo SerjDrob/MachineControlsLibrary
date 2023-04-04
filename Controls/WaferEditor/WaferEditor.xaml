@@ -1,0 +1,87 @@
+﻿<UserControl x:Class="MachineControlsLibrary.Controls.WaferEditor.WaferEditor"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:MachineControlsLibrary.Controls"
+             xmlns:converters="clr-namespace:MachineControlsLibrary.Converters" 
+             xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+             xmlns:hc="https://handyorg.github.io/handycontrol"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid x:Name="Editor">
+        <Grid.Resources>
+            <converters:GetTransformMatrixConverter2 x:Key="GetMatrix2"/>
+            <converters:ShapeScalingConverter x:Key="ShapeScalingConverter"/>
+            <converters:TestConverter x:Key="TestConverter"/>
+            <converters:BoolToVisibleConvereter x:Key="BoolToVisibleConvereter"/>
+            <converters:DivideConverter x:Key="DivideConverter"/>
+            <converters:XYToPointConverter x:Key="XYToPointConverter"/>
+            <local:FillPathConverter x:Key="FillPathConverter"/>
+            <local:BoolToOpacityInverseConverter x:Key="BoolToOpacityConverter"/>
+            <local:OnLayGeomMouseDownArgsConverter x:Key="MouseDownArgsConverter"/>
+        </Grid.Resources>
+        <Viewbox Stretch="Fill">
+            <Canvas  Background="Transparent" 
+                 HorizontalAlignment="Stretch" 
+                 VerticalAlignment="Stretch" 
+                 RenderTransformOrigin="0.5 0.5"
+                 x:Name="MainCanvas"
+                 >
+
+                <ItemsControl x:Name="DxfItems"
+                          ItemsSource="{Binding LayGeoms, Mode=OneWay}" 
+                          Visibility="{Binding IsVisible, 
+                          Converter={StaticResource BoolToVisibleConvereter}}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Canvas>
+                                <Path Stroke="{Binding Path=LayerColor}" 
+                                      StrokeThickness="1" 
+                                      Visibility="Visible"
+                                      Fill="Red"
+                                      >
+                                    <Path.Data>
+                                        <GeometryGroup Children="{Binding Geometries}" 
+                                                   
+                                                       />
+                                    </Path.Data>
+                                    <!--<i:Interaction.Triggers>
+                                        <i:EventTrigger EventName="MouseEnter">
+                                            <i:Interaction.Behaviors>
+                                                <i:ConditionBehavior Condition="{StaticResource IsLightLayer}"/>
+                                            </i:Interaction.Behaviors>
+                                            <i:ChangePropertyAction PropertyName="Opacity" Value="1"/>
+                                        </i:EventTrigger>
+                                        <i:EventTrigger EventName="MouseLeave">
+                                            <i:Interaction.Behaviors>
+                                                <i:ConditionBehavior Condition="{StaticResource IsLightLayer}"/>
+                                            </i:Interaction.Behaviors>
+                                            <i:ChangePropertyAction PropertyName="Opacity" Value="0"/>
+                                        </i:EventTrigger>
+                                        <i:EventTrigger EventName="MouseDown">
+                                            <i:InvokeCommandAction Command="{Binding Path=DataContext.OnLayGeomClickedCommand, 
+                                                RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Grid}}"
+                                                               PassEventArgsToCommand="True"
+                                                               EventArgsConverter="{StaticResource MouseDownArgsConverter}"
+                                                               EventArgsConverterParameter="{StaticResource MTrans}"/>
+                                        </i:EventTrigger>
+                                    </i:Interaction.Triggers>-->
+                                </Path>
+                            </Canvas>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+
+                </ItemsControl>
+                <!--<Canvas.RenderTransform>
+                    <TransformGroup x:Name="MyTransform">
+                        <ScaleTransform ScaleX="{Binding MirrorX}" ScaleY="1"/>
+                        <RotateTransform Angle="{Binding Angle}"/>
+                        <ScaleTransform ScaleX="1" ScaleY="-1"/>
+                        <TranslateTransform X="{Binding OffsetX}" Y="{Binding OffsetY}"/>
+                    </TransformGroup>
+                </Canvas.RenderTransform>-->
+            </Canvas>
+        </Viewbox>
+    </Grid>
+</UserControl>

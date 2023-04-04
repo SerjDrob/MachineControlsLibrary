@@ -1,17 +1,12 @@
-﻿using MachineControlsLibrary.Classes;
-using MachineControlsLibrary.Converters;
-using Microsoft.Toolkit.Mvvm.ComponentModel;
-using Microsoft.Toolkit.Mvvm.Input;
-using System;
+﻿using System;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Reflection.Metadata;
-using System.Threading.Channels;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using System.Windows.Media.Animation;
-using System.Windows.Shapes;
+using MachineControlsLibrary.Classes;
+using Microsoft.Toolkit.Mvvm.ComponentModel;
+using Microsoft.Toolkit.Mvvm.Input;
 using Xceed.Wpf.AvalonDock.Controls;
 
 namespace MachineControlsLibrary.Controls
@@ -21,7 +16,7 @@ namespace MachineControlsLibrary.Controls
     /// <summary>
     /// Interaction logic for SpecimenWindow.xaml
     /// </summary>
-    
+
     [INotifyPropertyChanged]
     public partial class SpecimenWindow : UserControl
     {
@@ -29,9 +24,39 @@ namespace MachineControlsLibrary.Controls
         {
             InitializeComponent();
             SpecWin.DataContext = this;
+            //MouseWheel += SpecimenWindow_MouseWheel;
 
         }
+        public float Zoomfactor { get; set; } = 1.1f;
+        private readonly MatrixTransform _transform = new MatrixTransform();
+        private void SpecimenWindow_MouseWheel(object sender, System.Windows.Input.MouseWheelEventArgs e)
+        {
+            var scaleFactor = Zoomfactor;
+            if (e.Delta < 0)
+            {
+                scaleFactor = 1f / scaleFactor;
+            }
 
+            Point mousePosition = e.GetPosition(this);
+
+            Matrix scaleMatrix = _transform.Matrix;
+            scaleMatrix.ScaleAt(scaleFactor, scaleFactor, mousePosition.X, mousePosition.Y);
+            _transform.Matrix = scaleMatrix;
+
+            foreach (UIElement child in this.MainCanvas.Children)
+            {
+                var x = Canvas.GetLeft(child);
+                var y = Canvas.GetTop(child);
+
+                var sx = x * scaleFactor;
+                var sy = y * scaleFactor;
+
+                Canvas.SetLeft(child, sx);
+                Canvas.SetTop(child, sy);
+
+                child.RenderTransform = _transform;
+            }
+        }
 
         private double _scalex;
         private double _scaley;
@@ -41,19 +66,40 @@ namespace MachineControlsLibrary.Controls
         private ItemsControl? _itemsControl;
 
         public event EventHandler<Rect> GotSelectionEvent;
-        public bool IsSelectionBoxVisible { get; set; }
-        public double SelectionBoxX { get; set; }
-        public double SelectionBoxY { get; set; }
-        public double SelectionBoxWidth { get; set; }
-        public double SelectionBoxHeight { get; set; }        
+        public bool IsSelectionBoxVisible
+        {
+            get; set;
+        }
+        public double SelectionBoxX
+        {
+            get; set;
+        }
+        public double SelectionBoxY
+        {
+            get; set;
+        }
+        public double SelectionBoxWidth
+        {
+            get; set;
+        }
+        public double SelectionBoxHeight
+        {
+            get; set;
+        }
         public ScaleTransform SelectionBoxScaleTransform { get; set; } = new ScaleTransform(1, 1);
 
 
 
         public bool IsLoading
         {
-            get { return (bool)GetValue(IsLoadingProperty); }
-            set { SetValue(IsLoadingProperty, value); }
+            get
+            {
+                return (bool)GetValue(IsLoadingProperty);
+            }
+            set
+            {
+                SetValue(IsLoadingProperty, value);
+            }
         }
 
         // Using a DependencyProperty as the backing store for IsLoading.  This enables animation, styling, binding, etc...
@@ -64,8 +110,14 @@ namespace MachineControlsLibrary.Controls
 
         public bool IsFillPath
         {
-            get { return (bool)GetValue(IsFillPathProperty); }
-            set { SetValue(IsFillPathProperty, value); }
+            get
+            {
+                return (bool)GetValue(IsFillPathProperty);
+            }
+            set
+            {
+                SetValue(IsFillPathProperty, value);
+            }
         }
 
         // Using a DependencyProperty as the backing store for IsFillPath.  This enables animation, styling, binding, etc...
@@ -76,8 +128,14 @@ namespace MachineControlsLibrary.Controls
 
         public bool LightPathModeOn
         {
-            get { return (bool)GetValue(LightPathModeOnProperty); }
-            set { SetValue(LightPathModeOnProperty, value); }
+            get
+            {
+                return (bool)GetValue(LightPathModeOnProperty);
+            }
+            set
+            {
+                SetValue(LightPathModeOnProperty, value);
+            }
         }
 
         // Using a DependencyProperty as the backing store for LightPathModeOn.  This enables animation, styling, binding, etc...
@@ -88,8 +146,14 @@ namespace MachineControlsLibrary.Controls
 
         public bool CutCursor
         {
-            get { return (bool)GetValue(CutCursorProperty); }
-            set { SetValue(CutCursorProperty, value); }
+            get
+            {
+                return (bool)GetValue(CutCursorProperty);
+            }
+            set
+            {
+                SetValue(CutCursorProperty, value);
+            }
         }
 
         // Using a DependencyProperty as the backing store for CutCursor.  This enables animation, styling, binding, etc...
@@ -99,8 +163,14 @@ namespace MachineControlsLibrary.Controls
 
         public ObservableCollection<LayerGeometryCollection> LayGeoms
         {
-            get { return (ObservableCollection<LayerGeometryCollection>)GetValue(LayGeomsProperty); }
-            set { SetValue(LayGeomsProperty, value); }
+            get
+            {
+                return (ObservableCollection<LayerGeometryCollection>)GetValue(LayGeomsProperty);
+            }
+            set
+            {
+                SetValue(LayGeomsProperty, value);
+            }
         }
 
         // Using a DependencyProperty as the backing store for LayGeoms.  This enables animation, styling, binding, etc...
@@ -117,12 +187,18 @@ namespace MachineControlsLibrary.Controls
             }
         }
 
-        
+
 
         public bool IsVisible
         {
-            get { return (bool)GetValue(IsVisibleProperty); }
-            set { SetValue(IsVisibleProperty, value); }
+            get
+            {
+                return (bool)GetValue(IsVisibleProperty);
+            }
+            set
+            {
+                SetValue(IsVisibleProperty, value);
+            }
         }
 
         // Using a DependencyProperty as the backing store for IsVisible.  This enables animation, styling, binding, etc...
@@ -133,8 +209,14 @@ namespace MachineControlsLibrary.Controls
 
         public double MarginX
         {
-            get { return (double)GetValue(MarginXProperty); }
-            protected set { SetValue(MarginXProperty, value); }
+            get
+            {
+                return (double)GetValue(MarginXProperty);
+            }
+            protected set
+            {
+                SetValue(MarginXProperty, value);
+            }
         }
 
         // Using a DependencyProperty as the backing store for MarginX.  This enables animation, styling, binding, etc...
@@ -144,8 +226,14 @@ namespace MachineControlsLibrary.Controls
 
         public double MarginY
         {
-            get { return (double)GetValue(MarginYProperty); }
-            protected set { SetValue(MarginYProperty, value); }
+            get
+            {
+                return (double)GetValue(MarginYProperty);
+            }
+            protected set
+            {
+                SetValue(MarginYProperty, value);
+            }
         }
 
         // Using a DependencyProperty as the backing store for MarginY.  This enables animation, styling, binding, etc...
@@ -156,8 +244,14 @@ namespace MachineControlsLibrary.Controls
 
         public double ScaleY
         {
-            get { return (double)GetValue(ScaleYProperty); }
-            protected set { SetValue(ScaleYProperty, value); }
+            get
+            {
+                return (double)GetValue(ScaleYProperty);
+            }
+            protected set
+            {
+                SetValue(ScaleYProperty, value);
+            }
         }
 
         // Using a DependencyProperty as the backing store for ScaleY.  This enables animation, styling, binding, etc...
@@ -167,7 +261,10 @@ namespace MachineControlsLibrary.Controls
 
         public double ScaleX
         {
-            get { return (double)GetValue(ScaleXProperty); }
+            get
+            {
+                return (double)GetValue(ScaleXProperty);
+            }
             protected set
             {
                 SetValue(ScaleXProperty, value);
@@ -181,8 +278,14 @@ namespace MachineControlsLibrary.Controls
 
         public double StrokeThickness
         {
-            get { return (double)GetValue(StrokeThicknessProperty); }
-            set { SetValue(StrokeThicknessProperty, value); }
+            get
+            {
+                return (double)GetValue(StrokeThicknessProperty);
+            }
+            set
+            {
+                SetValue(StrokeThicknessProperty, value);
+            }
         }
 
         // Using a DependencyProperty as the backing store for StrokeThickness.  This enables animation, styling, binding, etc...
@@ -192,8 +295,14 @@ namespace MachineControlsLibrary.Controls
 
         public bool XProportion
         {
-            get { return (bool)GetValue(XProportionProperty); }
-            set { SetValue(XProportionProperty, value); }
+            get
+            {
+                return (bool)GetValue(XProportionProperty);
+            }
+            set
+            {
+                SetValue(XProportionProperty, value);
+            }
         }
 
         // Using a DependencyProperty as the backing store for XProportion.  This enables animation, styling, binding, etc...
@@ -204,8 +313,14 @@ namespace MachineControlsLibrary.Controls
 
         public bool YProportion
         {
-            get { return (bool)GetValue(YProportionProperty); }
-            set { SetValue(YProportionProperty, value); }
+            get
+            {
+                return (bool)GetValue(YProportionProperty);
+            }
+            set
+            {
+                SetValue(YProportionProperty, value);
+            }
         }
 
         // Using a DependencyProperty as the backing store for YProportion.  This enables animation, styling, binding, etc...
@@ -214,8 +329,14 @@ namespace MachineControlsLibrary.Controls
 
         public bool AutoProportion
         {
-            get { return (bool)GetValue(AutoProportionProperty); }
-            set { SetValue(AutoProportionProperty, value); }
+            get
+            {
+                return (bool)GetValue(AutoProportionProperty);
+            }
+            set
+            {
+                SetValue(AutoProportionProperty, value);
+            }
         }
 
         // Using a DependencyProperty as the backing store for AutoProportion.  This enables animation, styling, binding, etc...
@@ -224,8 +345,14 @@ namespace MachineControlsLibrary.Controls
 
         public double SpecMargin
         {
-            get { return (double)GetValue(SpecMarginProperty); }
-            set { SetValue(SpecMarginProperty, value); }
+            get
+            {
+                return (double)GetValue(SpecMarginProperty);
+            }
+            set
+            {
+                SetValue(SpecMarginProperty, value);
+            }
         }
 
         // Using a DependencyProperty as the backing store for SpecMargin.  This enables animation, styling, binding, etc...
@@ -236,8 +363,14 @@ namespace MachineControlsLibrary.Controls
 
         public double SpecSizeX
         {
-            get { return (double)GetValue(SpecSizeXProperty); }
-            set { SetValue(SpecSizeXProperty, value); }
+            get
+            {
+                return (double)GetValue(SpecSizeXProperty);
+            }
+            set
+            {
+                SetValue(SpecSizeXProperty, value);
+            }
         }
 
         // Using a DependencyProperty as the backing store for SpecSizeX.  This enables animation, styling, binding, etc...
@@ -247,8 +380,14 @@ namespace MachineControlsLibrary.Controls
 
         public double SpecSizeY
         {
-            get { return (double)GetValue(SpecSizeYProperty); }
-            set { SetValue(SpecSizeYProperty, value); }
+            get
+            {
+                return (double)GetValue(SpecSizeYProperty);
+            }
+            set
+            {
+                SetValue(SpecSizeYProperty, value);
+            }
         }
 
         // Using a DependencyProperty as the backing store for SpecSizeY.  This enables animation, styling, binding, etc...
@@ -257,8 +396,14 @@ namespace MachineControlsLibrary.Controls
 
         public double FieldSizeX
         {
-            get { return (double)GetValue(FieldSizeXProperty); }
-            set { SetValue(FieldSizeXProperty, value); }
+            get
+            {
+                return (double)GetValue(FieldSizeXProperty);
+            }
+            set
+            {
+                SetValue(FieldSizeXProperty, value);
+            }
         }
 
         // Using a DependencyProperty as the backing store for FieldSizeX.  This enables animation, styling, binding, etc...
@@ -268,8 +413,14 @@ namespace MachineControlsLibrary.Controls
 
         public double FieldSizeY
         {
-            get { return (double)GetValue(FieldSizeYProperty); }
-            set { SetValue(FieldSizeYProperty, value); }
+            get
+            {
+                return (double)GetValue(FieldSizeYProperty);
+            }
+            set
+            {
+                SetValue(FieldSizeYProperty, value);
+            }
         }
 
         // Using a DependencyProperty as the backing store for SpecSizeY.  This enables animation, styling, binding, etc...
@@ -278,8 +429,14 @@ namespace MachineControlsLibrary.Controls
 
         public ObservableCollection<GeometryCollection> Shapes
         {
-            get { return (ObservableCollection<GeometryCollection>)GetValue(ShapesProperty); }
-            set { SetValue(ShapesProperty, value); }
+            get
+            {
+                return (ObservableCollection<GeometryCollection>)GetValue(ShapesProperty);
+            }
+            set
+            {
+                SetValue(ShapesProperty, value);
+            }
         }
 
         // Using a DependencyProperty as the backing store for Shapes.  This enables animation, styling, binding, etc...
@@ -290,8 +447,14 @@ namespace MachineControlsLibrary.Controls
 
         public double MirrorX
         {
-            get { return (double)GetValue(MirrorXProperty); }
-            set { SetValue(MirrorXProperty, value); }
+            get
+            {
+                return (double)GetValue(MirrorXProperty);
+            }
+            set
+            {
+                SetValue(MirrorXProperty, value);
+            }
         }
 
         // Using a DependencyProperty as the backing store for MirrorX.  This enables animation, styling, binding, etc...
@@ -301,8 +464,14 @@ namespace MachineControlsLibrary.Controls
 
         public double Angle
         {
-            get { return (double)GetValue(AngleProperty); }
-            set { SetValue(AngleProperty, value); }
+            get
+            {
+                return (double)GetValue(AngleProperty);
+            }
+            set
+            {
+                SetValue(AngleProperty, value);
+            }
         }
 
         // Using a DependencyProperty as the backing store for Angle.  This enables animation, styling, binding, etc...
@@ -312,8 +481,14 @@ namespace MachineControlsLibrary.Controls
 
         public double OffsetX
         {
-            get { return (double)GetValue(OffsetXProperty); }
-            set { SetValue(OffsetXProperty, value); }
+            get
+            {
+                return (double)GetValue(OffsetXProperty);
+            }
+            set
+            {
+                SetValue(OffsetXProperty, value);
+            }
         }
 
         // Using a DependencyProperty as the backing store for OffsetX.  This enables animation, styling, binding, etc...
@@ -324,8 +499,14 @@ namespace MachineControlsLibrary.Controls
 
         public double OffsetY
         {
-            get { return (double)GetValue(OffsetYProperty); }
-            set { SetValue(OffsetYProperty, value); }
+            get
+            {
+                return (double)GetValue(OffsetYProperty);
+            }
+            set
+            {
+                SetValue(OffsetYProperty, value);
+            }
         }
 
         // Using a DependencyProperty as the backing store for OffsetY.  This enables animation, styling, binding, etc...
@@ -335,8 +516,14 @@ namespace MachineControlsLibrary.Controls
 
         public bool PointerVisibility
         {
-            get { return (bool)GetValue(PointerVisibilityProperty); }
-            set { SetValue(PointerVisibilityProperty, value); }
+            get
+            {
+                return (bool)GetValue(PointerVisibilityProperty);
+            }
+            set
+            {
+                SetValue(PointerVisibilityProperty, value);
+            }
         }
 
         // Using a DependencyProperty as the backing store for PointerVisibility.  This enables animation, styling, binding, etc...
@@ -348,8 +535,14 @@ namespace MachineControlsLibrary.Controls
 
         public double PointerDiameter
         {
-            get { return (double)GetValue(PointerDiameterProperty); }
-            set { SetValue(PointerDiameterProperty, value); }
+            get
+            {
+                return (double)GetValue(PointerDiameterProperty);
+            }
+            set
+            {
+                SetValue(PointerDiameterProperty, value);
+            }
         }
 
         // Using a DependencyProperty as the backing store for PointerDiameter.  This enables animation, styling, binding, etc...
@@ -360,8 +553,14 @@ namespace MachineControlsLibrary.Controls
 
         public double PointerThickness
         {
-            get { return (double)GetValue(PointerThicknessProperty); }
-            set { SetValue(PointerThicknessProperty, value); }
+            get
+            {
+                return (double)GetValue(PointerThicknessProperty);
+            }
+            set
+            {
+                SetValue(PointerThicknessProperty, value);
+            }
         }
 
         // Using a DependencyProperty as the backing store for PointerThickness.  This enables animation, styling, binding, etc...
@@ -372,8 +571,14 @@ namespace MachineControlsLibrary.Controls
 
         public double PointerX
         {
-            get { return (double)GetValue(PointerXProperty); }
-            set { SetValue(PointerXProperty, value); }
+            get
+            {
+                return (double)GetValue(PointerXProperty);
+            }
+            set
+            {
+                SetValue(PointerXProperty, value);
+            }
         }
 
         // Using a DependencyProperty as the backing store for PointerX.  This enables animation, styling, binding, etc...
@@ -384,8 +589,14 @@ namespace MachineControlsLibrary.Controls
 
         public double PointerY
         {
-            get { return (double)GetValue(PointerYProperty); }
-            set { SetValue(PointerYProperty, value); }
+            get
+            {
+                return (double)GetValue(PointerYProperty);
+            }
+            set
+            {
+                SetValue(PointerYProperty, value);
+            }
         }
 
         // Using a DependencyProperty as the backing store for PointerY.  This enables animation, styling, binding, etc...
@@ -411,7 +622,7 @@ namespace MachineControlsLibrary.Controls
                 _itemsControl = grid.FindVisualChildren<ItemsControl>().SingleOrDefault(ch => ch.Name == "DxfItems");
                 if (_itemsControl is not null) _sbStartPoint = e.GetPosition(_itemsControl);
 
-                e.Handled = true; 
+                e.Handled = true;
             }
         }
 
@@ -452,7 +663,7 @@ namespace MachineControlsLibrary.Controls
                 IsSelectionBoxVisible = false;
                 SelectionBoxWidth = 0;
                 SelectionBoxHeight = 0;
-                e.Handled = true; 
+                e.Handled = true;
             }
         }
 
@@ -477,7 +688,10 @@ namespace MachineControlsLibrary.Controls
     public delegate void RoutedGeomClickEventHandler(object? obj, GeomClickEventArgs clickEventArgs);
     public class GeomClickEventArgs : RoutedEventArgs
     {
-        public Point Coordinate { get; init; }
+        public Point Coordinate
+        {
+            get; init;
+        }
 
         public GeomClickEventArgs(Point coordinate)
         {
