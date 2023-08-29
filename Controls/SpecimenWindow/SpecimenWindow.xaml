@@ -141,7 +141,6 @@
                             </Canvas>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
-
                 </ItemsControl>
             <Canvas.RenderTransform>
                 <TransformGroup x:Name="MyTransform">

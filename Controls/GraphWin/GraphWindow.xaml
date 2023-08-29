@@ -29,7 +29,7 @@
                                        Rotate90Changed="MyMenu_Rotate90Changed"
                                        MirrorXChanged="MyMenu_MirrorXChanged"
                                        Layers="{Binding LayGeoms, Converter={StaticResource LgToElConverter}}" 
-                                       LayerFiltersChanged="MyMenu_LayerFiltersChanged"                                
+                                       LayerFiltersChanged="MyMenu_LayerFiltersChanged" 
                                        VerticalAlignment="Top"
                                        FileName="{Binding FileName}"
                                        SelectedColor="{Binding ElementName=GraphWin, Path=SelectedColor}"
@@ -52,14 +52,7 @@
                             </MatrixTransform>
                         </Grid.Resources>
                         <!--<loc:WaferEditor LayGeoms="{Binding LayGeoms}"/>-->
-                        <Viewbox x:Name="CanvasView" MouseWheel="CanvasView_MouseWheel">
-                            <Viewbox.RenderTransform>
-                                <TransformGroup>
-                                    <ScaleTransform ScaleX="1" ScaleY="1"/>
-                                    <TranslateTransform X="100"/>
-                                </TransformGroup>
-                            </Viewbox.RenderTransform>
-                            <local:SpecimenWindow  
+                        <local:SpecimenWindow  
                                       x:Name="Specimen"                        
                                       Width="{Binding RelativeSource={RelativeSource AncestorType=Grid}, Path=ActualWidth}"
                                       Height="{Binding RelativeSource={RelativeSource AncestorType=Grid}, Path=ActualHeight}"
@@ -88,7 +81,6 @@
                                       IsFillPath="{Binding IsFillPath}"
                                       LightPathModeOn="{Binding LightPathModeOn}"
                                       />
-                        </Viewbox>
                         <Grid Width="{Binding FieldSizeX}"
                           Height="{Binding FieldSizeY}"
                           LayoutTransform="{StaticResource MTrans}"
@@ -97,7 +89,7 @@
                                    Foreground="Red"
                                    FontSize="{Binding FontSize}"                                   
                                    >
-                            <i:Interaction.Triggers>
+                                <i:Interaction.Triggers>
                                 <i:DataTrigger Binding="{Binding TextPosition}" Value="{x:Static cnvr:TextPosition.W}">
                                     <i:ChangePropertyAction PropertyName="VerticalAlignment" Value="Center"/>
                                     <i:ChangePropertyAction PropertyName="HorizontalAlignment" Value="Left"/>
@@ -191,66 +183,6 @@
                                     />
                                 </Ellipse.RenderTransform>
                             </Ellipse>
-                            <!--<Ellipse 
-                                 Width="2000"
-                                 Height="2000"
-                                 StrokeThickness="200"
-                                 Stroke="GreenYellow"
-                                 Canvas.Left="1000"
-                                 Canvas.Top="1000"
-                                 >
-                            <Ellipse.RenderTransform>
-                                <TranslateTransform
-                                    X="-1000"
-                                    Y="-1000"                                    
-                                    />
-                            </Ellipse.RenderTransform>
-                        </Ellipse>
-                        <Ellipse 
-                                 Width="2000"
-                                 Height="2000"
-                                 StrokeThickness="200"
-                                 Stroke="GreenYellow"
-                                 Canvas.Left="1000"
-                                 Canvas.Top="47000"
-                                 >
-                            <Ellipse.RenderTransform>
-                                <TranslateTransform
-                                    X="-1000"
-                                    Y="-1000"                                    
-                                    />
-                            </Ellipse.RenderTransform>
-                        </Ellipse>
-                        <Ellipse 
-                                 Width="2000"
-                                 Height="2000"
-                                 StrokeThickness="200"
-                                 Stroke="GreenYellow"
-                                 Canvas.Left="59000"
-                                 Canvas.Top="1000"
-                                 >
-                            <Ellipse.RenderTransform>
-                                <TranslateTransform
-                                    X="-1000"
-                                    Y="-1000"                                    
-                                    />
-                            </Ellipse.RenderTransform>
-                        </Ellipse>
-                        <Ellipse 
-                                 Width="2000"
-                                 Height="2000"
-                                 StrokeThickness="200"
-                                 Stroke="GreenYellow"
-                                 Canvas.Left="59000"
-                                 Canvas.Top="47000"
-                                 >
-                            <Ellipse.RenderTransform>
-                                <TranslateTransform
-                                    X="-1000"
-                                    Y="-1000"                                    
-                                    />
-                            </Ellipse.RenderTransform>
-                        </Ellipse>-->
                             <Canvas.RenderTransform>
                                 <MatrixTransform>
                                     <MatrixTransform.Matrix>

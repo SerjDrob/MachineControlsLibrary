@@ -1,18 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using PropertyChanged;
 using System.Windows.Media;
 
 
@@ -21,7 +8,6 @@ namespace MachineControlsLibrary.Controls
     /// <summary>
     /// Interaction logic for AxisState.xaml
     /// </summary>
-    [AddINotifyPropertyChangedInterface]
     public partial class AxisState : UserControl
     {
         public AxisState()
@@ -31,11 +17,10 @@ namespace MachineControlsLibrary.Controls
         }
 
 
-
         public double CmdCoordinate
         {
-            get { return (double)GetValue(CmdCoordinateProperty); }
-            set { SetValue(CmdCoordinateProperty, value); }
+            get => (double)GetValue(CmdCoordinateProperty);
+            set => SetValue(CmdCoordinateProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for CmdCoordinate.  This enables animation, styling, binding, etc...
@@ -46,8 +31,8 @@ namespace MachineControlsLibrary.Controls
 
         public double Coordinate
         {
-            get { return (double)GetValue(CoordinateProperty); }
-            set { SetValue(CoordinateProperty, value); }
+            get => (double)GetValue(CoordinateProperty);
+            set => SetValue(CoordinateProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for Coordinate.  This enables animation, styling, binding, etc...
@@ -57,8 +42,8 @@ namespace MachineControlsLibrary.Controls
 
         public string CoordinateName
         {
-            get { return (string)GetValue(CoordinateNameProperty); }
-            set { SetValue(CoordinateNameProperty, value); }
+            get => (string)GetValue(CoordinateNameProperty);
+            set => SetValue(CoordinateNameProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for CoordinateName.  This enables animation, styling, binding, etc...
@@ -69,8 +54,8 @@ namespace MachineControlsLibrary.Controls
 
         public bool LmtNeg
         {
-            get { return (bool)GetValue(LmtNegProperty); }
-            set { SetValue(LmtNegProperty, value); }
+            get => (bool)GetValue(LmtNegProperty);
+            set => SetValue(LmtNegProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for LmtNeg.  This enables animation, styling, binding, etc...
@@ -80,8 +65,8 @@ namespace MachineControlsLibrary.Controls
 
         public bool LmtPos
         {
-            get { return (bool)GetValue(LmtPosProperty); }
-            set { SetValue(LmtPosProperty, value); }
+            get => (bool)GetValue(LmtPosProperty);
+            set => SetValue(LmtPosProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for LmtPos.  This enables animation, styling, binding, etc...
@@ -92,8 +77,8 @@ namespace MachineControlsLibrary.Controls
 
         public bool MotionDone
         {
-            get { return (bool)GetValue(MotionDoneProperty); }
-            set { SetValue(MotionDoneProperty, value); }
+            get => (bool)GetValue(MotionDoneProperty);
+            set => SetValue(MotionDoneProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for MotionDone.  This enables animation, styling, binding, etc...
@@ -104,8 +89,8 @@ namespace MachineControlsLibrary.Controls
 
         public Brush NegColor
         {
-            get { return (Brush)GetValue(NegColorProperty); }
-            set { SetValue(NegColorProperty, value); }
+            get => (Brush)GetValue(NegColorProperty);
+            set => SetValue(NegColorProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for NegColor.  This enables animation, styling, binding, etc...
@@ -115,8 +100,8 @@ namespace MachineControlsLibrary.Controls
 
         public Brush PosColor
         {
-            get { return (Brush)GetValue(PosColorProperty); }
-            set { SetValue(PosColorProperty, value); }
+            get => (Brush)GetValue(PosColorProperty);
+            set => SetValue(PosColorProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for PosColor.  This enables animation, styling, binding, etc...
@@ -127,8 +112,8 @@ namespace MachineControlsLibrary.Controls
 
         public Brush TextBackground
         {
-            get { return (Brush)GetValue(TextBackgroundProperty); }
-            set { SetValue(TextBackgroundProperty, value); }
+            get => (Brush)GetValue(TextBackgroundProperty);
+            set => SetValue(TextBackgroundProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for TextBackGround.  This enables animation, styling, binding, etc...
@@ -140,20 +125,13 @@ namespace MachineControlsLibrary.Controls
 
         public AxStateLayout Layout
         {
-            get { return (AxStateLayout)GetValue(LayoutProperty); }
-            set { SetValue(LayoutProperty, value); }
+            get => (AxStateLayout)GetValue(LayoutProperty);
+            set => SetValue(LayoutProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for Layout.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty LayoutProperty =
             DependencyProperty.Register("Layout", typeof(AxStateLayout), typeof(AxisState), new PropertyMetadata(AxStateLayout.Vertical));
 
-
-    }
-
-    public enum AxStateLayout
-    {
-        Horizontal,
-        Vertical
     }
 }

@@ -44,8 +44,8 @@ namespace MachineControlsLibrary.Controls
         public event EventHandler<IEnumerable<LayerFilter>> LayerFiltersChanged;
         public ObservableCollection<EnaLayer> Layers
         {
-            get { return (ObservableCollection<EnaLayer>)GetValue(LayersProperty); }
-            set { SetValue(LayersProperty, value); }
+            get => (ObservableCollection<EnaLayer>)GetValue(LayersProperty);
+            set => SetValue(LayersProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for MyProperty.  This enables animation, styling, binding, etc...
@@ -55,8 +55,8 @@ namespace MachineControlsLibrary.Controls
 
         public Brush SelectedColor
         {
-            get { return (Brush)GetValue(SelectedColorProperty); }
-            set { SetValue(SelectedColorProperty, value); }
+            get => (Brush)GetValue(SelectedColorProperty);
+            set => SetValue(SelectedColorProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for SelectedColor.  This enables animation, styling, binding, etc...
@@ -68,8 +68,8 @@ namespace MachineControlsLibrary.Controls
 
         public string FileName
         {
-            get { return (string)GetValue(FileNameProperty); }
-            set { SetValue(FileNameProperty, value); }
+            get => (string)GetValue(FileNameProperty);
+            set => SetValue(FileNameProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for FileName.  This enables animation, styling, binding, etc...
