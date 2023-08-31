@@ -54,7 +54,7 @@
                              SelectedColor="{Binding SelectedColor, Converter={StaticResource BrushToColorConvereter}}"
                              />
             </MenuItem>
-            <MenuItem Header="Настройки">
+            <!--<MenuItem Header="Настройки">
                 <local:EditorSettings FiltersChanged="EditorSettings_FiltersChanged"/>
             </MenuItem>
             <Button Command="{Binding ToRotate90Command}">
@@ -62,8 +62,9 @@
             </Button>
             <Button Command="{Binding ToMirrorXCommand}">
                 <Image Source="Sources/flipvert.png"/>
-            </Button>
-            <TextBlock Text="Файл:" Style="{DynamicResource TextBlockDefault}"/>
-            <TextBlock Text="{Binding FileName}" Style="{DynamicResource TextBlockDefaultDanger}"/>
+            </Button>-->
+            <TextBlock Text="Файл:" Margin="10,0" Style="{DynamicResource TextBlockDefault}"/>
+            <TextBlock Text="{Binding FileName}" 
+                       Style="{DynamicResource TextBlockDefaultDanger}"/>
         </Menu>
 </UserControl>

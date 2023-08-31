@@ -1,15 +1,10 @@
-﻿using HandyControl.Interactivity;
-using MachineControlsLibrary.Classes;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Globalization;
-using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
+using MachineControlsLibrary.Classes;
 
 namespace MachineControlsLibrary.Controls
 {
@@ -17,13 +12,11 @@ namespace MachineControlsLibrary.Controls
     {
         public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            var mouseDownArgs = value as MouseEventArgs;
-            if (mouseDownArgs != null)
+            if (value is MouseEventArgs mouseDownArgs)
             {
                 var source = mouseDownArgs.Source as System.Windows.Shapes.Path;
-
                 var lgc = source?.DataContext as LayerGeometryCollection;
-                var ellipse = lgc?.Geometries.SingleOrDefault() as EllipseGeometry;//TODO can be more entities. Exception occured.
+                var ellipse = lgc?.Geometries.OfType<EllipseGeometry>().FirstOrDefault();
                 var center = ellipse?.Center;
                 return center;
             }
