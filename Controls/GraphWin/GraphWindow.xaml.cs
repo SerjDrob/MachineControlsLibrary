@@ -25,6 +25,7 @@ namespace MachineControlsLibrary.Controls
         }
 
         public event RoutedSelectionEventHandler GotSelectionEvent;
+        public event RoutedPointClickedEventHandler GotPointClickedEvent;
         public float Zoomfactor { get; set; } = 1.1f;
         private readonly MatrixTransform _transform = new MatrixTransform();
         public bool IsFillPath
@@ -159,18 +160,6 @@ namespace MachineControlsLibrary.Controls
                         }
                     }
                 }
-            }
-        }
-        private class MyStringComparer : IEqualityComparer<string>
-        {
-            public bool Equals(string? x, string? y)
-            {
-                return x.Contains(y, StringComparison.InvariantCultureIgnoreCase);
-            }
-
-            public int GetHashCode([DisallowNull] string obj)
-            {
-                throw new NotImplementedException();
             }
         }
 
@@ -614,23 +603,36 @@ namespace MachineControlsLibrary.Controls
             var scaleMatrix = matrix.Value;
             scaleMatrix.ScaleAt(scaleFactor, scaleFactor, mousePosition.X, mousePosition.Y);
 
-            //matrix.= scaleMatrix;
             _transform.Matrix = scaleMatrix;
             viewBox.Child.RenderTransform = _transform;
-            //var x = Canvas.GetLeft(viewBox.Child);
-            //var y = Canvas.GetTop(viewBox.Child);
+        }
 
-            //var sx = x * scaleFactor;
-            //var sy = y * scaleFactor;
-
-            //Canvas.SetLeft(viewBox.Child, sx);
-            //Canvas.SetTop(viewBox.Child, sy);
-
-            //viewBox.Child.RenderTransform = _transform;
+        private void Specimen_GotSpecimenClickedEvent(object sender, Point e)
+        {
+            GotPointClickedEvent?.Invoke(this, e);
         }
     }
 
     public delegate void RoutedSelectionEventHandler(object sender, RoutedSelectionEventArgs e);
+    public delegate void RoutedPointClickedEventHandler(object sender, RoutedPointClickedEventArgs e);
+
+    public class RoutedPointClickedEventArgs : RoutedEventArgs
+    {
+        public Point Point
+        {
+            get;
+            set;
+        }
+
+        public RoutedPointClickedEventArgs(Point point)
+        {
+            Point = point;
+        }
+
+        public static implicit operator RoutedPointClickedEventArgs(Point point) => new(point);
+        public static implicit operator Point(RoutedPointClickedEventArgs args) => args.Point;
+     }
+
 
     public class RoutedSelectionEventArgs : RoutedEventArgs
     {

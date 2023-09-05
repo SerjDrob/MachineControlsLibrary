@@ -77,6 +77,7 @@
                                       PointerY="{Binding PointerY}"
                                       PointerVisibility="{Binding PointerVisibility}"
                                       GotSelectionEvent="Specimen_GotSelectionEvent"
+                                      GotSpecimenClickedEvent="Specimen_GotSpecimenClickedEvent"
                                       CutCursor="{Binding CutCursor}"
                                       IsFillPath="{Binding IsFillPath}"
                                       LightPathModeOn="{Binding LightPathModeOn}"

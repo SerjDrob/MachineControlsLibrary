@@ -66,6 +66,7 @@ namespace MachineControlsLibrary.Controls
         private ItemsControl? _itemsControl;
 
         public event EventHandler<Rect> GotSelectionEvent;
+        public event EventHandler<Point> GotSpecimenClickedEvent;
         public bool IsSelectionBoxVisible
         {
             get; set;
@@ -621,9 +622,21 @@ namespace MachineControlsLibrary.Controls
 
                 _itemsControl = grid.FindVisualChildren<ItemsControl>().SingleOrDefault(ch => ch.Name == "DxfItems");
                 if (_itemsControl is not null) _sbStartPoint = e.GetPosition(_itemsControl);
-
-                e.Handled = true;
             }
+            else
+            {
+                var grid = sender as Grid;
+                var matrix = grid?.Resources["MTrans"] as MatrixTransform;
+                var invMatrix = matrix?.Inverse;
+
+                if (invMatrix is not null)
+                {
+                    var point = e.GetPosition(_itemsControl);
+                    var resultPoint = invMatrix.Transform(point);
+                    GotSpecimenClickedEvent?.Invoke(this, resultPoint);
+                }
+            }
+            e.Handled = true;
         }
 
 
