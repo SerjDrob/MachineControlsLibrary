@@ -206,14 +206,15 @@
                         <Canvas Panel.ZIndex="1">
                             <Grid HorizontalAlignment="Stretch"                                       
                               VerticalAlignment="Stretch">
-                                <Path Fill="Black" Opacity="0.7"                                  
-                                  HorizontalAlignment="Center"
-                                  VerticalAlignment="Center"
-                                  Stroke="White"
-                                  StrokeDashArray="5,5,5"                                  
-                                  StrokeThickness="200"
-                                  RenderTransform="{StaticResource MTrans}"
-                                  >
+                                <Path Fill="Black" 
+                                      Opacity="0.7"                                  
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"
+                                      Stroke="White"
+                                      StrokeDashArray="5,5,5"                                  
+                                      StrokeThickness="200"
+                                      RenderTransform="{StaticResource MTrans}"
+                                      >
                                     <Path.Data>
                                         <CombinedGeometry GeometryCombineMode="Exclude">
                                             <CombinedGeometry.Geometry1>

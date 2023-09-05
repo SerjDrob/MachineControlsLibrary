@@ -61,7 +61,8 @@ namespace MachineControlsLibrary.Controls
         private double _scalex;
         private double _scaley;
         private double _marginx;
-        private double _marginy; private bool _isSelectionInitiated = false;
+        private double _marginy; 
+        private bool _isSelectionInitiated = false;
         private Point _sbStartPoint;
         private ItemsControl? _itemsControl;
 
@@ -628,8 +629,8 @@ namespace MachineControlsLibrary.Controls
                 var grid = sender as Grid;
                 var matrix = grid?.Resources["MTrans"] as MatrixTransform;
                 var invMatrix = matrix?.Inverse;
-
-                if (invMatrix is not null)
+                _itemsControl = grid.FindVisualChildren<ItemsControl>().SingleOrDefault(ch => ch.Name == "DxfItems");
+                if (invMatrix is not null && _itemsControl is not null)
                 {
                     var point = e.GetPosition(_itemsControl);
                     var resultPoint = invMatrix.Transform(point);
