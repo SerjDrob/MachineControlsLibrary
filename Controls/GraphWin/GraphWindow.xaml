@@ -88,7 +88,8 @@
                           >
                             <TextBlock Text="{Binding MarkText}" 
                                    Foreground="Red"
-                                   FontSize="{Binding FontSize}"                                   
+                                   FontSize="{Binding FontSize}"
+                                       Visibility="{Binding IsMarkTextVisible, Converter={StaticResource Boolean2VisibilityConverter}}"
                                    >
                                 <i:Interaction.Triggers>
                                 <i:DataTrigger Binding="{Binding TextPosition}" Value="{x:Static cnvr:TextPosition.W}">

@@ -40,6 +40,24 @@ namespace MachineControlsLibrary.Controls
 
 
 
+        public bool IsMarkTextVisible
+        {
+            get
+            {
+                return (bool)GetValue(IsMarkTextVisibleProperty);
+            }
+            set
+            {
+                SetValue(IsMarkTextVisibleProperty, value);
+            }
+        }
+
+        // Using a DependencyProperty as the backing store for IsMarkTextVisible.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty IsMarkTextVisibleProperty =
+            DependencyProperty.Register("IsMarkTextVisible", typeof(bool), typeof(GraphWindow), new PropertyMetadata(false));
+
+
+
         public bool LightPathModeOn
         {
             get => (bool)GetValue(LightPathModeOnProperty);
