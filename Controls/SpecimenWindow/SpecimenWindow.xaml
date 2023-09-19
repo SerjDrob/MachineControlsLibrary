@@ -58,14 +58,6 @@
             <i:ConditionalExpression x:Key="IsLightLayer">
                 <i:ComparisonCondition LeftOperand="{Binding Path=DataContext.LightPathModeOn, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Grid}}" RightOperand="True" Operator="Equal"/>
             </i:ConditionalExpression>
-            <!--<Storyboard x:Key="DisappearingPointer">
-                <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Pointer"
-                                           Storyboard.TargetProperty="Visibility">
-                    <ObjectAnimationUsingKeyFrames.KeyFrames>
-                        <DiscreteObjectKeyFrame Value="{x:Static Visibility.Hidden}"/>
-                    </ObjectAnimationUsingKeyFrames.KeyFrames>
-                </ObjectAnimationUsingKeyFrames>
-            </Storyboard>-->
         </Grid.Resources>
         <i:Interaction.Triggers>
             <i:DataTrigger Binding="{Binding PointerVisibility}" Value="True">
@@ -77,12 +69,6 @@
             <i:DataTrigger Binding="{Binding CutCursor}" Value="False">
                 <i:ChangePropertyAction PropertyName="Cursor" Value="Arrow"/>
             </i:DataTrigger>
-            <!--<i:DataTrigger Binding="{Binding PointerVisibility}" Value="False">
-                <i:ControlStoryboardAction Storyboard="{StaticResource DisappearingPointer}"/>
-            </i:DataTrigger>-->
-            <!--<i:EventTrigger EventName="MouseLeftButtonDown">
-                <i:InvokeCommandAction Command="{Binding InitSelectionCommand}" PassEventArgsToCommand="True"/>
-            </i:EventTrigger>-->
         </i:Interaction.Triggers>
         <Canvas  Background="Transparent" 
                  HorizontalAlignment="Stretch" 
