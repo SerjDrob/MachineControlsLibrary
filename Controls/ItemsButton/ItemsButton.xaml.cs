@@ -63,7 +63,7 @@ namespace MachineControlsLibrary.Controls
         {
             var itemsButton = (ItemsButton)d;
             itemsButton._index = 0;
-            ChangeButtonContent(itemsButton);
+            //ChangeButtonContent(itemsButton);
         }
 
         public object SelectedItem
@@ -74,10 +74,24 @@ namespace MachineControlsLibrary.Controls
 
         // Using a DependencyProperty as the backing store for SelectedItem.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty SelectedItemProperty =
-            DependencyProperty.Register("SelectedItem", typeof(object), typeof(ItemsButton), new PropertyMetadata(null));
+            DependencyProperty.Register("SelectedItem", typeof(object), typeof(ItemsButton), new PropertyMetadata(null, SelectedItemChanged));
 
-
-
+        private static void SelectedItemChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            var itemsButton = d as ItemsButton;
+            if ((itemsButton?.Items?.Any() ?? false) && (itemsButton?.ItemSelector is not null))
+            {
+                var cc = new ContentControl();
+                cc.ContentTemplate = itemsButton.ItemSelector.SelectTemplate(e.NewValue, cc);
+                cc.Content = e.NewValue;
+                itemsButton.MainButton.Content = cc;
+                itemsButton._index = itemsButton.Items.ToList().IndexOf(e.NewValue);
+            }
+            else if (itemsButton is not null)
+            {
+                itemsButton.MainButton.Content = null;
+            }
+        }
         private void MainButton_Click(object sender, RoutedEventArgs e)
         {
             if (Items?.Any() ?? false)
@@ -87,17 +101,21 @@ namespace MachineControlsLibrary.Controls
             }
         }
 
-        private static void ChangeButtonContent(ItemsButton itemsButton)
+        private static void ChangeButtonContent(ItemsButton itemsButton, object selectedItem = null)
         {
-            if (itemsButton.Items?.Any() ?? false)
+            if ((itemsButton.Items?.Any() ?? false) && (itemsButton?.ItemSelector is not null))
             {
                 var cc = new ContentControl();
+                //if (selectedItem is not null)
+                //{
+                //    itemsButton._index = itemsButton.Items.ToList().IndexOf(selectedItem);
+                //}
                 itemsButton.SelectedItem = itemsButton.Items.ElementAt(itemsButton._index);
                 cc.ContentTemplate = itemsButton.ItemSelector.SelectTemplate(itemsButton.SelectedItem, cc);
                 cc.Content = itemsButton.SelectedItem;
-                itemsButton.MainButton.Content = cc;                 
+                itemsButton.MainButton.Content = cc;
             }
-            else
+            else if(itemsButton is not null)
             {
                 itemsButton.MainButton.Content = null;
             }

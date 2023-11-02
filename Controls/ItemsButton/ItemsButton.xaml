@@ -5,11 +5,11 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
              d:DesignHeight="45" d:DesignWidth="45">
-    <Grid x:Name="MainGrid">
+    <Grid x:Name="MainGrid" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
         <Button x:Name="MainButton" 
                 Click="MainButton_Click"
-                HorizontalAlignment="Stretch"
-                VerticalAlignment="Stretch"
+                Height="{Binding RelativeSource={RelativeSource AncestorType=Grid}, Path=ActualHeight}"
+                Width="{Binding RelativeSource={RelativeSource AncestorType=Grid}, Path=ActualWidth}"
                 >
         </Button>        
     </Grid>
