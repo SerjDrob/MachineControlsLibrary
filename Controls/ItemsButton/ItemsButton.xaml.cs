@@ -106,10 +106,6 @@ namespace MachineControlsLibrary.Controls
             if ((itemsButton.Items?.Any() ?? false) && (itemsButton?.ItemSelector is not null))
             {
                 var cc = new ContentControl();
-                //if (selectedItem is not null)
-                //{
-                //    itemsButton._index = itemsButton.Items.ToList().IndexOf(selectedItem);
-                //}
                 itemsButton.SelectedItem = itemsButton.Items.ElementAt(itemsButton._index);
                 cc.ContentTemplate = itemsButton.ItemSelector.SelectTemplate(itemsButton.SelectedItem, cc);
                 cc.Content = itemsButton.SelectedItem;
