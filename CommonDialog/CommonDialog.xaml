@@ -40,7 +40,6 @@
             </Grid>
             <hc:Divider Orientation="Horizontal" Margin="2"/>
             <ContentControl Content="{Binding}" Margin="10"/>
-
         </hc:SimpleStackPanel>
     </Border>
 </UserControl>

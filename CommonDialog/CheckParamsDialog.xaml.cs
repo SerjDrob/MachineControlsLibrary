@@ -2,10 +2,13 @@
 
 namespace MachineControlsLibrary.CommonDialog
 {
-    public partial class CommonDialog : UserControl, IHaveTitle
+    /// <summary>
+    /// Interaction logic for CheckParamsDialog.xaml
+    /// </summary>
+    public partial class CheckParamsDialog : UserControl, IHaveTitle
     {
         public void SetTitle(string title) => Title.Text = title;
-        public CommonDialog()
+        public CheckParamsDialog()
         {
             InitializeComponent();
         }

@@ -10,7 +10,7 @@ namespace HandyControl.Tools.Extension
     {
         public static Dialog SetDialogTitle(this Dialog dialog, string title)
         {
-            if (dialog.Content is CommonDialog commonDialog) commonDialog.SetTitle(title);
+            if (dialog.Content is IHaveTitle commonDialog) commonDialog.SetTitle(title);
             return dialog;
         }
         public static Dialog SetDataContext<TContext>(this Dialog dialog, Action<TContext> action) where TContext : new()
