@@ -2,7 +2,7 @@
 
 namespace MachineControlsLibrary.CommonDialog
 {
-    public partial class CommonDialog : UserControl, IHaveTitle
+    public partial class CommonDialog : UserControl, IHasTitle
     {
         public void SetTitle(string title) => Title.Text = title;
         public CommonDialog()
