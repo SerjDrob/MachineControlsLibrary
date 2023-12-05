@@ -1,7 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
 using HandyControl.Controls;
+using HandyControl.Interactivity;
 using MachineControlsLibrary.CommonDialog;
 
 namespace HandyControl.Tools.Extension
@@ -13,6 +20,7 @@ namespace HandyControl.Tools.Extension
             if (dialog.Content is IHasTitle commonDialog) commonDialog.SetTitle(title);
             return dialog;
         }
+
         public static Dialog SetDataContext<TContext>(this Dialog dialog, Action<TContext> action) where TContext : new()
         {
             var instance = new TContext();
@@ -49,6 +57,7 @@ namespace HandyControl.Tools.Extension
             dialog.Initialize(action);
             return dialog;
         }
+
         public static Task<CommonDialogResult<TResult>> GetCommonResultAsync<TResult>(this Dialog dialog)
         {
             TaskCompletionSource<CommonDialogResult<TResult>> tcs = new TaskCompletionSource<CommonDialogResult<TResult>>();
@@ -88,7 +97,6 @@ namespace HandyControl.Tools.Extension
                 }
             }
         }
-
 
     }
 }
