@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Text.Json.Serialization;
 using HandyControl.Tools.Extension;
 
 namespace MachineControlsLibrary.CommonDialog
@@ -13,6 +14,7 @@ namespace MachineControlsLibrary.CommonDialog
             set;
         }
         [Browsable(false)]
+        [JsonIgnore]
         public Action CloseAction
         {
             get;
