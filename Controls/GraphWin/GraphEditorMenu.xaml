@@ -31,7 +31,7 @@
                                     <Rectangle Width="20" Height="20" Fill="{Binding Path=Color}"/>
                                 </MenuItem.Icon>
                                 <MenuItem.Header>
-                                    <hc:ElementGroup Orientation="Horizontal">
+                                    <StackPanel Orientation="Horizontal">
                                         <ToggleButton IsChecked="{Binding Path=Enable}"
                                           hc:IconSwitchElement.Geometry="{StaticResource EyeCloseGeometry}"
                                           hc:IconSwitchElement.GeometrySelected="{StaticResource EyeOpenGeometry}"
@@ -41,7 +41,7 @@
                                           CommandParameter="{Binding}"                                                  
                                           />
                                         <TextBlock Text="{Binding Path=Layer}" VerticalAlignment="Center" Margin="5,0,0,0"/>
-                                    </hc:ElementGroup>
+                                    </StackPanel>
                                 </MenuItem.Header>
                             </MenuItem>
                         </DataTemplate>

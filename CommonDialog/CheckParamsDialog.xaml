@@ -31,14 +31,14 @@
                     Content="{x:Static hc:Lang.Confirm}" 
                 />
                 <Button
-        Width="100"
-    Height="22" 
-    Padding="0"
-    Margin="0,0,4,0"
-    Command="hc:ControlCommands.Cancel" 
-    Style="{StaticResource ButtonDanger}" 
-    Content="{x:Static hc:Lang.Cancel}" 
-/>
+                    Width="100"
+                    Height="22" 
+                    Padding="0"
+                    Margin="0,0,4,0"
+                    Command="hc:ControlCommands.Cancel" 
+                    Style="{StaticResource ButtonDanger}" 
+                    Content="{x:Static hc:Lang.Cancel}" 
+                />
             </StackPanel>
         </Grid>
     </Border>
