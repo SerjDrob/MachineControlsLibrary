@@ -24,4 +24,22 @@ namespace MachineControlsLibrary.Converters
             throw new NotImplementedException();
         }
     }
+
+    internal class RectConverter : IMultiValueConverter
+    {
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            try
+            {
+                var width = System.Convert.ToDouble(values[0]);
+                var height = System.Convert.ToDouble(values[1]);
+                return new System.Windows.Rect(0, -height, width, height);
+            }
+            catch(Exception ex) 
+            {
+                return new System.Windows.Rect();
+            }
+        }
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture) => throw new NotImplementedException();
+    }
 }

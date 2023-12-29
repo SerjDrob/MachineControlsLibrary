@@ -633,7 +633,9 @@ namespace MachineControlsLibrary.Controls
                 if (invMatrix is not null && _itemsControl is not null)
                 {
                     var point = e.GetPosition(_itemsControl);
+                    var point2 = e.GetPosition(SpecWin);
                     var resultPoint = invMatrix.Transform(point);
+                    var resultPoint2 = invMatrix.Transform(point2);
                     GotSpecimenClickedEvent?.Invoke(this, resultPoint);
                 }
             }

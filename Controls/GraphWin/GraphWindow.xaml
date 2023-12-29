@@ -18,11 +18,12 @@
         <cnvr:RectToGeometryConverter x:Key="RectToGeomConverter"/>
         <cnvr:RectToGeometryConverter2 x:Key="RectToGeomConverter2"/>
         <converters:GetTransformMatrixConverter x:Key="GetMatrixConverter"/>
-        <converters:DivideConverter x:Key="DivideConverter"/>       
-    </UserControl.Resources>    
+        <converters:DivideConverter x:Key="DivideConverter"/>
+        
+    </UserControl.Resources>
     <UserControl.ContentTemplate>
         <DataTemplate>
-            <DockPanel DataContext="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=UserControl}, Path=DataContext}">                
+            <DockPanel DataContext="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=UserControl}, Path=DataContext}">
                 <local:GraphEditorMenu x:Name="MyMenu"
                                        DockPanel.Dock="Top"
                                        TheItemChecked="GraphEditorMenu_TheItemChecked" 
@@ -35,24 +36,23 @@
                                        SelectedColor="{Binding ElementName=GraphWin, Path=SelectedColor}"
                                        Panel.ZIndex="1"
                                        />
-                <Grid x:Name="MyGrid">
-                    <Grid  ClipToBounds="True">
-                        <Grid.Resources>
-                            <MatrixTransform x:Key="MTrans">
-                                <MatrixTransform.Matrix>
-                                    <MultiBinding Converter="{StaticResource GetMatrixConverter}">
-                                        <Binding ElementName="Specimen" Path="ActualWidth"/>
-                                        <Binding ElementName="Specimen" Path="ActualHeight"/>
-                                        <Binding ElementName="GraphWin" Path="SpecMargin"/>
-                                        <Binding ElementName="GraphWin" Path="FieldSizeX"/>
-                                        <Binding ElementName="GraphWin" Path="FieldSizeY"/>
-                                        <Binding ElementName="GraphWin"  Path="DataContext"/>
-                                    </MultiBinding>
-                                </MatrixTransform.Matrix>
-                            </MatrixTransform>
-                        </Grid.Resources>
-                        <!--<loc:WaferEditor LayGeoms="{Binding LayGeoms}"/>-->
-                        <local:SpecimenWindow  
+                <Grid Name="MyGrid" ClipToBounds="True">
+                    <Grid.Resources>
+                        <MatrixTransform x:Key="MTrans">
+                            <MatrixTransform.Matrix>
+                                <MultiBinding Converter="{StaticResource GetMatrixConverter}">
+                                    <Binding ElementName="Specimen" Path="ActualWidth"/>
+                                    <Binding ElementName="Specimen" Path="ActualHeight"/>
+                                    <Binding ElementName="GraphWin" Path="SpecMargin"/>
+                                    <Binding ElementName="GraphWin" Path="FieldSizeX"/>
+                                    <Binding ElementName="GraphWin" Path="FieldSizeY"/>
+                                    <Binding ElementName="GraphWin"  Path="DataContext"/>
+                                </MultiBinding>
+                            </MatrixTransform.Matrix>
+                        </MatrixTransform>
+                    </Grid.Resources>
+                    <!--<loc:WaferEditor LayGeoms="{Binding LayGeoms}"/>-->
+                    <local:SpecimenWindow  
                                       x:Name="Specimen"                        
                                       Width="{Binding RelativeSource={RelativeSource AncestorType=Grid}, Path=ActualWidth}"
                                       Height="{Binding RelativeSource={RelativeSource AncestorType=Grid}, Path=ActualHeight}"
@@ -82,11 +82,11 @@
                                       IsFillPath="{Binding IsFillPath}"
                                       LightPathModeOn="{Binding LightPathModeOn}"
                                       />
-                        <Grid Width="{Binding FieldSizeX}"
+                    <Grid Width="{Binding FieldSizeX}"
                           Height="{Binding FieldSizeY}"
                           LayoutTransform="{StaticResource MTrans}"
                           >
-                            <TextBlock Text="{Binding MarkText}" 
+                        <TextBlock Text="{Binding MarkText}" 
                                    Foreground="Red"
                                    FontSize="{Binding FontSize}"
                                        Visibility="{Binding IsMarkTextVisible, Converter={StaticResource Boolean2VisibilityConverter}}"
@@ -133,44 +133,44 @@
                                     <i:ChangePropertyAction PropertyName="RenderTransformOrigin" Value="0,0"/>
                                 </i:DataTrigger>
                             </i:Interaction.Triggers>
-                            </TextBlock>
-                        </Grid>
-                        <ContentPresenter x:Name="ContentPresenter" 
+                        </TextBlock>
+                    </Grid>
+                    <ContentPresenter x:Name="ContentPresenter" 
                                       Panel.ZIndex="2"
                                       Content="{TemplateBinding Content}" 
                                       VerticalAlignment="Stretch" 
                                       HorizontalAlignment="Stretch"/>
-                        <Canvas>
-                            <Canvas.Resources>
-                                <Storyboard x:Key="BlinkingPointer">
-                                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Pointer"
+                    <Canvas>
+                        <Canvas.Resources>
+                            <Storyboard x:Key="BlinkingPointer">
+                                <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Pointer"
                                            Storyboard.TargetProperty="Visibility"                                           
                                            Duration="0:0:1" 
                                            RepeatBehavior="Forever" 
                                            >
-                                        <ObjectAnimationUsingKeyFrames.KeyFrames>
-                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.8" Value="{x:Static Visibility.Visible}"/>
-                                        </ObjectAnimationUsingKeyFrames.KeyFrames>
-                                    </ObjectAnimationUsingKeyFrames>
-                                </Storyboard>
-                                <Storyboard x:Key="DisappearingPointer">
-                                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Pointer"
+                                    <ObjectAnimationUsingKeyFrames.KeyFrames>
+                                        <DiscreteObjectKeyFrame KeyTime="0:0:0.8" Value="{x:Static Visibility.Visible}"/>
+                                    </ObjectAnimationUsingKeyFrames.KeyFrames>
+                                </ObjectAnimationUsingKeyFrames>
+                            </Storyboard>
+                            <Storyboard x:Key="DisappearingPointer">
+                                <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Pointer"
                                            Storyboard.TargetProperty="Visibility">
-                                        <ObjectAnimationUsingKeyFrames.KeyFrames>
-                                            <DiscreteObjectKeyFrame Value="{x:Static Visibility.Hidden}"/>
-                                        </ObjectAnimationUsingKeyFrames.KeyFrames>
-                                    </ObjectAnimationUsingKeyFrames>
-                                </Storyboard>
-                            </Canvas.Resources>
-                            <i:Interaction.Triggers>
-                                <i:DataTrigger Binding="{Binding ElementName=GraphWin, Path=PointerVisibility}" Value="True">
-                                    <i:ControlStoryboardAction Storyboard="{StaticResource BlinkingPointer}"/>
-                                </i:DataTrigger>
-                                <i:DataTrigger Binding="{Binding ElementName=GraphWin, Path=PointerVisibility}" Value="False">
-                                    <i:ControlStoryboardAction Storyboard="{StaticResource DisappearingPointer}"/>
-                                </i:DataTrigger>
-                            </i:Interaction.Triggers>
-                            <Ellipse x:Name="Pointer"
+                                    <ObjectAnimationUsingKeyFrames.KeyFrames>
+                                        <DiscreteObjectKeyFrame Value="{x:Static Visibility.Hidden}"/>
+                                    </ObjectAnimationUsingKeyFrames.KeyFrames>
+                                </ObjectAnimationUsingKeyFrames>
+                            </Storyboard>
+                        </Canvas.Resources>
+                        <i:Interaction.Triggers>
+                            <i:DataTrigger Binding="{Binding ElementName=GraphWin, Path=PointerVisibility}" Value="True">
+                                <i:ControlStoryboardAction Storyboard="{StaticResource BlinkingPointer}"/>
+                            </i:DataTrigger>
+                            <i:DataTrigger Binding="{Binding ElementName=GraphWin, Path=PointerVisibility}" Value="False">
+                                <i:ControlStoryboardAction Storyboard="{StaticResource DisappearingPointer}"/>
+                            </i:DataTrigger>
+                        </i:Interaction.Triggers>
+                        <Ellipse x:Name="Pointer"
                                  Width="{Binding PointerDiameter}"
                                  Height="{Binding PointerDiameter}"
                                  StrokeThickness="{Binding PointerThickness}"
@@ -178,36 +178,36 @@
                                  Canvas.Left="{Binding PointerX}"
                                  Canvas.Top="{Binding PointerY}"
                                  >
-                                <Ellipse.RenderTransform>
-                                    <TranslateTransform
+                            <Ellipse.RenderTransform>
+                                <TranslateTransform
                                     X="{Binding PointerDiameter, Converter={StaticResource DivideConverter}, ConverterParameter=-2}"
                                     Y="{Binding PointerDiameter, Converter={StaticResource DivideConverter}, ConverterParameter=-2}"                                    
                                     />
-                                </Ellipse.RenderTransform>
-                            </Ellipse>
-                            <Canvas.RenderTransform>
-                                <MatrixTransform>
-                                    <MatrixTransform.Matrix>
-                                        <MultiBinding Converter="{StaticResource GetMatrixConverter}">
-                                            <Binding ElementName="Specimen" Path="ActualWidth"/>
-                                            <Binding ElementName="Specimen" Path="ActualHeight"/>
-                                            <Binding ElementName="GraphWin" Path="SpecMargin"/>
-                                            <Binding ElementName="GraphWin" Path="FieldSizeX"/>
-                                            <Binding ElementName="GraphWin" Path="FieldSizeY"/>
-                                            <Binding ElementName="GraphWin"  Path="DataContext"/>
-                                            <Binding ElementName="GraphWin" Path="MirrorX"/>
-                                            <Binding ElementName="GraphWin" Path="OffsetX"/>
-                                            <Binding ElementName="GraphWin"  Path="OffsetY"/>
-                                            <Binding ElementName="GraphWin"  Path="Angle90"/>
-                                        </MultiBinding>
-                                    </MatrixTransform.Matrix>
-                                </MatrixTransform>
-                            </Canvas.RenderTransform>
-                        </Canvas>
-                        <Canvas Panel.ZIndex="1">
-                            <Grid HorizontalAlignment="Stretch"                                       
+                            </Ellipse.RenderTransform>
+                        </Ellipse>
+                        <Canvas.RenderTransform>
+                            <MatrixTransform>
+                                <MatrixTransform.Matrix>
+                                    <MultiBinding Converter="{StaticResource GetMatrixConverter}">
+                                        <Binding ElementName="Specimen" Path="ActualWidth"/>
+                                        <Binding ElementName="Specimen" Path="ActualHeight"/>
+                                        <Binding ElementName="GraphWin" Path="SpecMargin"/>
+                                        <Binding ElementName="GraphWin" Path="FieldSizeX"/>
+                                        <Binding ElementName="GraphWin" Path="FieldSizeY"/>
+                                        <Binding ElementName="GraphWin"  Path="DataContext"/>
+                                        <Binding ElementName="GraphWin" Path="MirrorX"/>
+                                        <Binding ElementName="GraphWin" Path="OffsetX"/>
+                                        <Binding ElementName="GraphWin"  Path="OffsetY"/>
+                                        <Binding ElementName="GraphWin"  Path="Angle90"/>
+                                    </MultiBinding>
+                                </MatrixTransform.Matrix>
+                            </MatrixTransform>
+                        </Canvas.RenderTransform>
+                    </Canvas>
+                    <Canvas Panel.ZIndex="1">
+                        <Grid x:Name="waferGrid" MouseLeftButtonDown="waferGrid_MouseLeftButtonDown" HorizontalAlignment="Stretch"                                       
                               VerticalAlignment="Stretch">
-                                <Path Fill="Black" 
+                            <Path Fill="Black" 
                                       Opacity="0.7"                                  
                                       HorizontalAlignment="Center"
                                       VerticalAlignment="Center"
@@ -216,23 +216,22 @@
                                       StrokeThickness="200"
                                       RenderTransform="{StaticResource MTrans}"
                                       >
-                                    <Path.Data>
-                                        <CombinedGeometry GeometryCombineMode="Exclude">
-                                            <CombinedGeometry.Geometry1>
-                                                <RectangleGeometry Rect="-100000,-100000,1000000,1000000"/>
-                                            </CombinedGeometry.Geometry1>
-                                            <CombinedGeometry.Geometry2>
-                                                <MultiBinding Converter="{StaticResource RectToGeomConverter2}">
-                                                    <Binding ElementName="GraphWin" Path="FieldSizeX"/>
-                                                    <Binding ElementName="GraphWin" Path="FieldSizeY"/>
-                                                </MultiBinding>
-                                            </CombinedGeometry.Geometry2>
-                                        </CombinedGeometry>
-                                    </Path.Data>
-                                </Path>
-                            </Grid>
-                        </Canvas>
-                    </Grid>
+                                <Path.Data>
+                                    <CombinedGeometry GeometryCombineMode="Exclude">
+                                        <CombinedGeometry.Geometry1>
+                                            <RectangleGeometry Rect="-100000,-100000,1000000,1000000"/>
+                                        </CombinedGeometry.Geometry1>
+                                        <CombinedGeometry.Geometry2>
+                                            <MultiBinding Converter="{StaticResource RectToGeomConverter2}">
+                                                <Binding ElementName="GraphWin" Path="FieldSizeX"/>
+                                                <Binding ElementName="GraphWin" Path="FieldSizeY"/>
+                                            </MultiBinding>
+                                        </CombinedGeometry.Geometry2>
+                                    </CombinedGeometry>
+                                </Path.Data>
+                            </Path>
+                        </Grid>
+                    </Canvas>
                 </Grid>
             </DockPanel>
         </DataTemplate>
