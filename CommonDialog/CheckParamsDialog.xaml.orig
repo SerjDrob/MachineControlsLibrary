@@ -1,0 +1,56 @@
+﻿<UserControl x:Class="MachineControlsLibrary.CommonDialog.CheckParamsDialog"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:MachineControlsLibrary.CommonDialog"
+             mc:Ignorable="d" 
+             xmlns:hc="https://handyorg.github.io/handycontrol"
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Border CornerRadius="8" Background="{DynamicResource RegionBrush}"
+            Padding="3,3,0,10">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <hc:SimpleStackPanel HorizontalAlignment="Center">
+                <TextBlock x:Name="Title" HorizontalAlignment="Center" Margin="20,0,20,0" Style="{StaticResource TextBlockTitleBold}"/>
+                <hc:Divider Orientation="Horizontal" Margin="2"/>
+                <ContentControl Content="{Binding}" Margin="10"/>
+                
+            </hc:SimpleStackPanel>
+            <StackPanel Orientation="Horizontal" Grid.Row="1" HorizontalAlignment="Center">
+                    <Button
+                        Width="100"
+                    Height="22" 
+                    Padding="0"
+                    Margin="0,0,4,0"
+                    Command="hc:ControlCommands.Confirm" 
+                    Style="{StaticResource ButtonSuccess}" 
+                    Content="{x:Static hc:Lang.Confirm}" 
+                />
+                <Button
+<<<<<<< HEAD
+        Width="100"
+    Height="22" 
+    Padding="0"
+    Margin="0,0,4,0"
+    Command="hc:ControlCommands.Cancel" 
+    Style="{StaticResource ButtonDanger}" 
+    Content="{x:Static hc:Lang.Cancel}" 
+/>
+=======
+                    Width="100"
+                    Height="22" 
+                    Padding="0"
+                    Margin="0,0,4,0"
+                    Command="hc:ControlCommands.Cancel" 
+                    Style="{StaticResource ButtonDanger}" 
+                    Content="{x:Static hc:Lang.Cancel}" 
+                />
+>>>>>>> c1ef6c3eeb23befc515fda5203f2d6eff195ec9f
+            </StackPanel>
+        </Grid>
+    </Border>
+</UserControl>

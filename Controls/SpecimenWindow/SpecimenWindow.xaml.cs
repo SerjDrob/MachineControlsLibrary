@@ -626,6 +626,7 @@ namespace MachineControlsLibrary.Controls
             }
             else
             {
+                /*
                 var grid = sender as Grid;
                 var matrix = grid?.Resources["MTrans"] as MatrixTransform;
                 var invMatrix = matrix?.Inverse;
@@ -633,10 +634,13 @@ namespace MachineControlsLibrary.Controls
                 if (invMatrix is not null && _itemsControl is not null)
                 {
                     var point = e.GetPosition(_itemsControl);
-                    var point2 = e.GetPosition(fieldGrid);
                     var resultPoint = invMatrix.Transform(point);
-                    GotSpecimenClickedEvent?.Invoke(this, point2);
-                }
+                    GotSpecimenClickedEvent?.Invoke(this, resultPoint);
+                }*/
+                var point2 = e.GetPosition(fieldGrid);
+                var mirror = new ScaleTransform(1, -1, 0, FieldSizeY / 2);
+                var mirPoint = mirror.Transform(point2);
+                GotSpecimenClickedEvent?.Invoke(this, mirPoint);
             }
             e.Handled = true;
         }

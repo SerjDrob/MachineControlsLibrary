@@ -74,7 +74,7 @@
               Width="{Binding FieldSizeX}"  
               Height="{Binding FieldSizeY}"
               LayoutTransform="{StaticResource MTrans}"
-              Background="Yellow" Opacity="0.2"/>
+              />
         <Canvas  Background="Transparent" 
                  HorizontalAlignment="Stretch" 
                  VerticalAlignment="Stretch" 
