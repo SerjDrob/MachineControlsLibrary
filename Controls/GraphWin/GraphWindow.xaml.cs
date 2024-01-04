@@ -630,21 +630,6 @@ namespace MachineControlsLibrary.Controls
         {
             GotPointClickedEvent?.Invoke(this, e);
         }
-
-        private void waferGrid_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            var obj = GraphWin.ContentTemplate.FindName("MTrans", GraphWin);
-            //var grid = sender as Grid;
-            //var matrix = .Resources["MTrans"] as MatrixTransform;
-            //var invMatrix = matrix?.Inverse;
-            //_itemsControl = grid.FindVisualChildren<ItemsControl>().SingleOrDefault(ch => ch.Name == "DxfItems");
-            //if (invMatrix is not null && _itemsControl is not null)
-            //{
-            //    var point = e.GetPosition(_itemsControl);
-            //    var resultPoint = invMatrix.Transform(point);
-            //    GotSpecimenClickedEvent?.Invoke(this, resultPoint);
-            //}
-        }
     }
 
     public delegate void RoutedSelectionEventHandler(object sender, RoutedSelectionEventArgs e);

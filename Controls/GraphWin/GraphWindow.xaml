@@ -205,7 +205,7 @@
                         </Canvas.RenderTransform>
                     </Canvas>
                     <Canvas Panel.ZIndex="1">
-                        <Grid x:Name="waferGrid" MouseLeftButtonDown="waferGrid_MouseLeftButtonDown" HorizontalAlignment="Stretch"                                       
+                        <Grid HorizontalAlignment="Stretch"                                       
                               VerticalAlignment="Stretch">
                             <Path Fill="Black" 
                                       Opacity="0.7"                                  
