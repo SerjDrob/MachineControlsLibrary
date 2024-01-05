@@ -44,14 +44,22 @@ namespace HandyControl.Tools.Extension
         {
             if (instance is ICommonDialog commonDialog)
             {
-                dialog.CommandBindings.Add(new System.Windows.Input.CommandBinding(HandyControl.Interactivity.ControlCommands.Confirm, (e, a) =>
+                try
                 {
-                    commonDialog.CloseWithSuccess();
-                }));
-                dialog.CommandBindings.Add(new System.Windows.Input.CommandBinding(HandyControl.Interactivity.ControlCommands.Cancel, (e, a) =>
+                    dialog.CommandBindings.Add(new System.Windows.Input.CommandBinding(HandyControl.Interactivity.ControlCommands.Confirm, (e, a) =>
+                            {
+                                commonDialog.CloseWithSuccess();
+                            }));
+                    dialog.CommandBindings.Add(new System.Windows.Input.CommandBinding(HandyControl.Interactivity.ControlCommands.Cancel, (e, a) =>
+                    {
+                        commonDialog.CloseWithCancel();
+                    }));
+                }
+                catch (Exception ex)
                 {
-                    commonDialog.CloseWithCancel();
-                }));
+
+                    throw;
+                }
             }
             dialog.DataContext = instance;
             dialog.Initialize(action);
