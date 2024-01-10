@@ -32,4 +32,33 @@ namespace MachineControlsLibrary.Converters
             throw new NotImplementedException();
         }
     }
+
+    public class DivideConverterInvert : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            var val = new double();
+            var par = new double();
+            try
+            {
+                val = System.Convert.ToDouble(value);
+                par = System.Convert.ToDouble(parameter, NumberFormatInfo.InvariantInfo);
+                if (val == 0)
+                {
+                    val = 1;
+                }
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+            return par / val;
+
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
 }

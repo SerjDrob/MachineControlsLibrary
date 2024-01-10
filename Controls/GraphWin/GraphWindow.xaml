@@ -19,7 +19,9 @@
         <cnvr:RectToGeometryConverter2 x:Key="RectToGeomConverter2"/>
         <converters:GetTransformMatrixConverter x:Key="GetMatrixConverter"/>
         <converters:DivideConverter x:Key="DivideConverter"/>
-        
+        <converters:MulParameterConverter x:Key="MulConverter"/>
+        <converters:DivideConverterInvert x:Key="DivideConverterInvert"/>
+
     </UserControl.Resources>
     <UserControl.ContentTemplate>
         <DataTemplate>
@@ -51,7 +53,6 @@
                             </MatrixTransform.Matrix>
                         </MatrixTransform>
                     </Grid.Resources>
-                    <!--<loc:WaferEditor LayGeoms="{Binding LayGeoms}"/>-->
                     <local:SpecimenWindow  
                                       x:Name="Specimen"                        
                                       Width="{Binding RelativeSource={RelativeSource AncestorType=Grid}, Path=ActualWidth}"
@@ -206,14 +207,15 @@
                     </Canvas>
                     <Canvas Panel.ZIndex="1">
                         <Grid HorizontalAlignment="Stretch"                                       
-                              VerticalAlignment="Stretch">
+                              VerticalAlignment="Stretch"
+                              >
                             <Path Fill="Black" 
                                       Opacity="0.7"                                  
                                       HorizontalAlignment="Center"
                                       VerticalAlignment="Center"
                                       Stroke="White"
                                       StrokeDashArray="5,5,5"                                  
-                                      StrokeThickness="200"
+                                      StrokeThickness="{Binding ElementName=GraphWin, Path=ScaleX, Converter={StaticResource DivideConverterInvert}, ConverterParameter=2}"
                                       RenderTransform="{StaticResource MTrans}"
                                       >
                                 <Path.Data>
