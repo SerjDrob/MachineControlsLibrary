@@ -9,7 +9,6 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using MachineControlsLibrary.Classes;
 using MachineControlsLibrary.Controls.GraphWin;
-using Xceed.Wpf.AvalonDock.Controls;
 
 namespace MachineControlsLibrary.Controls
 {

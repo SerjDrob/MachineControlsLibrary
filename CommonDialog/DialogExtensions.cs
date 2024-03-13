@@ -1,14 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
 using HandyControl.Controls;
-using HandyControl.Interactivity;
 using MachineControlsLibrary.CommonDialog;
 
 namespace HandyControl.Tools.Extension
@@ -57,7 +50,6 @@ namespace HandyControl.Tools.Extension
                 }
                 catch (Exception ex)
                 {
-
                     throw;
                 }
             }
@@ -66,7 +58,7 @@ namespace HandyControl.Tools.Extension
             return dialog;
         }
 
-        public static Task<CommonDialogResult<TResult>> GetCommonResultAsync<TResult>(this Dialog dialog)
+        public static Task<CommonDialogResult<TResult>> GetCommonResultAsync<TResult>(this Dialog dialog, Action? blockAction = null)
         {
             TaskCompletionSource<CommonDialogResult<TResult>> tcs = new TaskCompletionSource<CommonDialogResult<TResult>>();
             try
@@ -77,6 +69,7 @@ namespace HandyControl.Tools.Extension
                 }
                 else
                 {
+                    blockAction?.Invoke();
                     dialog.Unloaded += OnUnloaded;
                     dialog.GetViewModel<IDialogResultable<CommonDialogResult<TResult>>>().CloseAction = dialog.Close;
                 }
@@ -90,6 +83,7 @@ namespace HandyControl.Tools.Extension
             void OnUnloaded(object sender, RoutedEventArgs args)
             {
                 dialog.Unloaded -= OnUnloaded;
+                blockAction?.Invoke();
                 SetResult();
             }
 

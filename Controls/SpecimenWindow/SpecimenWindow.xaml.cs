@@ -31,31 +31,31 @@ namespace MachineControlsLibrary.Controls
         private readonly MatrixTransform _transform = new MatrixTransform();
         private void SpecimenWindow_MouseWheel(object sender, System.Windows.Input.MouseWheelEventArgs e)
         {
-            var scaleFactor = Zoomfactor;
-            if (e.Delta < 0)
-            {
-                scaleFactor = 1f / scaleFactor;
-            }
+            //var scaleFactor = Zoomfactor;
+            //if (e.Delta < 0)
+            //{
+            //    scaleFactor = 1f / scaleFactor;
+            //}
 
-            Point mousePosition = e.GetPosition(this);
+            //Point mousePosition = e.GetPosition(this);
 
-            Matrix scaleMatrix = _transform.Matrix;
-            scaleMatrix.ScaleAt(scaleFactor, scaleFactor, mousePosition.X, mousePosition.Y);
-            _transform.Matrix = scaleMatrix;
+            //Matrix scaleMatrix = _transform.Matrix;
+            //scaleMatrix.ScaleAt(scaleFactor, scaleFactor, mousePosition.X, mousePosition.Y);
+            //_transform.Matrix = scaleMatrix;
 
-            foreach (UIElement child in this.MainCanvas.Children)
-            {
-                var x = Canvas.GetLeft(child);
-                var y = Canvas.GetTop(child);
+            //foreach (UIElement child in this.MainCanvas.Children)
+            //{
+            //    var x = Canvas.GetLeft(child);
+            //    var y = Canvas.GetTop(child);
 
-                var sx = x * scaleFactor;
-                var sy = y * scaleFactor;
+            //    var sx = x * scaleFactor;
+            //    var sy = y * scaleFactor;
 
-                Canvas.SetLeft(child, sx);
-                Canvas.SetTop(child, sy);
+            //    Canvas.SetLeft(child, sx);
+            //    Canvas.SetTop(child, sy);
 
-                child.RenderTransform = _transform;
-            }
+            //    child.RenderTransform = _transform;
+            //}
         }
 
         private double _scalex;
@@ -444,7 +444,7 @@ namespace MachineControlsLibrary.Controls
         // Using a DependencyProperty as the backing store for Shapes.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty ShapesProperty =
             DependencyProperty.Register("Shapes", typeof(ObservableCollection<GeometryCollection>),
-                typeof(SpecimenWindow), new PropertyMetadata(null, new PropertyChangedCallback(myFunc)));
+                typeof(SpecimenWindow), new PropertyMetadata(null));
 
 
         public double MirrorX
@@ -605,10 +605,6 @@ namespace MachineControlsLibrary.Controls
         public static readonly DependencyProperty PointerYProperty =
             DependencyProperty.Register("PointerY", typeof(double), typeof(SpecimenWindow), new PropertyMetadata((double)0));
 
-        private static void myFunc(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-
-        }
 
         private void SpecWin_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
@@ -705,18 +701,4 @@ namespace MachineControlsLibrary.Controls
 
     }
     public delegate void RoutedGeomClickEventHandler(object? obj, GeomClickEventArgs clickEventArgs);
-    public class GeomClickEventArgs : RoutedEventArgs
-    {
-        public Point Coordinate
-        {
-            get; init;
-        }
-
-        public GeomClickEventArgs(Point coordinate)
-        {
-            Coordinate = coordinate;
-        }
-        public static explicit operator Point(GeomClickEventArgs e) => e.Coordinate;
-        public static implicit operator GeomClickEventArgs(Point point) => new GeomClickEventArgs(point);
-    }
 }
