@@ -87,6 +87,18 @@ namespace MachineControlsLibrary.Controls
 
 
 
+        public bool EZ
+        {
+            get { return (bool)GetValue(EZProperty); }
+            set { SetValue(EZProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for EZ.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty EZProperty =
+            DependencyProperty.Register("EZ", typeof(bool), typeof(AxisState), new PropertyMetadata(false));
+
+
+
         public Brush NegColor
         {
             get => (Brush)GetValue(NegColorProperty);

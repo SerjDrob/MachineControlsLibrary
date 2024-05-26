@@ -10,7 +10,7 @@
              x:Name="TheAxis"
              
              >
-    <Grid>        
+    <Grid>
         <Grid x:Name="HorisontalGrid" Visibility="Collapsed">
             <Grid.Resources>
                 <SolidColorBrush x:Key="SignalGreen" Color="MediumSpringGreen" />
@@ -147,15 +147,36 @@
                            
                     Text="{Binding StringFormat='Cmd: {0:N3}', Path=CmdCoordinate}"/>
 
-                <UniformGrid Columns="3" Grid.ColumnSpan="3" Grid.Row="3">
+                <UniformGrid Columns="4" Grid.ColumnSpan="3" Grid.Row="3">
+                    <Grid>
+                        <Rectangle>
+                            <Rectangle.Style>
+                                <Style BasedOn="{StaticResource Rec1}" TargetType="Rectangle">
+                                    <Setter Property="Fill" Value="{Binding NegColor}" />
+                                    <Style.Triggers>
+                                        <DataTrigger Value="True">
+                                            <DataTrigger.Binding>
+                                                <Binding Path="LmtNeg"/>
+                                            </DataTrigger.Binding>
+                                            <Setter Property="Fill" Value="{Binding PosColor}" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Rectangle.Style>
+                        </Rectangle>
+                        <Path Data="M 0,0 L8,0" Stroke="White" Opacity="1" StrokeThickness="1" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </Grid>
                     <Rectangle>
                         <Rectangle.Style>
                             <Style BasedOn="{StaticResource Rec1}" TargetType="Rectangle">
-                                <Setter Property="Fill" Value="{Binding NegColor}" />
+                                <Setter Property="Fill" Value="{Binding NegColor}"/>
+                                <Setter Property="Width" Value="3"/>
+                                <Setter Property="RadiusX" Value="0"/>
+                                <Setter Property="RadiusY" Value="0"/>
                                 <Style.Triggers>
                                     <DataTrigger Value="True">
                                         <DataTrigger.Binding>
-                                            <Binding Path="LmtNeg"/>
+                                            <Binding Path="EZ" />
                                         </DataTrigger.Binding>
                                         <Setter Property="Fill" Value="{Binding PosColor}" />
                                     </DataTrigger>
@@ -163,21 +184,25 @@
                             </Style>
                         </Rectangle.Style>
                     </Rectangle>
-                    <Rectangle>
-                        <Rectangle.Style>
-                            <Style BasedOn="{StaticResource Rec1}" TargetType="Rectangle">
-                                <Setter Property="Fill" Value="{Binding NegColor}" />
-                                <Style.Triggers>
-                                    <DataTrigger Value="True">
-                                        <DataTrigger.Binding>
-                                            <Binding Path="LmtPos" />
-                                        </DataTrigger.Binding>
-                                        <Setter Property="Fill" Value="{Binding PosColor}" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Rectangle.Style>
-                    </Rectangle>
+                    <Grid>                        
+                        <Rectangle>
+                            <Rectangle.Style>
+                                <Style BasedOn="{StaticResource Rec1}" TargetType="Rectangle">
+                                    <Setter Property="Fill" Value="{Binding NegColor}" />
+                                    <Style.Triggers>
+                                        <DataTrigger Value="True">
+                                            <DataTrigger.Binding>
+                                                <Binding Path="LmtPos" />
+                                            </DataTrigger.Binding>
+                                            <Setter Property="Fill" Value="{Binding PosColor}" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Rectangle.Style>
+                        </Rectangle>
+                        <Path Data="M 0,0 L8,0" Stroke="White" Opacity="1" StrokeThickness="1" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        <Path Data="M 0,0 L0,8" Stroke="White" Opacity="0.6" StrokeThickness="1" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </Grid>
                     <Rectangle>
                         <Rectangle.Style>
                             <Style BasedOn="{StaticResource Rec1}" TargetType="Rectangle">
