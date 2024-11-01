@@ -17,10 +17,9 @@ namespace MachineControlsLibrary.Converters
             double actualWidth = 0;
             double xOffset = 0;
             double yOffset = 0;
-            double shapeX = 0;
-            double shapeY = 0;
+            double shapeX;
+            double shapeY;
             double shift = 0;
-            int selector = System.Convert.ToInt32(parameter);
             TranslateTransform translateTransform1X;
             TranslateTransform translateTransform2X;
             TranslateTransform translateTransform1Y;

@@ -31,8 +31,8 @@ namespace MachineControlsLibrary.Controls
 
         public double OffsetX
         {
-            get { return (double)GetValue(OffsetXProperty); }
-            set { SetValue(OffsetXProperty, value); }
+            get => (double)GetValue(OffsetXProperty);
+            set => SetValue(OffsetXProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for OffsetX.  This enables animation, styling, binding, etc...

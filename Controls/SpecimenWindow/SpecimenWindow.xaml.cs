@@ -28,7 +28,7 @@ namespace MachineControlsLibrary.Controls
 
         }
         public float Zoomfactor { get; set; } = 1.1f;
-        private readonly MatrixTransform _transform = new MatrixTransform();
+        private readonly MatrixTransform _transform = new();
         private void SpecimenWindow_MouseWheel(object sender, System.Windows.Input.MouseWheelEventArgs e)
         {
             //var scaleFactor = Zoomfactor;

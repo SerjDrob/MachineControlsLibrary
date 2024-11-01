@@ -10,9 +10,9 @@ namespace MachineControlsLibrary.Converters
         {
             if (values.Length > 1)
             {
-                double length = System.Convert.ToDouble(values[0]);
-                int pointNum = System.Convert.ToInt32(values[1]);
-                double lengthRatio = System.Convert.ToDouble(parameter);
+                var length = System.Convert.ToDouble(values[0]);
+                var pointNum = System.Convert.ToInt32(values[1]);
+                var lengthRatio = System.Convert.ToDouble(parameter);
                 return pointNum switch
                 {
                     1 => length * (1 - lengthRatio) / 2,

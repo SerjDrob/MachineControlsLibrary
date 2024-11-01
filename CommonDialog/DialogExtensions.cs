@@ -48,7 +48,7 @@ namespace HandyControl.Tools.Extension
                         commonDialog.CloseWithCancel();
                     }));
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     throw;
                 }

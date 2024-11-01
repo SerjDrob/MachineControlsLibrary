@@ -14,6 +14,6 @@ namespace MachineControlsLibrary.Controls
             Coordinate = coordinate;
         }
         public static explicit operator Point(GeomClickEventArgs e) => e.Coordinate;
-        public static implicit operator GeomClickEventArgs(Point point) => new GeomClickEventArgs(point);
+        public static implicit operator GeomClickEventArgs(Point point) => new (point);
     }
 }

@@ -8,8 +8,8 @@ namespace MachineControlsLibrary.Converters
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            var val = new double();
-            var par = new double();
+            double val;
+            double par;
             try
             {
                 val = System.Convert.ToDouble(value);
@@ -24,7 +24,6 @@ namespace MachineControlsLibrary.Converters
                 throw;
             }
             return val / par;
-
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
@@ -37,8 +36,8 @@ namespace MachineControlsLibrary.Converters
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            var val = new double();
-            var par = new double();
+            double val;
+            double par;
             try
             {
                 val = System.Convert.ToDouble(value);

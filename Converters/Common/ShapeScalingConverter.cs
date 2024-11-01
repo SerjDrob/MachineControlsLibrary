@@ -13,8 +13,8 @@ namespace MachineControlsLibrary.Converters
         {
             double width = 1;
             double height = 1;
-            double fieldSizeX = width;
-            double fieldSizeY = height;
+            var fieldSizeX = width;
+            var fieldSizeY = height;
             double specSizeX = 0;
             double specSizeY = 0;
             double margin = 0;

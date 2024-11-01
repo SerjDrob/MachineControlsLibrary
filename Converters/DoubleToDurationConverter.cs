@@ -9,7 +9,7 @@ namespace MachineControlsLibrary.Converters
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            int sec = 1;
+            var sec = 1;
             try
             {
                 sec = System.Convert.ToInt32(value);

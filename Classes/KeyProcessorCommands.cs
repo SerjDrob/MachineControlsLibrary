@@ -11,7 +11,7 @@ namespace MachineControlsLibrary.Classes
     {
         private Dictionary<Key, (AsyncRelayCommand command, bool isKeyRepeatProhibited)> DownKeys;
         private Dictionary<Key, AsyncRelayCommand> UpKeys;
-        private Func<object?, bool>? _canExecute;
+        private readonly Func<object?, bool>? _canExecute;
         AsyncRelayCommand<KeyEventArgs> _anyKeyDownCommand;
         AsyncRelayCommand<KeyEventArgs> _anyKeyUpCommand;
         public KeyProcessorCommands(Func<object?, bool>? canExecute = null)
@@ -21,8 +21,8 @@ namespace MachineControlsLibrary.Classes
 
         public event EventHandler CanExecuteChanged
         {
-            add { CommandManager.RequerySuggested += value; }
-            remove { CommandManager.RequerySuggested -= value; }
+            add => CommandManager.RequerySuggested += value;
+            remove => CommandManager.RequerySuggested -= value;
         }
 
         public void RaiseCanExecuteChanged()

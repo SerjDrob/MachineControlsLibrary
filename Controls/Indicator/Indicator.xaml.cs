@@ -29,8 +29,8 @@ namespace MachineControlsLibrary.Controls
 
         public double MinLevel
         {
-            get { return (double)GetValue(MinLevelProperty); }
-            set { SetValue(MinLevelProperty, value); }
+            get => (double)GetValue(MinLevelProperty);
+            set => SetValue(MinLevelProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for MinLevel.  This enables animation, styling, binding, etc...
@@ -40,8 +40,8 @@ namespace MachineControlsLibrary.Controls
 
         public double MaxLevel
         {
-            get { return (double)GetValue(MaxLevelProperty); }
-            set { SetValue(MaxLevelProperty, value); }
+            get => (double)GetValue(MaxLevelProperty);
+            set => SetValue(MaxLevelProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for MaxLevel.  This enables animation, styling, binding, etc...
