@@ -12,16 +12,18 @@
         </Grid.Resources>
 
 
-        <Button Name="Toggle" Background="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Background}" Command="{Binding ValveCommand}" HorizontalContentAlignment="Stretch">
+        <Button Name="Toggle" Background="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Background}" 
+                Command="{Binding ValveCommand}" 
+                >
             <Button.Style>
                 <Style TargetType="Button">
                     <Setter Property="Template">
                         <Setter.Value>
                             <ControlTemplate TargetType="Button">
-                                <Border CornerRadius="{Binding ActualHeight, RelativeSource={RelativeSource Self}, 
-                                    Converter={StaticResource HeightToRadiusConverter}}" 
+                                <Border CornerRadius="{Binding CornerRadius}" 
                                         Background="{TemplateBinding Background}">
-                                    <Border Background="{TemplateBinding Background}" Margin="5" BorderThickness="3" CornerRadius="{Binding ActualHeight, RelativeSource={RelativeSource Self}, Converter={StaticResource HeightToRadiusConverter}}">                                        
+                                    <Border Background="{TemplateBinding Background}" Margin="1" BorderThickness="1" 
+                                            CornerRadius="{Binding CornerRadius}">                                        
                                         <Border.Style>
                                             <Style TargetType="Border">
                                                 <Setter Property="BorderBrush"  Value="{Binding BorderOffColor}" />                                                
@@ -68,8 +70,6 @@
                 <Label Content="{Binding ValveName}" 
                        DockPanel.Dock="Bottom" 
                        HorizontalContentAlignment="Center"
-                       FontWeight="UltraBold"
-                       FontStretch="ExtraExpanded"    
                        Background="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Background}"
                        BorderBrush="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Background}"
                        />

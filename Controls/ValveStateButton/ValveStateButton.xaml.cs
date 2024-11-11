@@ -59,6 +59,18 @@ namespace MachineControlsLibrary.Controls
 
 
 
+        public int CornerRadius
+        {
+            get { return (int)GetValue(CornerRadiusProperty); }
+            set { SetValue(CornerRadiusProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for CornerRadius.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty CornerRadiusProperty =
+            DependencyProperty.Register("CornerRadius", typeof(int), typeof(ValveStateButton), new PropertyMetadata(0));
+
+
+
         public string ValveName
         {
             get { return (string)GetValue(ValveNameProperty); }
