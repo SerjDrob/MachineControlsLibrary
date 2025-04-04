@@ -45,13 +45,9 @@
 
 
             <DockPanel Grid.Column="1" LastChildFill="True">
-                <TextBlock DockPanel.Dock="Left" 
-                       Text="{Binding StringFormat='{}{0}: ', Path=CoordinateName}"
-                       />
-                <TextBlock DockPanel.Dock="Left" 
-                       Text="{Binding Coordinate}"/>
+                <TextBlock DockPanel.Dock="Left" Text="{Binding StringFormat='{}{0}: ', Path=CoordinateName}"/>
+                <TextBlock DockPanel.Dock="Left" Text="{Binding Coordinate}"/>
                 <TextBlock DockPanel.Dock="Left" Margin="10,0,0,0" Text="{Binding CmdCoordinate, StringFormat=N3}"/>
-
             </DockPanel>
             <UniformGrid Columns="3" Grid.RowSpan="1">
                 <Rectangle>
@@ -128,7 +124,7 @@
                     <RowDefinition />
                 </Grid.RowDefinitions>
 
-                <TextBlock Grid.ColumnSpan="3"
+                <TextBlock Grid.RowSpan="2"
                        Text="{Binding StringFormat='{}{0}', Path=CoordinateName}"
                        FontWeight="Bold"
                        FontSize="20"
@@ -136,12 +132,14 @@
                        />
 
                 <TextBlock Grid.ColumnSpan="3"
+                           Grid.Column="1"
                            HorizontalAlignment="Left"
-                           Grid.Row="1"
+                           Grid.Row="0"
                        Text="{Binding StringFormat=' Line: {0:N3}', Path=Coordinate}"/>
 
                 <TextBlock Grid.ColumnSpan="3"
-                           Grid.Row="2"
+                           Grid.Column="1"
+                           Grid.Row="1"
                            HorizontalAlignment="Left"
                            
                     Text="{Binding StringFormat='Cmd: {0:N3}', Path=CmdCoordinate}"/>
