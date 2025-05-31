@@ -9,20 +9,22 @@ namespace MachineControlsLibrary.Classes
 {
     public class KeyProcessorCommands : ICommand
     {
-        private Dictionary<Key, (AsyncRelayCommand command, bool isKeyRepeatProhibited)> DownKeys;
+        private Dictionary<(Key, ModifierKeys), (AsyncRelayCommand command, bool isKeyRepeatProhibited)> DownKeys;
         private Dictionary<Key, AsyncRelayCommand> UpKeys;
-        private readonly Func<object?, bool>? _canExecute;
+        private Func<object?, bool>? _canExecute;
+        private readonly Type[] notProcessingControls;
         AsyncRelayCommand<KeyEventArgs> _anyKeyDownCommand;
         AsyncRelayCommand<KeyEventArgs> _anyKeyUpCommand;
-        public KeyProcessorCommands(Func<object?, bool>? canExecute = null)
+        public KeyProcessorCommands(Func<object?, bool>? canExecute = null, params Type[] notProcessingControls)
         {
             _canExecute = canExecute;
+            this.notProcessingControls = notProcessingControls;
         }
 
         public event EventHandler CanExecuteChanged
         {
-            add => CommandManager.RequerySuggested += value;
-            remove => CommandManager.RequerySuggested -= value;
+            add { CommandManager.RequerySuggested += value; }
+            remove { CommandManager.RequerySuggested -= value; }
         }
 
         public void RaiseCanExecuteChanged()
@@ -35,11 +37,11 @@ namespace MachineControlsLibrary.Classes
             return _canExecute?.Invoke(parameter) ?? true;
         }
 
-        public KeyProcessorCommands CreateKeyDownCommand(Key key, Func<Task> task, Func<bool> canExecute, bool isKeyRepeatProhibited = true)
+        public KeyProcessorCommands CreateKeyDownCommand(Key key, ModifierKeys modifier, Func<Task> task, Func<bool> canExecute, bool isKeyRepeatProhibited = true)
         {
             DownKeys ??= new();
             var command = new AsyncRelayCommand(task, canExecute);
-            DownKeys[key] = (command, isKeyRepeatProhibited);
+            DownKeys[(key, modifier)] = (command, isKeyRepeatProhibited);
             return this;
         }
         public KeyProcessorCommands CreateKeyUpCommand(Key key, Func<Task> task, Func<bool> canExecute)
@@ -68,15 +70,17 @@ namespace MachineControlsLibrary.Classes
             if (!CanExecute(parameter)) return;
             if (parameter is KeyProcessorArgs args)
             {
+                if (notProcessingControls.Any(t => t.IsEquivalentTo(args.KeyEventArgs.OriginalSource.GetType().BaseType))) return;
                 if (args.IsKeyDown)
                 {
-                    if (!(DownKeys?.Keys.Any(key => key == args.KeyEventArgs.Key) ?? false) & _anyKeyDownCommand is not null)
+                    var clue = (args.KeyEventArgs.Key, args.KeyEventArgs.KeyboardDevice.Modifiers);
+                    if (!(DownKeys?.Keys.Any(key => key == clue) ?? false) & _anyKeyDownCommand is not null)
                     {
                         await _anyKeyDownCommand.ExecuteAsync(args.KeyEventArgs);
                         return;
                     }
-                    DownKeys.TryGetValue(args.KeyEventArgs.Key, out var commandPair);
-
+                    var modifier = args.KeyEventArgs.KeyboardDevice.Modifiers;
+                    DownKeys.TryGetValue(clue, out var commandPair);
                     if (commandPair != default && !(args.KeyEventArgs.IsRepeat & commandPair.isKeyRepeatProhibited))
                         await commandPair.command.ExecuteAsync(null);
                 }
@@ -94,5 +98,6 @@ namespace MachineControlsLibrary.Classes
             }
         }
     }
+
 }
 
