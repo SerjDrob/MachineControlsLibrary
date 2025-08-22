@@ -4,9 +4,9 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using CommunityToolkit.Mvvm.Input;
 using MachineControlsLibrary.Classes;
-using Microsoft.Toolkit.Mvvm.ComponentModel;
-using Microsoft.Toolkit.Mvvm.Input;
+using PropertyChanged;
 using Xceed.Wpf.AvalonDock.Controls;
 
 namespace MachineControlsLibrary.Controls
@@ -17,7 +17,8 @@ namespace MachineControlsLibrary.Controls
     /// Interaction logic for SpecimenWindow.xaml
     /// </summary>
 
-    [INotifyPropertyChanged]
+    //[INotifyPropertyChanged]
+    [AddINotifyPropertyChangedInterface]
     public partial class SpecimenWindow : UserControl
     {
         public SpecimenWindow()
@@ -682,7 +683,7 @@ namespace MachineControlsLibrary.Controls
             }
         }
 
-        [ICommand]
+        [RelayCommand]
         private void OnLayGeomClicked(object? obj)
         {
             try

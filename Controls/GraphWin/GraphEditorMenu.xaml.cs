@@ -1,5 +1,5 @@
-﻿using MachineControlsLibrary.Classes;
-using Microsoft.Toolkit.Mvvm.Input;
+﻿using CommunityToolkit.Mvvm.Input;
+using MachineControlsLibrary.Classes;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -21,19 +21,19 @@ namespace MachineControlsLibrary.Controls
             InitializeComponent();
             EditorMenu.DataContext = this;
         }
-        [ICommand]
+        [RelayCommand]
         private void ToMirrorX(object obj)
         {
             MirrorXChanged?.Invoke();
         }
         public event Action MirrorXChanged;
-        [ICommand]
+        [RelayCommand]
         private void ToRotate90()
         {
             Rotate90Changed?.Invoke();
         }
         public event Action Rotate90Changed;
-        [ICommand]
+        [RelayCommand]
         private void ItemChecked(object obj)
         {
             var lg = (EnaLayer)obj;

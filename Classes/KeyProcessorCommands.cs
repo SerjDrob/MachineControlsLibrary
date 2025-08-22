@@ -1,6 +1,7 @@
-﻿using Microsoft.Toolkit.Mvvm.Input;
+﻿using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -65,28 +66,57 @@ namespace MachineControlsLibrary.Classes
             return this;
         }
 
-        public async void Execute(object? parameter)
+
+        public void Execute(object? parameter)
         {
             if (!CanExecute(parameter)) return;
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await ExecuteAsync(parameter);
+                }
+                catch (Exception ex)
+                {
+                    //_logger?.LogError(ex, "Ошибка при обработке клавиши");
+                    Debug.WriteLine(ex);
+                }
+            });
+        }
+
+        public async Task ExecuteAsync(object? parameter)
+        {
             if (parameter is KeyProcessorArgs args)
             {
                 if (notProcessingControls.Any(t => t.IsEquivalentTo(args.KeyEventArgs.OriginalSource.GetType().BaseType))) return;
                 if (args.IsKeyDown)
                 {
                     var clue = (args.KeyEventArgs.Key, args.KeyEventArgs.KeyboardDevice.Modifiers);
-                    if (!(DownKeys?.Keys.Any(key => key == clue) ?? false) & _anyKeyDownCommand is not null)
+                    //if (!DownKeys.ContainsKey(clue) && _anyKeyDownCommand is not null)
+                    //{
+                    //    await _anyKeyDownCommand.ExecuteAsync(args.KeyEventArgs);
+                    //    return;
+                    //}
+                    //var modifier = args.KeyEventArgs.KeyboardDevice.Modifiers;
+                    //DownKeys.TryGetValue(clue, out var commandPair);
+                    //if (commandPair != default && !(args.KeyEventArgs.IsRepeat & commandPair.isKeyRepeatProhibited))
+                    //    await commandPair.command.ExecuteAsync(null);
+
+
+                    if (DownKeys.TryGetValue(clue, out var commandPair))
+                    {
+                        if (!args.KeyEventArgs.IsRepeat || !commandPair.isKeyRepeatProhibited)
+                            await commandPair.command.ExecuteAsync(null);
+                    }
+                    else if (_anyKeyDownCommand != null)
                     {
                         await _anyKeyDownCommand.ExecuteAsync(args.KeyEventArgs);
-                        return;
                     }
-                    var modifier = args.KeyEventArgs.KeyboardDevice.Modifiers;
-                    DownKeys.TryGetValue(clue, out var commandPair);
-                    if (commandPair != default && !(args.KeyEventArgs.IsRepeat & commandPair.isKeyRepeatProhibited))
-                        await commandPair.command.ExecuteAsync(null);
+
                 }
                 else
                 {
-                    if (!(UpKeys?.Keys.Any(key => key == args.KeyEventArgs.Key) ?? false) & _anyKeyUpCommand is not null)
+                    if (!(UpKeys?.ContainsKey(args.KeyEventArgs.Key) ?? false) && _anyKeyUpCommand is not null)
                     {
                         await _anyKeyUpCommand.ExecuteAsync(args.KeyEventArgs);
                         return;

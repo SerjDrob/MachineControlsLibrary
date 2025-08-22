@@ -4,8 +4,8 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Controls;
 using System.Windows.Input;
+using CommunityToolkit.Mvvm.Input;
 using MachineControlsLibrary.Classes;
-using Microsoft.Toolkit.Mvvm.Input;
 using PropertyChanged;
 
 namespace MachineControlsLibrary.Controls
@@ -29,7 +29,7 @@ namespace MachineControlsLibrary.Controls
         public bool FilterItemEnable { get; set; } = true;
         public ObservableCollection<LayerFilter> Filters { get; private set; } = new();
         public event EventHandler<IEnumerable<LayerFilter>> FiltersChanged;
-        [ICommand]
+        [RelayCommand]
         public void AddFilter()
         {
             if (FilterItem is not null)
@@ -44,7 +44,7 @@ namespace MachineControlsLibrary.Controls
                 }
             }
         }
-        [ICommand]
+        [RelayCommand]
         public void DeleteFilter(object? filter)
         {
             if (Filters.Count > 0)
