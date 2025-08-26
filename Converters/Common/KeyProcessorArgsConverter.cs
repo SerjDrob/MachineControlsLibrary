@@ -17,8 +17,10 @@ namespace MachineControlsLibrary.Converters.Common
     {
         object IValueConverter.Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
+
             if (value is KeyEventArgs args)
             {
+                var s = args.RoutedEvent == Keyboard.KeyDownEvent;
                 try
                 {
                     var isKeyDown = (bool)parameter;

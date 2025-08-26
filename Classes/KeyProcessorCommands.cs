@@ -19,6 +19,8 @@ namespace MachineControlsLibrary.Classes
         public KeyProcessorCommands(Func<object?, bool>? canExecute = null, params Type[] notProcessingControls)
         {
             _canExecute = canExecute;
+            DownKeys = new();
+            UpKeys = new();
             this.notProcessingControls = notProcessingControls;
         }
 
@@ -86,12 +88,14 @@ namespace MachineControlsLibrary.Classes
 
         public async Task ExecuteAsync(object? parameter)
         {
-            if (parameter is KeyProcessorArgs args)
+            if (parameter is KeyEventArgs args)
             {
-                if (notProcessingControls.Any(t => t.IsEquivalentTo(args.KeyEventArgs.OriginalSource.GetType().BaseType))) return;
-                if (args.IsKeyDown)
+                Debug.WriteLine($"{args.Key} {args.RoutedEvent.Name}, repeat is {args.IsRepeat}");
+                
+                if (notProcessingControls.Any(t => t.IsEquivalentTo(args.OriginalSource.GetType().BaseType))) return;
+                if (args.RoutedEvent == Keyboard.KeyDownEvent || args.RoutedEvent == Keyboard.PreviewKeyDownEvent)
                 {
-                    var clue = (args.KeyEventArgs.Key, args.KeyEventArgs.KeyboardDevice.Modifiers);
+                    var clue = (args.Key, args.KeyboardDevice.Modifiers);
                     //if (!DownKeys.ContainsKey(clue) && _anyKeyDownCommand is not null)
                     //{
                     //    await _anyKeyDownCommand.ExecuteAsync(args.KeyEventArgs);
@@ -105,29 +109,34 @@ namespace MachineControlsLibrary.Classes
 
                     if (DownKeys.TryGetValue(clue, out var commandPair))
                     {
-                        if (!args.KeyEventArgs.IsRepeat || !commandPair.isKeyRepeatProhibited)
+                        if (!(args.IsRepeat & commandPair.isKeyRepeatProhibited))
+                        {
+                            args.Handled = true;
                             await commandPair.command.ExecuteAsync(null);
+                        }
                     }
                     else if (_anyKeyDownCommand != null)
                     {
-                        await _anyKeyDownCommand.ExecuteAsync(args.KeyEventArgs);
+                        args.Handled = true;
+                        await _anyKeyDownCommand.ExecuteAsync(args);
                     }
-
                 }
-                else
+                else if (args.RoutedEvent == Keyboard.KeyUpEvent || args.RoutedEvent == Keyboard.PreviewKeyUpEvent)
                 {
-                    if (!(UpKeys?.ContainsKey(args.KeyEventArgs.Key) ?? false) && _anyKeyUpCommand is not null)
+                    if (!(UpKeys.ContainsKey(args.Key)) && _anyKeyUpCommand is not null)
                     {
-                        await _anyKeyUpCommand.ExecuteAsync(args.KeyEventArgs);
+                        args.Handled = true;
+                        await _anyKeyUpCommand.ExecuteAsync(args);
                         return;
                     }
-                    UpKeys.TryGetValue(args.KeyEventArgs.Key, out var command);
-                    if (command is not null) await command.ExecuteAsync(null);
+                    if (UpKeys.TryGetValue(args.Key, out var command))
+                    {
+                        args.Handled = true;
+                        await command.ExecuteAsync(null);
+                    }
                 }
-                args.KeyEventArgs.Handled = true;
             }
         }
     }
-
 }
 
