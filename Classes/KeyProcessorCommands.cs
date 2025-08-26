@@ -4,18 +4,19 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 
 namespace MachineControlsLibrary.Classes
 {
     public class KeyProcessorCommands : ICommand
     {
-        private Dictionary<(Key, ModifierKeys), (AsyncRelayCommand command, bool isKeyRepeatProhibited)> DownKeys;
-        private Dictionary<Key, AsyncRelayCommand> UpKeys;
+        private Dictionary<(Key, ModifierKeys), (IAsyncRelayCommand command, bool isKeyRepeatProhibited)> DownKeys;
+        private Dictionary<Key, IAsyncRelayCommand> UpKeys;
         private Func<object?, bool>? _canExecute;
         private readonly Type[] notProcessingControls;
-        AsyncRelayCommand<KeyEventArgs> _anyKeyDownCommand;
-        AsyncRelayCommand<KeyEventArgs> _anyKeyUpCommand;
+        IAsyncRelayCommand<KeyEventArgs> _anyKeyDownCommand;
+        IAsyncRelayCommand<KeyEventArgs> _anyKeyUpCommand;
         public KeyProcessorCommands(Func<object?, bool>? canExecute = null, params Type[] notProcessingControls)
         {
             _canExecute = canExecute;
@@ -46,6 +47,13 @@ namespace MachineControlsLibrary.Classes
             var command = new AsyncRelayCommand(task, canExecute);
             DownKeys[(key, modifier)] = (command, isKeyRepeatProhibited);
             return this;
+        } 
+        public KeyProcessorCommands CreateKeyDownCommand(Key key, ModifierKeys modifier, IAsyncRelayCommand relayCommand, Func<bool> canExecute, bool isKeyRepeatProhibited = true)
+        {
+            DownKeys ??= new();
+            var command = relayCommand;
+            DownKeys[(key, modifier)] = (command, isKeyRepeatProhibited);
+            return this;
         }
         public KeyProcessorCommands CreateKeyUpCommand(Key key, Func<Task> task, Func<bool> canExecute)
         {
@@ -72,7 +80,7 @@ namespace MachineControlsLibrary.Classes
         public void Execute(object? parameter)
         {
             if (!CanExecute(parameter)) return;
-            _ = Task.Run(async () =>
+            _ = Application.Current.Dispatcher.InvokeAsync(async () =>
             {
                 try
                 {
@@ -80,10 +88,9 @@ namespace MachineControlsLibrary.Classes
                 }
                 catch (Exception ex)
                 {
-                    //_logger?.LogError(ex, "Ошибка при обработке клавиши");
                     Debug.WriteLine(ex);
                 }
-            });
+            }, System.Windows.Threading.DispatcherPriority.Background);
         }
 
         public async Task ExecuteAsync(object? parameter)
@@ -96,17 +103,6 @@ namespace MachineControlsLibrary.Classes
                 if (args.RoutedEvent == Keyboard.KeyDownEvent || args.RoutedEvent == Keyboard.PreviewKeyDownEvent)
                 {
                     var clue = (args.Key, args.KeyboardDevice.Modifiers);
-                    //if (!DownKeys.ContainsKey(clue) && _anyKeyDownCommand is not null)
-                    //{
-                    //    await _anyKeyDownCommand.ExecuteAsync(args.KeyEventArgs);
-                    //    return;
-                    //}
-                    //var modifier = args.KeyEventArgs.KeyboardDevice.Modifiers;
-                    //DownKeys.TryGetValue(clue, out var commandPair);
-                    //if (commandPair != default && !(args.KeyEventArgs.IsRepeat & commandPair.isKeyRepeatProhibited))
-                    //    await commandPair.command.ExecuteAsync(null);
-
-
                     if (DownKeys.TryGetValue(clue, out var commandPair))
                     {
                         if (!(args.IsRepeat & commandPair.isKeyRepeatProhibited))
