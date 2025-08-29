@@ -31,11 +31,6 @@ namespace MachineControlsLibrary.Classes
             remove { CommandManager.RequerySuggested -= value; }
         }
 
-        public void RaiseCanExecuteChanged()
-        {
-            CommandManager.InvalidateRequerySuggested();
-        }
-
         public bool CanExecute(object? parameter)
         {
             return _canExecute?.Invoke(parameter) ?? true;
@@ -108,13 +103,13 @@ namespace MachineControlsLibrary.Classes
                         if (!(args.IsRepeat & commandPair.isKeyRepeatProhibited))
                         {
                             args.Handled = true;
-                            await commandPair.command.ExecuteAsync(null);
+                            if(commandPair.command.CanExecute(null)) await commandPair.command.ExecuteAsync(null);
                         }
                     }
                     else if (_anyKeyDownCommand != null)
                     {
                         args.Handled = true;
-                        await _anyKeyDownCommand.ExecuteAsync(args);
+                        if(_anyKeyDownCommand.CanExecute(args)) await _anyKeyDownCommand.ExecuteAsync(args);
                     }
                 }
                 else if (args.RoutedEvent == Keyboard.KeyUpEvent || args.RoutedEvent == Keyboard.PreviewKeyUpEvent)
