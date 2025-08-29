@@ -63,15 +63,15 @@ namespace MachineControlsLibrary.Classes
             return this;
         }
 
-        public KeyProcessorCommands CreateAnyKeyDownCommand(Func<KeyEventArgs, Task> task, Func<bool> canExecute)
+        public KeyProcessorCommands CreateAnyKeyDownCommand(Func<KeyEventArgs?, Task> task, Func<bool> canExecute)
         {
-            var predicate = new Predicate<KeyEventArgs>(kea => canExecute.Invoke());
+            Predicate<KeyEventArgs?> predicate = key => canExecute.Invoke();
             _anyKeyDownCommand = new AsyncRelayCommand<KeyEventArgs>(task, predicate);
             return this;
         }
-        public KeyProcessorCommands CreateAnyKeyUpCommand(Func<KeyEventArgs, Task> task, Func<bool> canExecute)
+        public KeyProcessorCommands CreateAnyKeyUpCommand(Func<KeyEventArgs?, Task> task, Func<bool> canExecute)
         {
-            var predicate = new Predicate<KeyEventArgs>(kea => canExecute.Invoke());
+            Predicate<KeyEventArgs?> predicate = key => canExecute.Invoke();
             _anyKeyUpCommand = new AsyncRelayCommand<KeyEventArgs>(task, predicate);
             return this;
         }
