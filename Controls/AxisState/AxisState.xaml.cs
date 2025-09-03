@@ -119,6 +119,16 @@ namespace MachineControlsLibrary.Controls
         // Using a DependencyProperty as the backing store for PosColor.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty PosColorProperty =
             DependencyProperty.Register("PosColor", typeof(Brush), typeof(AxisState), new PropertyMetadata(Brushes.Green));
+        
+        public Brush BusyColor
+        {
+            get => (Brush)GetValue(BusyColorProperty);
+            set => SetValue(BusyColorProperty, value);
+        }
+
+        // Using a DependencyProperty as the backing store for PosColor.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty BusyColorProperty =
+            DependencyProperty.Register("BusyColor", typeof(Brush), typeof(AxisState), new PropertyMetadata(Brushes.Orange));
 
 
 

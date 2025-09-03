@@ -39,7 +39,7 @@ namespace MachineControlsLibrary.Classes
         public KeyProcessorCommands CreateKeyDownCommand(Key key, ModifierKeys modifier, Func<Task> task, Func<bool> canExecute, bool isKeyRepeatProhibited = true)
         {
             DownKeys ??= new();
-            var command = new AsyncRelayCommand(task, canExecute);
+            var command = new AsyncRelayCommand(task, canExecute, AsyncRelayCommandOptions.AllowConcurrentExecutions);
             DownKeys[(key, modifier)] = (command, isKeyRepeatProhibited);
             return this;
         } 
@@ -103,7 +103,9 @@ namespace MachineControlsLibrary.Classes
                         if (!(args.IsRepeat & commandPair.isKeyRepeatProhibited))
                         {
                             args.Handled = true;
-                            if(commandPair.command.CanExecute(null)) await commandPair.command.ExecuteAsync(null);
+                            var isRuning = commandPair.command.IsRunning;
+                            var canExec = commandPair.command.CanExecute(null);
+                            if(canExec) await commandPair.command.ExecuteAsync(null);
                         }
                     }
                     else if (_anyKeyDownCommand != null)
