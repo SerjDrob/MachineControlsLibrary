@@ -8,6 +8,8 @@ namespace MachineControlsLibrary.CommonDialog
     public abstract class CommonDialogResultable<T> : ICommonDialog, IDialogResultable<CommonDialogResult<T>>
     {
         [Browsable(false)]
+        [JsonIgnore]
+        [Newtonsoft.Json.JsonIgnore]
         public CommonDialogResult<T> Result
         {
             get;
@@ -15,6 +17,7 @@ namespace MachineControlsLibrary.CommonDialog
         }
         [Browsable(false)]
         [JsonIgnore]
+        [Newtonsoft.Json.JsonIgnore]
         public Action CloseAction
         {
             get;
