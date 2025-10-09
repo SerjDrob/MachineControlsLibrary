@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 
@@ -60,8 +61,15 @@ namespace MachineControlsLibrary.Controls
 
         // Using a DependencyProperty as the backing store for LmtNeg.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty LmtNegProperty =
-            DependencyProperty.Register("LmtNeg", typeof(bool), typeof(AxisState), new PropertyMetadata(false));
+            DependencyProperty.Register("LmtNeg", typeof(bool), typeof(AxisState), new PropertyMetadata(false, LmtNegChanged));
 
+        private static void LmtNegChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is AxisState state)
+            {
+                state.minusLimit.Stroke = (bool)e.NewValue ? state.PosColor : state.NegColor;
+            }
+        }
 
         public bool LmtPos
         {
@@ -71,9 +79,15 @@ namespace MachineControlsLibrary.Controls
 
         // Using a DependencyProperty as the backing store for LmtPos.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty LmtPosProperty =
-            DependencyProperty.Register("LmtPos", typeof(bool), typeof(AxisState), new PropertyMetadata(false));
+            DependencyProperty.Register("LmtPos", typeof(bool), typeof(AxisState), new PropertyMetadata(false, LmtPosChanged));
 
-
+        private static void LmtPosChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if(d is AxisState state)
+            {
+                state.plusLimit.Stroke = (bool)e.NewValue ? state.PosColor : state.NegColor;
+            }
+        }
 
         public bool MotionDone
         {
