@@ -4,46 +4,75 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:MachineControlsLibrary.Controls"
+             xmlns:hc="https://handyorg.github.io/handycontrol"
              mc:Ignorable="d"
+              d:DesignWidth="80"
+             d:DesignHeight="60"
              >
-    <Border x:Name="TheValveButton">
-        <Border BorderThickness="1" CornerRadius="4">
-            <Border.Style>
-                <Style TargetType="Border">
-                    <Setter Property="BorderBrush"  Value="{Binding BorderOffColor}" />
+    <Border CornerRadius="4">
+        <Button x:Name="TheValveButton" Command="{Binding Command, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                CommandParameter="{Binding CommandParameter, RelativeSource={RelativeSource AncestorType=UserControl}}">
+            <Button.Resources>
+                <Style TargetType="{x:Type Button}" BasedOn="{StaticResource ButtonCustom}">
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                    <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+                    <Setter Property="Background" Value="{StaticResource RegionBrush}"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="Chrome" CornerRadius="{Binding Path=(hc:BorderElement.CornerRadius),RelativeSource={RelativeSource TemplatedParent}}" SnapsToDevicePixels="true" BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="{TemplateBinding BorderBrush}" Background="{TemplateBinding Background}">
+                                    <ContentPresenter Margin="{TemplateBinding Padding}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
                     <Style.Triggers>
-                        <DataTrigger Value="True">
-                            <DataTrigger.Binding>
-                                <Binding Path="ValveIsOn"/>
-                            </DataTrigger.Binding>
-                            <Setter Property="BorderBrush" Value="{Binding BorderOnColor}" />
-                        </DataTrigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter Property="Opacity" Value=".6"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.4"/>
+                        </Trigger>                        
                     </Style.Triggers>
                 </Style>
-            </Border.Style>
-            <DockPanel LastChildFill="True">
-                <Rectangle
+            </Button.Resources>
+            <Border BorderThickness="1" CornerRadius="4" Margin="2">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="BorderBrush"  Value="{Binding BorderOffColor}" />
+                        <Style.Triggers>
+                            <DataTrigger Value="True">
+                                <DataTrigger.Binding>
+                                    <Binding Path="ValveIsOn"/>
+                                </DataTrigger.Binding>
+                                <Setter Property="BorderBrush" Value="{Binding BorderOnColor}" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <DockPanel LastChildFill="True">
+                    <Rectangle
                                  Width="30"
                                  Height="5"
                                  Margin="3"
                                  RadiusX="2"
                                  RadiusY="2"
                                  DockPanel.Dock="Bottom">
-                    <Rectangle.Style>
-                        <Style TargetType="Rectangle">
-                            <Setter Property="Fill" Value="{Binding SensorOffColor}" />
-                            <Style.Triggers>
-                                <DataTrigger Value="True">
-                                    <DataTrigger.Binding>
-                                        <Binding Path="SensorIsOn" />
-                                    </DataTrigger.Binding>
-                                    <Setter Property="Fill" Value="{Binding SensorOnColor}" />
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Rectangle.Style>
-                </Rectangle>
-                <Label Content="{Binding ValveName}" 
+                        <Rectangle.Style>
+                            <Style TargetType="Rectangle">
+                                <Setter Property="Fill" Value="{Binding SensorOffColor}" />
+                                <Style.Triggers>
+                                    <DataTrigger Value="True">
+                                        <DataTrigger.Binding>
+                                            <Binding Path="SensorIsOn" />
+                                        </DataTrigger.Binding>
+                                        <Setter Property="Fill" Value="{Binding SensorOnColor}" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Rectangle.Style>
+                    </Rectangle>
+                    <Label Content="{Binding ValveName}" 
                             DockPanel.Dock="Bottom" 
                             HorizontalContentAlignment="Center"
                             FontWeight="UltraBold"
@@ -51,7 +80,8 @@
                             Background="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Background}"
                             BorderBrush="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Background}"
                             />
-            </DockPanel>
-        </Border>
+                </DockPanel>
+            </Border>
+        </Button>
     </Border>
 </UserControl>

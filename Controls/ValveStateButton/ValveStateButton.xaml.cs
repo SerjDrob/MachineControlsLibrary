@@ -1,4 +1,5 @@
-﻿using PropertyChanged;
+﻿using CommunityToolkit.Mvvm.Input;
+using PropertyChanged;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -21,16 +22,31 @@ namespace MachineControlsLibrary.Controls
 
 
 
-        public ICommand ValveCommand
+        public static readonly DependencyProperty CommandProperty =
+           DependencyProperty.Register(
+               nameof(Command),
+               typeof(ICommand),
+               typeof(ValveStateButton),
+               new PropertyMetadata(null));
+
+        public static readonly DependencyProperty CommandParameterProperty =
+            DependencyProperty.Register(
+                nameof(CommandParameter),
+                typeof(object),
+                typeof(ValveStateButton),
+                new PropertyMetadata(null));
+
+        public ICommand Command
         {
-            get { return (ICommand)GetValue(ValveCommandProperty); }
-            set { SetValue(ValveCommandProperty, value); }
+            get => (ICommand)GetValue(CommandProperty);
+            set => SetValue(CommandProperty, value);
         }
 
-        // Using a DependencyProperty as the backing store for ValveCommand.  This enables animation, styling, binding, etc...
-        public static readonly DependencyProperty ValveCommandProperty =
-            DependencyProperty.Register("ValveCommand", typeof(ICommand), typeof(ValveStateButton), new PropertyMetadata(null));
-
+        public object CommandParameter
+        {
+            get => GetValue(CommandParameterProperty);
+            set => SetValue(CommandParameterProperty, value);
+        }
 
 
         public Brush MyBackground
@@ -138,6 +154,6 @@ namespace MachineControlsLibrary.Controls
         // Using a DependencyProperty as the backing store for SensorIsOn.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty SensorIsOnProperty =
             DependencyProperty.Register("SensorIsOn", typeof(bool), typeof(ValveStateButton), new PropertyMetadata(false));
-
+                     
     }
 }
