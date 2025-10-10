@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.Input;
 using PropertyChanged;
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -20,7 +21,7 @@ namespace MachineControlsLibrary.Controls
         }
 
 
-
+        public HorizontalAlignment SensorAlignment { get; set; } = HorizontalAlignment.Center;
 
         public static readonly DependencyProperty CommandProperty =
            DependencyProperty.Register(
@@ -74,17 +75,39 @@ namespace MachineControlsLibrary.Controls
 
 
 
-        public string ValveName
+        public string Valve_1_Name
         {
-            get { return (string)GetValue(ValveNameProperty); }
-            set { SetValue(ValveNameProperty, value); }
+            get { return (string)GetValue(Valve_1_NameProperty); }
+            set { SetValue(Valve_1_NameProperty, value); }
         }
 
         // Using a DependencyProperty as the backing store for ValveName.  This enables animation, styling, binding, etc...
-        public static readonly DependencyProperty ValveNameProperty =
-            DependencyProperty.Register("ValveName", typeof(string), typeof(ValveStateButton), new PropertyMetadata(string.Empty));
+        public static readonly DependencyProperty Valve_1_NameProperty =
+            DependencyProperty.Register("Valve_1_Name", typeof(string), typeof(ValveStateButton), new PropertyMetadata(string.Empty));
 
+        public string Valve_2_Name
+        {
+            get { return (string)GetValue(Valve_2_NameProperty); }
+            set { SetValue(Valve_2_NameProperty, value); }
+        }
 
+        // Using a DependencyProperty as the backing store for ValveName.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty Valve_2_NameProperty =
+            DependencyProperty.Register("Valve_2_Name", typeof(string), typeof(ValveStateButton), new PropertyMetadata(string.Empty, OnValveNameChanged));
+
+        private static void OnValveNameChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is ValveStateButton button && (string)e.NewValue != string.Empty) 
+            {
+                button.SensorAlignment = HorizontalAlignment.Left;
+                button.LeftSensor.HorizontalAlignment = HorizontalAlignment.Left;
+                button.LeftSensor.Margin = new Thickness(20,3,3,3);
+                button.RightSensor.Visibility = Visibility.Visible;
+                button.RightSensor.Margin = new Thickness(3,3,20,3);
+                button.SecondNameName.Visibility = Visibility.Visible;
+                button.SecondNameSlash.Visibility = Visibility.Visible;
+            }
+        }
 
         public Brush BorderOnColor
         {
@@ -145,15 +168,25 @@ namespace MachineControlsLibrary.Controls
 
 
 
-        public bool SensorIsOn
+        public bool Sensor_1_IsOn
         {
-            get { return (bool)GetValue(SensorIsOnProperty); }
-            set { SetValue(SensorIsOnProperty, value); }
+            get { return (bool)GetValue(Sensor_1_IsOnProperty); }
+            set { SetValue(Sensor_1_IsOnProperty, value); }
         }
 
         // Using a DependencyProperty as the backing store for SensorIsOn.  This enables animation, styling, binding, etc...
-        public static readonly DependencyProperty SensorIsOnProperty =
-            DependencyProperty.Register("SensorIsOn", typeof(bool), typeof(ValveStateButton), new PropertyMetadata(false));
+        public static readonly DependencyProperty Sensor_1_IsOnProperty =
+            DependencyProperty.Register("Sensor_1_IsOn", typeof(bool), typeof(ValveStateButton), new PropertyMetadata(false));
+        
+        public bool Sensor_2_IsOn
+        {
+            get { return (bool)GetValue(Sensor_2_IsOnProperty); }
+            set { SetValue(Sensor_2_IsOnProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for SensorIsOn.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty Sensor_2_IsOnProperty =
+            DependencyProperty.Register("Sensor_2_IsOn", typeof(bool), typeof(ValveStateButton), new PropertyMetadata(false));
                      
     }
 }

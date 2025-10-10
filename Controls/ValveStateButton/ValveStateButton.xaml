@@ -51,35 +51,69 @@
                     </Style>
                 </Border.Style>
                 <DockPanel LastChildFill="True">
-                    <Rectangle
+                    <Grid DockPanel.Dock="Bottom">
+                        <Rectangle
+                                x:Name="LeftSensor"
                                  Width="30"
                                  Height="5"
                                  Margin="3"
                                  RadiusX="2"
                                  RadiusY="2"
-                                 DockPanel.Dock="Bottom">
-                        <Rectangle.Style>
-                            <Style TargetType="Rectangle">
-                                <Setter Property="Fill" Value="{Binding SensorOffColor}" />
-                                <Style.Triggers>
-                                    <DataTrigger Value="True">
-                                        <DataTrigger.Binding>
-                                            <Binding Path="SensorIsOn" />
-                                        </DataTrigger.Binding>
-                                        <Setter Property="Fill" Value="{Binding SensorOnColor}" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Rectangle.Style>
-                    </Rectangle>
-                    <Label Content="{Binding ValveName}" 
+                                 >
+                            <Rectangle.Style>
+                                <Style TargetType="Rectangle">
+                                    <Setter Property="Fill" Value="{Binding SensorOffColor}" />
+                                    <Style.Triggers>
+                                        <DataTrigger Value="True">
+                                            <DataTrigger.Binding>
+                                                <Binding Path="Sensor_1_IsOn" />
+                                            </DataTrigger.Binding>
+                                            <Setter Property="Fill" Value="{Binding SensorOnColor}" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Rectangle.Style>
+                        </Rectangle>
+                        <Rectangle
+                                x:Name="RightSensor"
+                                 Width="30"
+                                 Height="5"
+                                 Margin="3"
+                                 RadiusX="2"
+                                 RadiusY="2"
+                                Visibility="Hidden"
+                                 HorizontalAlignment="Right"
+                                 >
+                            <Rectangle.Style>
+                                <Style TargetType="Rectangle">
+                                    <Setter Property="Fill" Value="{Binding SensorOffColor}" />
+                                    <Style.Triggers>
+                                        <DataTrigger Value="True">
+                                            <DataTrigger.Binding>
+                                                <Binding Path="Sensor_2_IsOn" />
+                                            </DataTrigger.Binding>
+                                            <Setter Property="Fill" Value="{Binding SensorOnColor}" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Rectangle.Style>
+                        </Rectangle>
+                    </Grid>
+                    <Label  
                             DockPanel.Dock="Bottom" 
                             HorizontalContentAlignment="Center"
                             FontWeight="UltraBold"
                             FontStretch="ExtraExpanded"    
                             Background="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Background}"
                             BorderBrush="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Background}"
-                            />
+                            >
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{Binding Valve_1_Name}"/>
+                            <TextBlock x:Name="SecondNameSlash" Text=" / " Visibility="Collapsed"/>
+                            <TextBlock x:Name="SecondNameName" Text="{Binding Valve_2_Name}" Visibility="Collapsed"/>
+                        </StackPanel>
+
+                    </Label>
                 </DockPanel>
             </Border>
         </Button>
