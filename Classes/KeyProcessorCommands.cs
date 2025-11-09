@@ -43,7 +43,7 @@ namespace MachineControlsLibrary.Classes
             DownKeys[(key, modifier)] = (command, isKeyRepeatProhibited);
             return this;
         } 
-        public KeyProcessorCommands CreateKeyDownCommand(Key key, ModifierKeys modifier, IAsyncRelayCommand relayCommand, Func<bool> canExecute, bool isKeyRepeatProhibited = true)
+        public KeyProcessorCommands CreateKeyDownCommand(Key key, ModifierKeys modifier, IAsyncRelayCommand relayCommand, bool isKeyRepeatProhibited = true)
         {
             DownKeys ??= new();
             var command = relayCommand;
@@ -119,7 +119,7 @@ namespace MachineControlsLibrary.Classes
                     if (!(UpKeys.ContainsKey(args.Key)) && _anyKeyUpCommand is not null)
                     {
                         args.Handled = true;
-                        await _anyKeyUpCommand.ExecuteAsync(args);
+                        if(_anyKeyUpCommand.CanExecute(args)) await _anyKeyUpCommand.ExecuteAsync(args);
                         return;
                     }
                     if (UpKeys.TryGetValue(args.Key, out var command))
