@@ -1,49 +1,65 @@
-﻿<UserControl x:Class="MachineControlsLibrary.Controls.ValveStateButton"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:MachineControlsLibrary.Controls"
-             xmlns:hc="https://handyorg.github.io/handycontrol"
-             mc:Ignorable="d"
-              d:DesignWidth="80"
-             d:DesignHeight="60"
-             >
+﻿<UserControl
+    x:Class="MachineControlsLibrary.Controls.ValveStateButton"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:hc="https://handyorg.github.io/handycontrol"
+    xmlns:local="clr-namespace:MachineControlsLibrary.Controls"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:DesignHeight="60"
+    d:DesignWidth="80"
+    mc:Ignorable="d">
     <Border CornerRadius="4">
-        <Button x:Name="TheValveButton" Command="{Binding Command, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                CommandParameter="{Binding CommandParameter, RelativeSource={RelativeSource AncestorType=UserControl}}">
+        <Button
+            x:Name="TheValveButton"
+            Command="{Binding Command, RelativeSource={RelativeSource AncestorType=UserControl}}"
+            CommandParameter="{Binding CommandParameter, RelativeSource={RelativeSource AncestorType=UserControl}}">
             <Button.Resources>
-                <Style TargetType="{x:Type Button}" BasedOn="{StaticResource ButtonCustom}">
-                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                    <Setter Property="VerticalContentAlignment" Value="Stretch"/>
-                    <Setter Property="Background" Value="{StaticResource RegionBrush}"/>
+                <Style BasedOn="{StaticResource ButtonCustom}" TargetType="{x:Type Button}">
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    <Setter Property="VerticalContentAlignment" Value="Stretch" />
+                    <Setter Property="Background" Value="{StaticResource RegionBrush}" />
                     <Setter Property="Template">
                         <Setter.Value>
                             <ControlTemplate TargetType="Button">
-                                <Border x:Name="Chrome" CornerRadius="{Binding Path=(hc:BorderElement.CornerRadius),RelativeSource={RelativeSource TemplatedParent}}" SnapsToDevicePixels="true" BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="{TemplateBinding BorderBrush}" Background="{TemplateBinding Background}">
-                                    <ContentPresenter Margin="{TemplateBinding Padding}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                                <Border
+                                    x:Name="Chrome"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    CornerRadius="{Binding Path=(hc:BorderElement.CornerRadius), RelativeSource={RelativeSource TemplatedParent}}"
+                                    SnapsToDevicePixels="true">
+                                    <ContentPresenter
+                                        Margin="{TemplateBinding Padding}"
+                                        HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                        VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                        RecognizesAccessKey="True"
+                                        SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
                                 </Border>
                             </ControlTemplate>
                         </Setter.Value>
                     </Setter>
                     <Style.Triggers>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter Property="Opacity" Value=".6"/>
+                            <Setter Property="Opacity" Value=".6" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
-                            <Setter Property="Opacity" Value="0.4"/>
-                        </Trigger>                        
+                            <Setter Property="Opacity" Value="0.4" />
+                        </Trigger>
                     </Style.Triggers>
                 </Style>
             </Button.Resources>
-            <Border BorderThickness="1" CornerRadius="4" Margin="2">
+            <Border
+                Margin="2"
+                BorderThickness="1"
+                CornerRadius="4">
                 <Border.Style>
                     <Style TargetType="Border">
-                        <Setter Property="BorderBrush"  Value="{Binding BorderOffColor}" />
+                        <Setter Property="BorderBrush" Value="{Binding BorderOffColor}" />
                         <Style.Triggers>
                             <DataTrigger Value="True">
                                 <DataTrigger.Binding>
-                                    <Binding Path="ValveIsOn"/>
+                                    <Binding Path="ValveIsOn" />
                                 </DataTrigger.Binding>
                                 <Setter Property="BorderBrush" Value="{Binding BorderOnColor}" />
                             </DataTrigger>
@@ -53,13 +69,12 @@
                 <DockPanel LastChildFill="True">
                     <Grid DockPanel.Dock="Bottom">
                         <Rectangle
-                                x:Name="LeftSensor"
-                                 Width="30"
-                                 Height="5"
-                                 Margin="3"
-                                 RadiusX="2"
-                                 RadiusY="2"
-                                 >
+                            x:Name="LeftSensor"
+                            Width="30"
+                            Height="5"
+                            Margin="3"
+                            RadiusX="2"
+                            RadiusY="2">
                             <Rectangle.Style>
                                 <Style TargetType="Rectangle">
                                     <Setter Property="Fill" Value="{Binding SensorOffColor}" />
@@ -75,15 +90,14 @@
                             </Rectangle.Style>
                         </Rectangle>
                         <Rectangle
-                                x:Name="RightSensor"
-                                 Width="30"
-                                 Height="5"
-                                 Margin="3"
-                                 RadiusX="2"
-                                 RadiusY="2"
-                                Visibility="Hidden"
-                                 HorizontalAlignment="Right"
-                                 >
+                            x:Name="RightSensor"
+                            Width="30"
+                            Height="5"
+                            Margin="3"
+                            HorizontalAlignment="Right"
+                            RadiusX="2"
+                            RadiusY="2"
+                            Visibility="Hidden">
                             <Rectangle.Style>
                                 <Style TargetType="Rectangle">
                                     <Setter Property="Fill" Value="{Binding SensorOffColor}" />
@@ -99,18 +113,23 @@
                             </Rectangle.Style>
                         </Rectangle>
                     </Grid>
-                    <Label  
-                            DockPanel.Dock="Bottom" 
-                            HorizontalContentAlignment="Center"
-                            FontWeight="UltraBold"
-                            FontStretch="ExtraExpanded"    
-                            Background="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Background}"
-                            BorderBrush="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Background}"
-                            >
+                    <Label
+                        HorizontalContentAlignment="Center"
+                        Background="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Background}"
+                        BorderBrush="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Background}"
+                        DockPanel.Dock="Bottom"
+                        FontStretch="ExtraExpanded"
+                        FontWeight="UltraBold">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="{Binding Valve_1_Name}"/>
-                            <TextBlock x:Name="SecondNameSlash" Text=" / " Visibility="Collapsed"/>
-                            <TextBlock x:Name="SecondNameName" Text="{Binding Valve_2_Name}" Visibility="Collapsed"/>
+                            <TextBlock Text="{Binding Valve_1_Name}" />
+                            <TextBlock
+                                x:Name="SecondNameSlash"
+                                Text=" / "
+                                Visibility="Collapsed" />
+                            <TextBlock
+                                x:Name="SecondNameName"
+                                Text="{Binding Valve_2_Name}"
+                                Visibility="Collapsed" />
                         </StackPanel>
 
                     </Label>
