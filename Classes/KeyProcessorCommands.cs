@@ -4,19 +4,24 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Input;
 
 namespace MachineControlsLibrary.Classes
 {
+    public enum KeyCommandExecutionMode
+    {
+        SingleExecution,
+        ConcurrentExecution
+    }
+
     public class KeyProcessorCommands : ICommand
     {
-        private Dictionary<(Key, ModifierKeys), (IAsyncRelayCommand command, bool isKeyRepeatProhibited)> DownKeys;
-        private Dictionary<Key, IAsyncRelayCommand> UpKeys;
-        private Func<object?, bool>? _canExecute;
+        private readonly Dictionary<(Key, ModifierKeys), (IAsyncRelayCommand command, bool isKeyRepeatProhibited)> DownKeys;
+        private readonly Dictionary<Key, IAsyncRelayCommand> UpKeys;
+        private readonly Func<object?, bool>? _canExecute;
         private readonly Type[] notProcessingControls;
-        IAsyncRelayCommand<KeyEventArgs> _anyKeyDownCommand;
-        IAsyncRelayCommand<KeyEventArgs> _anyKeyUpCommand;
+        IAsyncRelayCommand<KeyEventArgs>? _anyKeyDownCommand;
+        IAsyncRelayCommand<KeyEventArgs>? _anyKeyUpCommand;
         public KeyProcessorCommands(Func<object?, bool>? canExecute = null, params Type[] notProcessingControls)
         {
             _canExecute = canExecute;
@@ -25,7 +30,7 @@ namespace MachineControlsLibrary.Classes
             this.notProcessingControls = notProcessingControls;
         }
 
-        public event EventHandler CanExecuteChanged
+        public event EventHandler? CanExecuteChanged
         {
             add { CommandManager.RequerySuggested += value; }
             remove { CommandManager.RequerySuggested -= value; }
@@ -36,23 +41,25 @@ namespace MachineControlsLibrary.Classes
             return _canExecute?.Invoke(parameter) ?? true;
         }
 
-        public KeyProcessorCommands CreateKeyDownCommand(Key key, ModifierKeys modifier, Func<Task> task, Func<bool> canExecute, bool isKeyRepeatProhibited = true)
+        public KeyProcessorCommands CreateKeyDownCommand(Key key, ModifierKeys modifier, Func<Task> task,
+            Func<bool> canExecute, bool isKeyRepeatProhibited = true,
+            KeyCommandExecutionMode executionMode = KeyCommandExecutionMode.SingleExecution)
         {
-            DownKeys ??= new();
-            var command = new AsyncRelayCommand(task, canExecute, AsyncRelayCommandOptions.AllowConcurrentExecutions);
+            var options = executionMode == KeyCommandExecutionMode.ConcurrentExecution
+                                                           ? AsyncRelayCommandOptions.AllowConcurrentExecutions
+                                                           : AsyncRelayCommandOptions.None;
+            var command = new AsyncRelayCommand(task, canExecute, options);
             DownKeys[(key, modifier)] = (command, isKeyRepeatProhibited);
             return this;
-        } 
+        }
         public KeyProcessorCommands CreateKeyDownCommand(Key key, ModifierKeys modifier, IAsyncRelayCommand relayCommand, bool isKeyRepeatProhibited = true)
         {
-            DownKeys ??= new();
             var command = relayCommand;
             DownKeys[(key, modifier)] = (command, isKeyRepeatProhibited);
             return this;
         }
         public KeyProcessorCommands CreateKeyUpCommand(Key key, Func<Task> task, Func<bool> canExecute)
         {
-            UpKeys ??= new();
             var command = new AsyncRelayCommand(task, canExecute);
             UpKeys[key] = command;
             return this;
@@ -72,60 +79,68 @@ namespace MachineControlsLibrary.Classes
         }
 
 
-        public void Execute(object? parameter)
+        public async void Execute(object? parameter)
         {
             if (!CanExecute(parameter)) return;
-            _ = Application.Current.Dispatcher.InvokeAsync(async () =>
+            //_ = Application.Current.Dispatcher.InvokeAsync(async () =>
+            //{
+            try
             {
-                try
-                {
-                    await ExecuteAsync(parameter);
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine(ex);
-                }
-            }, System.Windows.Threading.DispatcherPriority.Background);
+                await ExecuteAsync(parameter);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex);
+            }
+            //}, System.Windows.Threading.DispatcherPriority.Background);
         }
 
         public async Task ExecuteAsync(object? parameter)
         {
             if (parameter is KeyEventArgs args)
             {
+                if (args.Handled) return;
                 Debug.WriteLine($"{args.Key} {args.RoutedEvent.Name}, repeat is {args.IsRepeat}");
-                
-                if (notProcessingControls.Any(t => t.IsEquivalentTo(args.OriginalSource.GetType().BaseType))) return;
+
+                //if (notProcessingControls.Any(t => t.IsEquivalentTo(args.OriginalSource.GetType().BaseType))) return;
+                if (args.OriginalSource is not null && notProcessingControls.Any(t => t.IsAssignableFrom(args.OriginalSource.GetType()))) return;
+
                 if (args.RoutedEvent == Keyboard.KeyDownEvent || args.RoutedEvent == Keyboard.PreviewKeyDownEvent)
                 {
-                    var clue = (args.Key, args.KeyboardDevice.Modifiers);
+                    var key = args.Key == Key.System ? args.SystemKey : args.Key;
+                    var clue = (key, args.KeyboardDevice.Modifiers);
                     if (DownKeys.TryGetValue(clue, out var commandPair))
                     {
-                        if (!(args.IsRepeat & commandPair.isKeyRepeatProhibited))
+                        if (!(args.IsRepeat && commandPair.isKeyRepeatProhibited))
                         {
-                            args.Handled = true;
-                            var isRuning = commandPair.command.IsRunning;
                             var canExec = commandPair.command.CanExecute(null);
-                            if(canExec) await commandPair.command.ExecuteAsync(null);
+                            if (canExec)
+                            {
+                                args.Handled = true;
+                                await commandPair.command.ExecuteAsync(null);
+                            }
                         }
                     }
                     else if (_anyKeyDownCommand != null)
                     {
-                        args.Handled = true;
-                        if(_anyKeyDownCommand.CanExecute(args)) await _anyKeyDownCommand.ExecuteAsync(args);
+                        if (_anyKeyDownCommand.CanExecute(args))
+                        {
+                            args.Handled = true;
+                            await _anyKeyDownCommand.ExecuteAsync(args);
+                        }
                     }
                 }
                 else if (args.RoutedEvent == Keyboard.KeyUpEvent || args.RoutedEvent == Keyboard.PreviewKeyUpEvent)
                 {
-                    if (!(UpKeys.ContainsKey(args.Key)) && _anyKeyUpCommand is not null)
-                    {
-                        args.Handled = true;
-                        if(_anyKeyUpCommand.CanExecute(args)) await _anyKeyUpCommand.ExecuteAsync(args);
-                        return;
-                    }
                     if (UpKeys.TryGetValue(args.Key, out var command))
                     {
                         args.Handled = true;
                         await command.ExecuteAsync(null);
+                    }
+                    else if (_anyKeyUpCommand is not null && _anyKeyUpCommand.CanExecute(args))
+                    {
+                        args.Handled = true;
+                        await _anyKeyUpCommand.ExecuteAsync(args);
                     }
                 }
             }
