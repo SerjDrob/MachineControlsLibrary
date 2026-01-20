@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 
 namespace MachineControlsLibrary.Classes
@@ -84,14 +85,14 @@ namespace MachineControlsLibrary.Classes
             if (!CanExecute(parameter)) return;
             //_ = Application.Current.Dispatcher.InvokeAsync(async () =>
             //{
-            try
-            {
-                await ExecuteAsync(parameter);
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine(ex);
-            }
+                try
+                {
+                    await ExecuteAsync(parameter);
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex);
+                }
             //}, System.Windows.Threading.DispatcherPriority.Background);
         }
 
@@ -102,7 +103,6 @@ namespace MachineControlsLibrary.Classes
                 if (args.Handled) return;
                 Debug.WriteLine($"{args.Key} {args.RoutedEvent.Name}, repeat is {args.IsRepeat}");
 
-                //if (notProcessingControls.Any(t => t.IsEquivalentTo(args.OriginalSource.GetType().BaseType))) return;
                 if (args.OriginalSource is not null && notProcessingControls.Any(t => t.IsAssignableFrom(args.OriginalSource.GetType()))) return;
 
                 if (args.RoutedEvent == Keyboard.KeyDownEvent || args.RoutedEvent == Keyboard.PreviewKeyDownEvent)
