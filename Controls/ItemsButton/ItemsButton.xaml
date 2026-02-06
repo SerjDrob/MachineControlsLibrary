@@ -1,16 +1,20 @@
-﻿<UserControl x:Class="MachineControlsLibrary.Controls.ItemsButton"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             mc:Ignorable="d" 
-             d:DesignHeight="45" d:DesignWidth="45">
-    <Grid x:Name="MainGrid" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
-        <Button x:Name="MainButton" 
-                Click="MainButton_Click"
-                Height="{Binding RelativeSource={RelativeSource AncestorType=Grid}, Path=ActualHeight}"
-                Width="{Binding RelativeSource={RelativeSource AncestorType=Grid}, Path=ActualWidth}"
-                >
-        </Button>        
+﻿<UserControl
+    x:Class="MachineControlsLibrary.Controls.ItemsButton"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:DesignHeight="45"
+    d:DesignWidth="45"
+    mc:Ignorable="d">
+    <Grid
+        x:Name="MainGrid"
+        HorizontalAlignment="Stretch"
+        VerticalAlignment="Stretch">
+        <Button
+            x:Name="MainButton"
+            Width="{Binding RelativeSource={RelativeSource AncestorType=Grid}, Path=ActualWidth}"
+            Height="{Binding RelativeSource={RelativeSource AncestorType=Grid}, Path=ActualHeight}"
+            Click="MainButton_Click" />
     </Grid>
 </UserControl>

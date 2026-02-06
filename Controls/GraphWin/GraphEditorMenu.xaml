@@ -1,60 +1,62 @@
-﻿<UserControl x:Class="MachineControlsLibrary.Controls.GraphEditorMenu"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:MachineControlsLibrary.Controls"
-             xmlns:xtk="http://schemas.xceed.com/wpf/xaml/toolkit"
-             xmlns:converters="clr-namespace:MachineControlsLibrary.Converters"
-             xmlns:hc="https://handyorg.github.io/handycontrol"
-             mc:Ignorable="d" 
-             
-             >
+﻿<UserControl
+    x:Class="MachineControlsLibrary.Controls.GraphEditorMenu"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converters="clr-namespace:MachineControlsLibrary.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:hc="https://handyorg.github.io/handycontrol"
+    xmlns:local="clr-namespace:MachineControlsLibrary.Controls"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:xtk="http://schemas.xceed.com/wpf/xaml/toolkit"
+    mc:Ignorable="d">
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="../Dictionary.xaml"/>
+                <ResourceDictionary Source="../Dictionary.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
 
-        <Menu x:Name="EditorMenu">
-            <Menu.Resources>
-                <converters:BrushToColorConvereter x:Key="BrushToColorConvereter"/>
-            </Menu.Resources>
-            <MenuItem Header="Слои">
-                <ItemsControl ItemsSource="{Binding Layers}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <MenuItem >
-                                <MenuItem.Icon>
-                                    <Rectangle Width="20" Height="20" Fill="{Binding Path=Color}"/>
-                                </MenuItem.Icon>
-                                <MenuItem.Header>
-                                    <StackPanel Orientation="Horizontal">
-                                        <ToggleButton IsChecked="{Binding Path=Enable}"
-                                          hc:IconSwitchElement.Geometry="{StaticResource EyeCloseGeometry}"
-                                          hc:IconSwitchElement.GeometrySelected="{StaticResource EyeOpenGeometry}"
-                                          Style="{StaticResource ToggleButtonIcon}"
-                                          Command="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Menu},
-                                          Path=DataContext.ItemCheckedCommand }" 
-                                          CommandParameter="{Binding}"                                                  
-                                          />
-                                        <TextBlock Text="{Binding Path=Layer}" VerticalAlignment="Center" Margin="5,0,0,0"/>
-                                    </StackPanel>
-                                </MenuItem.Header>
-                            </MenuItem>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </MenuItem>
+    <Menu x:Name="EditorMenu">
+        <Menu.Resources>
+            <converters:BrushToColorConvereter x:Key="BrushToColorConvereter" />
+        </Menu.Resources>
+        <MenuItem Header="Слои">
+            <ItemsControl ItemsSource="{Binding Layers}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <MenuItem>
+                            <MenuItem.Icon>
+                                <Rectangle
+                                    Width="20"
+                                    Height="20"
+                                    Fill="{Binding Path=Color}" />
+                            </MenuItem.Icon>
+                            <MenuItem.Header>
+                                <StackPanel Orientation="Horizontal">
+                                    <ToggleButton
+                                        hc:IconSwitchElement.Geometry="{StaticResource EyeCloseGeometry}"
+                                        hc:IconSwitchElement.GeometrySelected="{StaticResource EyeOpenGeometry}"
+                                        Command="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Menu}, Path=DataContext.ItemCheckedCommand}"
+                                        CommandParameter="{Binding}"
+                                        IsChecked="{Binding Path=Enable}"
+                                        Style="{StaticResource ToggleButtonIcon}" />
+                                    <TextBlock
+                                        Margin="5,0,0,0"
+                                        VerticalAlignment="Center"
+                                        Text="{Binding Path=Layer}" />
+                                </StackPanel>
+                            </MenuItem.Header>
+                        </MenuItem>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </MenuItem>
 
-            <MenuItem Header="Фон">
-                <xtk:ColorPicker ShowStandardColors="True"                                                            
-                             SelectedColor="{Binding SelectedColor, Converter={StaticResource BrushToColorConvereter}}"
-                             />
-            </MenuItem>
-            <!--<MenuItem Header="Настройки">
+        <MenuItem Header="Фон">
+            <xtk:ColorPicker SelectedColor="{Binding SelectedColor, Converter={StaticResource BrushToColorConvereter}}" ShowStandardColors="True" />
+        </MenuItem>
+        <!--<MenuItem Header="Настройки">
                 <local:EditorSettings FiltersChanged="EditorSettings_FiltersChanged"/>
             </MenuItem>
             <Button Command="{Binding ToRotate90Command}">
@@ -63,8 +65,10 @@
             <Button Command="{Binding ToMirrorXCommand}">
                 <Image Source="Sources/flipvert.png"/>
             </Button>-->
-            <TextBlock Text="Файл:" Margin="10,0" Style="{DynamicResource TextBlockDefault}"/>
-            <TextBlock Text="{Binding FileName}" 
-                       Style="{DynamicResource TextBlockDefaultDanger}"/>
-        </Menu>
+        <TextBlock
+            Margin="10,0"
+            Style="{DynamicResource TextBlockDefault}"
+            Text="Файл:" />
+        <TextBlock Style="{DynamicResource TextBlockDefaultDanger}" Text="{Binding FileName}" />
+    </Menu>
 </UserControl>
