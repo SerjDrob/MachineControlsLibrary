@@ -1,9 +1,5 @@
 ﻿using SkiaSharp;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MachineControlsLibrary.Classes.SkEditor;
 
@@ -160,7 +156,7 @@ public static class SkEditor
         path.MoveTo(start);
         path.ArcTo(oval, a.StartAngleDeg, sweepDeg, false);
 
-        return (path,a.entityColor);
+        return (path, a.entityColor);
     }
     private static (SKPath path, uint argb) BuildCircle(CircleEntity c)
     {

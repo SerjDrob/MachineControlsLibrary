@@ -1,19 +1,15 @@
-﻿using CommunityToolkit.Mvvm.Input;
-using MachineControlsLibrary.Classes;
-using MachineControlsLibrary.Classes.SkEditor;
+﻿using MachineControlsLibrary.Classes.SkEditor;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;
 using SkiaSharp.Views.WPF;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
-using System.Reflection.PortableExecutable;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Shapes;
+using System.Windows.Media.Media3D;
 
 namespace MachineControlsLibrary.Controls.GraphWin.SKGraphics;
 
@@ -28,14 +24,50 @@ public partial class SKEditor : UserControl
     private bool _panning;
     private int _modelHeight;
     private readonly SkiaScene _scene = new();
+    private Transform2D _modelTransform = Transform2D.Identity;
+    private SKRect _substrateWorld; // в мировых координатах
+    private SKPoint _pivotWorld = new(0, 0);
+    private AlignState _alignState;
+    private Anchor? _hoverAnchor;
+    private Anchor? _sourceAnchor;
+    private SKPoint _currentMouseWorld;
+    private List<Anchor> _topologyAnchors = new();
+    private SKSize _substrateSize;
+    private Transform2D _topologyTransform = Transform2D.Identity;
+    private List<Anchor> _substrateAnchors;
+    private Anchor? _targetAnchor;
+
+    public float W { get; set; }
+    public float H { get; set; }
+
 
     public SKEditor()
     {
         InitializeComponent();
+        W = 60000;
+        H = 48000;
+        _substrateWorld = new SKRect(0, 0, W, H);
+        _substrateSize = new SKSize(W, H);
+        RebuildSubstrateAnchors();
+    }
+    private void RebuildSubstrateAnchors()
+    {
+        float w = _substrateSize.Width;
+        float h = _substrateSize.Height;
+
+        _substrateAnchors = new List<Anchor>
+        {
+            new Anchor(new SKPoint(0, 0), AnchorType.SubstrateCorner, null),
+            new Anchor(new SKPoint(w, 0), AnchorType.SubstrateCorner, null),
+            new Anchor( new SKPoint(w, h), AnchorType.SubstrateCorner, null),
+            new Anchor(new SKPoint(0, h), AnchorType.SubstrateCorner, null)
+        };
     }
 
 
     public List<CadEntity> EntitiesView { get; set; }
+    public Transform2D ResultTransform => _modelTransform;
+    public SKPoint PivotWorld => _pivotWorld;
 
     public IList<CadEntity> Entities
     {
@@ -53,6 +85,7 @@ public partial class SKEditor : UserControl
         {
             editor.EntitiesView = new(entities);
             editor.BuildScene(entities);
+            editor.RebuildAnchors();
             editor.Canvas.InvalidateVisual();
         }
     }
@@ -61,13 +94,14 @@ public partial class SKEditor : UserControl
         FitToView(Canvas);
     }
 
-    
+
     public void FitToView(SKElement element)
     {
         if (_scene.Bounds.IsEmpty)
             return;
 
-        var bounds = _scene.Bounds;
+        var bounds = SKRect.Union(_scene.Bounds, _substrateWorld);
+
 
         float viewW = element.CanvasSize.Width;
         float viewH = element.CanvasSize.Height;
@@ -98,6 +132,28 @@ public partial class SKEditor : UserControl
         element.InvalidateVisual();
     }
 
+    private void DrawPivot(SKCanvas canvas)
+    {
+        const float r = 500f;
+
+        using var paint = new SKPaint
+        {
+            Color = SKColors.Red,
+            StrokeWidth = 1f / _zoom,
+            Style = SKPaintStyle.Stroke,
+            IsAntialias = true
+        };
+
+        canvas.DrawLine(
+            _pivotWorld.X - r, _pivotWorld.Y,
+            _pivotWorld.X + r, _pivotWorld.Y,
+            paint);
+
+        canvas.DrawLine(
+            _pivotWorld.X, _pivotWorld.Y - r,
+            _pivotWorld.X, _pivotWorld.Y + r,
+            paint);
+    }
 
     public void BuildScene(IEnumerable<CadEntity> cadEntities)
     {
@@ -119,13 +175,24 @@ public partial class SKEditor : UserControl
             Math.Max(p1.X, p2.X),
             Math.Max(p1.Y, p2.Y));
     }
-    SKPoint ScreenToWorld(SKPoint p)
+    private void RebuildAnchors()
     {
+        _topologyAnchors = GetTopologyAnchors(EntitiesView).ToList();
+    }
+
+    SKPoint ScreenToWorld(SKPoint screen)
+    {
+        float h = Canvas.CanvasSize.Height;
+
+        // переводим WPF-screen → Skia-screen (с инверсией Y)
+        float skY = h - screen.Y;
+
         return new SKPoint(
-            (p.X - _pan.X) / _zoom,
-            (_modelHeight - p.Y + _pan.Y) / _zoom
+            (screen.X - _pan.X) / _zoom,
+            (skY - _pan.Y) / _zoom
         );
     }
+
     private void DrawScene(SKCanvas canvas)
     {
         if (_scene.Geometry.Count == 0)
@@ -151,20 +218,92 @@ public partial class SKEditor : UserControl
 
         }
     }
+   
     void ZoomAt(SKPoint screenPoint, float scale)
     {
-        var before = ScreenToWorld(screenPoint);
+        var world = ScreenToWorld(screenPoint);
 
         _zoom *= scale;
         _zoom = Math.Clamp(_zoom, 0.001f, 1000f);
 
-        var after = ScreenToWorld(screenPoint);
+        float h = Canvas.CanvasSize.Height;
+        float skY = h - screenPoint.Y;
 
         _pan = new SKPoint(
-            _pan.X + (after.X - before.X) * _zoom,
-            _pan.Y - (after.Y - before.Y) * _zoom
+            screenPoint.X - world.X * _zoom,
+            skY - world.Y * _zoom
         );
     }
+
+    static IEnumerable<Anchor> GetTopologyAnchors(IEnumerable<CadEntity> entities)
+    {
+        foreach (var e in entities)
+        {
+            switch (e)
+            {
+                case PolylineEntity pl:
+                    foreach (var v in pl.Vertices)
+                        yield return new Anchor(v.Point, AnchorType.Vertex, pl);
+                    break;
+
+                case CircleEntity c:
+                    yield return new Anchor(c.Center, AnchorType.Center, c);
+                    break;
+
+                case ArcEntity a:
+                    yield return new Anchor(a.Center, AnchorType.Center,  a);
+                    break;
+            }
+        }
+    }
+    private void DrawTargetAnchor(SKCanvas canvas)
+    {
+        if (_targetAnchor == null)
+            return;
+
+        using var paint = new SKPaint
+        {
+            Style = SKPaintStyle.Stroke,
+            Color = SKColors.LimeGreen,
+            StrokeWidth = 1f / _zoom,
+            IsAntialias = true
+        };
+
+        float r = 7f / _zoom;
+
+        canvas.DrawRect(
+            _targetAnchor.Value.WorldPoint.X - r,
+            _targetAnchor.Value.WorldPoint.Y - r,
+            r * 2,
+            r * 2,
+            paint);
+    }
+
+    private Anchor? FindTopologyAnchor(SKPoint mouseWorld)
+    {
+        float tolWorld = 8f / _zoom;
+        float tol2 = tolWorld * tolWorld;
+
+        Anchor? best = null;
+        float bestDist2 = float.MaxValue;
+
+        foreach (var a in _topologyAnchors)
+        {
+            float dx = a.WorldPoint.X - mouseWorld.X;
+            float dy = a.WorldPoint.Y - mouseWorld.Y;
+            float d2 = dx * dx + dy * dy;
+
+            if (d2 <= tol2 && d2 < bestDist2)
+            {
+                best = a;
+                bestDist2 = d2;
+            }
+        }
+
+        return best;
+    }
+
+
     private SKPoint ToSk(Point p)
     {
         var dpi = VisualTreeHelper.GetDpi(Canvas);
@@ -234,19 +373,63 @@ public partial class SKEditor : UserControl
                 : (a.EndAngleDeg + rot)
         };
     }
-
-
+       
     private void OnPaintSurface(object sender, SKPaintSurfaceEventArgs e)
     {
         var canvas = e.Surface.Canvas;
         canvas.Clear(SKColors.DarkSlateGray);
 
-        canvas.Translate(_pan);
-        canvas.Scale(_zoom, _zoom);   // инверсия Y как в CAD
-                                      // canvas.Translate(0, _modelHeight);
+        // 1️⃣ начало координат в левом нижнем углу экрана
+        canvas.Translate(0, Canvas.CanvasSize.Height);
 
+        // 2️⃣ инверсия Y
+        canvas.Scale(1, -1);
+
+        // 3️⃣ камера
+        canvas.Translate(_pan);
+        canvas.Scale(_zoom, _zoom);
+
+        DrawSubstrate(canvas);
+        ApplyTransform(canvas, _modelTransform);
         DrawScene(canvas);
+        DrawAnchors(canvas);
+        DrawTargetAnchor(canvas);
+        DrawPivot(canvas);
     }
+
+    private void DrawSubstrate(SKCanvas canvas)
+    {
+        using var fill = new SKPaint
+        {
+            Color = new SKColor(40, 40, 40),
+            Style = SKPaintStyle.Fill
+        };
+
+        using var stroke = new SKPaint
+        {
+            Color = SKColors.Gray,
+            Style = SKPaintStyle.Stroke,
+            StrokeWidth = 1f / _zoom
+        };
+
+        canvas.DrawRect(_substrateWorld, fill);
+        canvas.DrawRect(_substrateWorld, stroke);
+    }
+
+    static void ApplyTransform(SKCanvas canvas, Transform2D t)
+    {
+        canvas.Concat(new SKMatrix
+        {
+            ScaleX = t.M11,
+            SkewX = t.M21,
+            TransX = t.DX,
+            SkewY = t.M12,
+            ScaleY = t.M22,
+            TransY = t.DY,
+            Persp2 = 1
+        });
+    }
+
     private void OnMouseWheel(object sender, MouseWheelEventArgs e)
     {
         float scale = e.Delta > 0 ? 1.2f : 0.8f;
@@ -259,42 +442,218 @@ public partial class SKEditor : UserControl
     }
     private void OnMouseDown(object sender, MouseButtonEventArgs e)
     {
+        if (e.RightButton == MouseButtonState.Pressed)
+        {
+            var sk = ToSk(e.GetPosition(Canvas));
+            _pivotWorld = ScreenToWorld(sk);
+            Canvas.InvalidateVisual();
+            return;
+        }
+
         if (e.MiddleButton == MouseButtonState.Pressed)
         {
             _panning = true;
             _lastMouse = ToSk(e.GetPosition(Canvas));
         }
+
+        if (_hoverAnchor is Anchor a)
+        {
+            _sourceAnchor = a;
+            _alignState = AlignState.Dragging;
+        }
+
     }
+
     private void OnMouseUp(object sender, MouseButtonEventArgs e)
     {
         _panning = false;
+
+        if (_alignState == AlignState.Dragging && _sourceAnchor is Anchor s && _targetAnchor is Anchor t)
+        {
+            var delta = t.WorldPoint - s.WorldPoint;
+
+            ApplyTransform( Transform2D.Translate(delta.X, delta.Y));
+        }
+
+        _alignState = AlignState.Idle;
+        _sourceAnchor = null;
+        _targetAnchor = null;
+
     }
+   
+
+    private void ApplyTransform(Transform2D t)
+    {
+        // накапливаем итоговую матрицу
+        _topologyTransform = _topologyTransform.Then(t);
+
+        // применяем к геометрии (preview)
+        EntitiesView = new List<CadEntity>(EntitiesView.Select(e => Transform(e, t)));
+
+        BuildScene(EntitiesView);
+        RebuildAnchors();
+        Canvas.InvalidateVisual();
+    }
+
     private void OnMouseMove(object sender, MouseEventArgs e)
     {
-        if (!_panning) return;
+        var mouse = ToSk(e.GetPosition(Canvas));
+        _currentMouseWorld = ScreenToWorld(mouse);
 
-        var cur = ToSk(e.GetPosition(Canvas));
-        _pan += cur - _lastMouse;
-        _lastMouse = cur;
+        if (_panning)
+        {
 
-        Canvas.InvalidateVisual();
+            var deltaScreen = mouse - _lastMouse;
+            var deltaWorld = new SKPoint(deltaScreen.X / _zoom, -deltaScreen.Y / _zoom);
+            _modelTransform = _modelTransform.Then(Transform2D.Translate(deltaWorld.X, deltaWorld.Y));
+            _lastMouse = mouse;
+            Canvas.InvalidateVisual();
+        }
+        else
+        {
+            float tol = 5f / _zoom;
+
+
+            if (_alignState == AlignState.Idle)
+            {
+                _hoverAnchor = FindNearestVertex(_currentMouseWorld, tol);// ?? FindNearestSegment(_currentMouseWorld, tol);
+                Canvas.InvalidateVisual();
+            }
+            else if (_alignState == AlignState.Dragging)
+            {
+                if (TryFindSubstrateCornerAnchor(_currentMouseWorld, tol, out var corner))
+                {
+                    _targetAnchor = corner;
+                    Canvas.InvalidateVisual();
+                }
+                else
+                {
+                    _targetAnchor = null;
+                    Canvas.InvalidateVisual();
+                }
+            }
+        }
     }
-    public void Rotate90(SKPoint center)
+    private bool TryFindSubstrateCornerAnchor(SKPoint worldPoint, float tolerance, out Anchor? anchor)
     {
-        var t = Transform2D.Rotate(90, center);
+        anchor = null;
+        var tol2 = tolerance * tolerance;
 
-        EntitiesView = new List<CadEntity>(EntitiesView.Select(e => Transform(e, t)));
-        BuildScene(EntitiesView);
-        Canvas.InvalidateVisual();
+        foreach (var a in _substrateAnchors)
+        {
+            var dx = a.WorldPoint.X - worldPoint.X;
+            var dy = a.WorldPoint.Y - worldPoint.Y;
+
+            if (dx * dx + dy * dy <= tol2)
+            {
+                anchor = a;
+                return true;
+            }
+        }
+
+        return false;
     }
-    public void MirrorX(SKPoint center)
+
+
+    private void DrawAnchors(SKCanvas canvas)
     {
-        var t = Transform2D.MirrorX(center);
+        if (_hoverAnchor == null)
+            return;
 
-        EntitiesView = new List<CadEntity>(EntitiesView.Select(e => Transform(e, t)));
-        BuildScene(EntitiesView);
+        using var paint = new SKPaint
+        {
+            Style = SKPaintStyle.Stroke,
+            Color = SKColors.OrangeRed,
+            StrokeWidth = 1f / _zoom,
+            IsAntialias = true
+        };
+
+        float r = 6f / _zoom;
+
+        canvas.DrawCircle(
+            _hoverAnchor.Value.WorldPoint,
+            r,
+            paint);
+    }
+
+
+    public void Rotate90(SKPoint worldCenter)
+    {
+        _modelTransform = _modelTransform.Then(Transform2D.Rotate(90, worldCenter));
         Canvas.InvalidateVisual();
     }
+
+    public void MirrorX(SKPoint worldCenter)
+    {
+        _modelTransform = _modelTransform.Then(Transform2D.MirrorX(worldCenter));
+        Canvas.InvalidateVisual();
+    }
+    public void MirrorY(SKPoint worldCenter)
+    {
+        _modelTransform = _modelTransform.Then(Transform2D.MirrorY(worldCenter));
+        Canvas.InvalidateVisual();
+    }
+    private Anchor? FindNearestVertex(SKPoint world, float tol)
+    {
+        float tol2 = tol * tol;
+
+        foreach (var e in EntitiesView.OfType<PolylineEntity>())
+        {
+            foreach (var v in e.Vertices)
+            {
+                if ((v.Point - world).LengthSquared <= tol2)
+                    return new Anchor(v.Point, AnchorType.Vertex, e);
+            }
+        }
+        return null;
+    }
+    //private Anchor? FindNearestSegment(SKPoint world, float tol)
+    //{
+    //    foreach (var e in EntitiesView.OfType<PolylineEntity>())
+    //    {
+    //        var pts = e.Vertices;
+    //        for (int i = 0; i < pts.Count - 1; i++)
+    //        {
+    //            if (DistancePointToSegment(world, pts[i].Point, pts[i + 1].Point) < tol)
+    //            {
+    //                return new Anchor(
+    //                    ProjectPointToSegment(world, pts[i].Point, pts[i + 1].Point),
+    //                    AnchorType.Intersection,
+    //                    e
+    //                );
+    //            }
+    //        }
+    //    }
+    //    return null;
+    //}
+
+    private void DrawOverlay(SKCanvas canvas)
+    {
+        if (_hoverAnchor is Anchor a)
+        {
+            using var paint = new SKPaint
+            {
+                Color = SKColors.Orange,
+                StrokeWidth = 2 / _zoom,
+                IsAntialias = true
+            };
+
+            canvas.DrawCircle(a.WorldPoint, 6 / _zoom, paint);
+        }
+
+        if (_alignState == AlignState.Dragging && _sourceAnchor is Anchor s)
+        {
+            using var paint = new SKPaint
+            {
+                Color = SKColors.Yellow,
+                StrokeWidth = 1 / _zoom,
+                PathEffect = SKPathEffect.CreateDash([5, 5], 0)
+            };
+
+            canvas.DrawLine(s.WorldPoint, _currentMouseWorld, paint);
+        }
+    }
+
 
 }
 
@@ -364,4 +723,25 @@ public readonly struct Transform2D
     public static Transform2D MirrorY(SKPoint center) =>
         Scale(-1, 1, center);
 
+}
+
+public enum AnchorType
+{
+    Vertex,
+    Intersection,
+    SubstrateCorner,
+    Center
+}
+
+public readonly record struct Anchor(
+    SKPoint WorldPoint,
+    AnchorType Type,
+    CadEntity? Entity // null для подложки
+);
+enum AlignState
+{
+    Idle,
+    HoverSource,
+    Dragging,
+    HoverTarget
 }
