@@ -8,6 +8,7 @@
     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
     xmlns:local="clr-namespace:MachineControlsLibrary.Controls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:DataContext="{d:DesignInstance IsDesignTimeCreatable=False, Type=local:SpecimenWindow}"
     mc:Ignorable="d">
 
     <Grid
@@ -122,7 +123,7 @@
                                     </i:EventTrigger>
                                     <i:EventTrigger EventName="MouseDown">
                                         <i:InvokeCommandAction
-                                            Command="{Binding Path=DataContext.OnLayGeomClickedCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Grid}}"
+                                            Command="{Binding ElementName=SpecWin, Path=DataContext.LayGeomClickedCommand}"
                                             EventArgsConverter="{StaticResource MouseDownArgsConverter}"
                                             EventArgsConverterParameter="{StaticResource MTrans}"
                                             PassEventArgsToCommand="True" />
