@@ -340,6 +340,7 @@ public partial class SKEditor : UserControl
     {
         if (e.MiddleButton == MouseButtonState.Pressed)
         {
+            Cursor = Cursors.Hand;
             _panning = true;
             _lastMouse = ToSk(e.GetPosition(Canvas));
         }
@@ -359,6 +360,7 @@ public partial class SKEditor : UserControl
 
         if (_cutEnable && e.LeftButton == MouseButtonState.Pressed)
         {
+            Cursor = Cursors.Cross;
             _selectionStartWorld = ScreenToWorld(ToSk(e.GetPosition(Canvas)));
             _cutting = true;
         }
@@ -394,6 +396,7 @@ public partial class SKEditor : UserControl
                 ApplyTransform(Transform2D.Identity);
             }
         }
+        Cursor = Cursors.Arrow;
     }
     public void Undo()
     {
