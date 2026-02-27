@@ -30,7 +30,45 @@ public readonly struct Transform2D
             p.X * M21 + p.Y * M22 + DY
         );
     }
+    public SKRect Apply(SKRect rect)
+    {
+        var leftTop = new SKPoint(rect.Left, rect.Top);
+        var rightBot = new SKPoint(rect.Right, rect.Bottom);
+        var trLeftTop = Apply(leftTop);
+        var trRightBot = Apply(rightBot);
+        (var left, var right) = trLeftTop.X < trRightBot.X ? (trLeftTop.X, trRightBot.X) : (trRightBot.X, trLeftTop.X);
+        (var bot, var top) = trLeftTop.Y > trRightBot.Y ? (trLeftTop.Y, trRightBot.Y) : (trRightBot.Y, trLeftTop.Y);
+        return new SKRect(left, top, right, bot);
+    }
+    public SKPoint ApplyInverse(SKPoint p)
+    {
+        // 1. Убираем перенос
+        float x = p.X - DX;
+        float y = p.Y - DY;
 
+        // 2. Вычисляем детерминант
+        float det = M11 * M22 - M12 * M21;
+
+        if (Math.Abs(det) < 1e-8f) throw new InvalidOperationException("Matrix is not invertible.");
+
+        float invDet = 1f / det;
+
+        // 3. Применяем обратную матрицу
+        return new SKPoint(
+            (x * M22 - y * M12) * invDet,
+            (-x * M21 + y * M11) * invDet
+        );
+    }
+    public SKRect ApplyInverse(SKRect rect)
+    {
+        var leftTop = new SKPoint(rect.Left, rect.Top);
+        var rightBot = new SKPoint(rect.Right, rect.Bottom);
+        var trLeftTop = ApplyInverse(leftTop);
+        var trRightBot = ApplyInverse(rightBot);
+        (var left, var right) = trLeftTop.X < trRightBot.X ? (trLeftTop.X, trRightBot.X) : (trRightBot.X, trLeftTop.X);
+        (var bot, var top) = trLeftTop.Y > trRightBot.Y ? (trLeftTop.Y, trRightBot.Y) : (trRightBot.Y, trLeftTop.Y);
+        return new SKRect(left, top, right, bot);
+    }
     public SKMatrix ToSKMatrix()
     {
         return new SKMatrix

@@ -13,17 +13,31 @@ using System.Windows.Media;
 namespace MachineControlsLibrary.Controls.GraphWin.SKGraphics;
 
 
+public enum CutStyle
+{
+    Contains,
+    Intersect
+}
+
+public record CutZone(SKRect Rect, CutStyle Style, string[] ForLayers);
+
 public partial class SKEditor : UserControl
 {
     private float _zoom = 0.01f;
-
+    private readonly List<CutZone> _cutZones = new();
+    private readonly Stack<IEditorCommand> _undo = new();
+    private readonly Stack<IEditorCommand> _redo = new();
     private SKPoint _viewOffset = new SKPoint(0, 0);      // zoom + центрирование
     private SKPoint _topologyOffset = new SKPoint(0, 0);  // Паннинг топологии
     private SKPoint _lastMouse;
     private bool _panning;
+    private bool _cutting;
+    private bool _cutEnable;
+    private CutStyle _cutStyle = CutStyle.Contains;
     private readonly SkiaScene _scene = new();
     private Transform2D _modelTransform = Transform2D.Identity;
-
+    private SKPoint _selectionStartWorld;
+    private SKRect? _currentSelectionWorld;
     private SKRect _substrateWorld;
     private SKSize _substrateSize;
     private SKPoint _pivotWorld = new(0, 0);
@@ -36,6 +50,7 @@ public partial class SKEditor : UserControl
 
     private List<Anchor> _topologyAnchors = new();
     private List<Anchor> _substrateAnchors;
+    private List<string> _enabledLayers;
 
     public float W { get; set; }
     public float H { get; set; }
@@ -119,20 +134,47 @@ public partial class SKEditor : UserControl
 
     private void DrawSubstrate(SKCanvas canvas)
     {
-        using var fill = new SKPaint 
+        using var fill = new SKPaint
         {
-            Color = new SKColor(245, 247, 250), 
-            Style = SKPaintStyle.Fill 
+            Color = new SKColor(245, 247, 250),
+            Style = SKPaintStyle.Fill
         };
-        using var stroke = new SKPaint 
-        { 
-            Color = SKColors.Gray, 
-            Style = SKPaintStyle.Stroke, 
-            StrokeWidth = 3f / _zoom 
+        using var stroke = new SKPaint
+        {
+            Color = SKColors.Gray,
+            Style = SKPaintStyle.Stroke,
+            StrokeWidth = 3f / _zoom
         };
 
         canvas.DrawRect(_substrateWorld, fill);
         canvas.DrawRect(_substrateWorld, stroke);
+    }
+    private void DrawSelection(SKCanvas canvas)
+    {
+        if (_currentSelectionWorld is SKRect selection)
+        {
+            var fillColor = _cutStyle == CutStyle.Contains ?
+                new SKColor(120, 170, 220, 80) :
+                new SKColor(220, 170, 220, 80);
+            var fill = new SKPaint
+            {
+                Color = fillColor,
+                Style = SKPaintStyle.Fill,
+                IsAntialias = true
+            };
+
+            var stroke = new SKPaint
+            {
+                Color = new SKColor(120, 170, 220),
+                Style = SKPaintStyle.Stroke,
+                StrokeWidth = 1 / _zoom,
+                PathEffect = SKPathEffect.CreateDash([6 / _zoom, 4 / _zoom], 0),
+                IsAntialias = true
+            };
+
+            canvas.DrawRect(selection, fill);
+            canvas.DrawRect(selection, stroke);
+        }
     }
 
     private void DrawScene(SKCanvas canvas)
@@ -178,14 +220,6 @@ public partial class SKEditor : UserControl
     {
         if (_alignState == AlignState.Dragging && _sourceAnchor is Anchor s)
         {
-            //using var paint = new SKPaint
-            //{
-            //    Color = SKColors.Yellow,
-            //    StrokeWidth = 1f / _zoom,
-            //    PathEffect = SKPathEffect.CreateDash([5/_zoom, 5/_zoom], 0)
-            //};
-
-
             using var paint = new SKPaint
             {
                 Color = new SKColor(100, 160, 220, 180), // голубой с прозрачностью
@@ -245,7 +279,7 @@ public partial class SKEditor : UserControl
         var info = e.Info;
 
         //var background = new SKColor(245, 247, 250);   // мягкий серо-голубой
-         var background = new SKColor(250, 248, 244);   // теплый светло-бежевый
+        var background = new SKColor(250, 248, 244);   // теплый светло-бежевый
         //var background = new SKColor(120, 120, 100);   // мягкий bluish gray
 
         canvas.Clear(background);
@@ -259,6 +293,7 @@ public partial class SKEditor : UserControl
         ApplyView(canvas);
         DrawSubstrate(canvas);
         DrawTargetAnchor(canvas);
+        DrawSelection(canvas);
         canvas.Restore();
 
         // --- Topology ---
@@ -315,11 +350,17 @@ public partial class SKEditor : UserControl
             Canvas.InvalidateVisual();
         }
 
-        if (_hoverAnchor is Anchor a && e.LeftButton == MouseButtonState.Pressed)
+        if (_hoverAnchor is Anchor a && e.LeftButton == MouseButtonState.Pressed && !_cutEnable)
         {
             var transformed = _modelTransform.Apply(a.WorldPoint);
             _sourceAnchor = a with { WorldPoint = transformed };
             _alignState = AlignState.Dragging;
+        }
+
+        if (_cutEnable && e.LeftButton == MouseButtonState.Pressed)
+        {
+            _selectionStartWorld = ScreenToWorld(ToSk(e.GetPosition(Canvas)));
+            _cutting = true;
         }
     }
 
@@ -327,7 +368,7 @@ public partial class SKEditor : UserControl
     {
         _panning = false;
 
-        if (_alignState == AlignState.Dragging && _sourceAnchor is Anchor s && _targetAnchor is Anchor t)
+        if (_alignState == AlignState.Dragging && _sourceAnchor is Anchor s && _targetAnchor is Anchor t && !_cutEnable)
         {
             var delta = t.WorldPoint - s.WorldPoint;
             _topologyOffset += delta;
@@ -337,8 +378,44 @@ public partial class SKEditor : UserControl
         _alignState = AlignState.Idle;
         _sourceAnchor = null;
         _targetAnchor = null;
+        if (_cutting)
+        {
+            _cutting = false;
+            if (_currentSelectionWorld.HasValue)
+            {
+                var zone = _currentSelectionWorld.Value;
+                var cutZone = _modelTransform.ApplyInverse(zone);
+                var cmd = new AddCutZoneCommand(_cutZones, new(cutZone, _cutStyle, _enabledLayers.ToArray()));
+                cmd.Execute();
+                _undo.Push(cmd);
+                _redo.Clear();
+
+                _currentSelectionWorld = null;
+                ApplyTransform(Transform2D.Identity);
+            }
+        }
+    }
+    public void Undo()
+    {
+        if (_undo.Count == 0) return;
+
+        var cmd = _undo.Pop();
+        cmd.Undo();
+        _redo.Push(cmd);
+        ApplyTransform(Transform2D.Identity);
     }
 
+    public void Redo()
+    {
+        if (_redo.Count == 0) return;
+
+        var cmd = _redo.Pop();
+        cmd.Execute();
+        _undo.Push(cmd);
+        ApplyTransform(Transform2D.Identity);
+    }
+
+    public void SwitchScissors() => _cutEnable ^= true;
     private void OnMouseMove(object sender, MouseEventArgs e)
     {
         var mouse = ToSk(e.GetPosition(Canvas));
@@ -360,7 +437,7 @@ public partial class SKEditor : UserControl
             _modelTransform = _modelTransform.Then(tr);
             Canvas.InvalidateVisual();
         }
-        else
+        else if(!_cutEnable)
         {
             float tol = 5f / _zoom;
 
@@ -383,6 +460,28 @@ public partial class SKEditor : UserControl
                 }
             }
         }
+        if (_cutting && e.LeftButton == MouseButtonState.Pressed)
+        {
+            var currentWorld = ScreenToWorld(ToSk(e.GetPosition(Canvas)));
+            _cutStyle = _selectionStartWorld.X < currentWorld.X ? CutStyle.Contains : CutStyle.Intersect;
+            _currentSelectionWorld = SKRect.Create(
+                Math.Min(_selectionStartWorld.X, currentWorld.X),
+                Math.Min(_selectionStartWorld.Y, currentWorld.Y),
+                Math.Abs(currentWorld.X - _selectionStartWorld.X),
+                Math.Abs(currentWorld.Y - _selectionStartWorld.Y));
+            Canvas.InvalidateVisual();
+        }
+    }
+    private bool IsCut(CadEntity entity)
+    {
+        var bounds = entity.GetWorldBounds();
+        foreach (var zone in _cutZones)
+        {
+            if (zone.Style == CutStyle.Contains && zone.Rect.Contains(bounds) && zone.ForLayers.Contains(entity.LayerName)) return true;
+            if (zone.Style == CutStyle.Intersect && zone.Rect.IntersectsWithInclusive(bounds) && zone.ForLayers.Contains(entity.LayerName)) return true;
+        }
+
+        return false;
     }
     private bool TryFindSubstrateCornerAnchor(SKPoint worldPoint, float tolerance, out Anchor? anchor)
     {
@@ -456,19 +555,19 @@ public partial class SKEditor : UserControl
     }
 
     public void Rotate90(SKPoint worldCenter)
-    {
-        _modelTransform = _modelTransform.Then(Transform2D.Rotate(90, worldCenter));
+    {    
+        _modelTransform = Transform2D.Rotate(90, worldCenter).Then(_modelTransform);
         Canvas.InvalidateVisual();
     }
 
     public void MirrorX(SKPoint worldCenter)
     {
-        _modelTransform = _modelTransform.Then(Transform2D.MirrorX(worldCenter));
+        _modelTransform = Transform2D.MirrorX(worldCenter).Then(_modelTransform);
         Canvas.InvalidateVisual();
     }
     public void MirrorY(SKPoint worldCenter)
     {
-        _modelTransform = _modelTransform.Then(Transform2D.MirrorY(worldCenter));
+        _modelTransform = Transform2D.MirrorY(worldCenter).Then(_modelTransform);
         Canvas.InvalidateVisual();
     }
     private void RebuildAnchors()
@@ -477,9 +576,14 @@ public partial class SKEditor : UserControl
     }
     public void BuildScene(IEnumerable<CadEntity> cadEntities)
     {
+        var enabledEnts = cadEntities.Where(l => l.layerEnable);
+        _enabledLayers = enabledEnts.Select(l => l.LayerName).ToList();
         _scene.Clear();
-        foreach (var e in cadEntities.Where(l => l.layerEnable))
+        foreach (var e in enabledEnts)
+        {
+            if (IsCut(e)) continue;
             _scene.AddPath(e);
+        }
     }
     static IEnumerable<Anchor> GetTopologyAnchors(IEnumerable<CadEntity> entities)
     {
@@ -562,4 +666,3 @@ public partial class SKEditor : UserControl
         };
     }
 }
-
