@@ -1,6 +1,4 @@
-﻿using CommunityToolkit.Mvvm.Input;
-using PropertyChanged;
-using System;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -11,7 +9,7 @@ namespace MachineControlsLibrary.Controls
     /// <summary>
     /// Interaction logic for ValveStateButton.xaml
     /// </summary>
-    [AddINotifyPropertyChangedInterface]
+    [INotifyPropertyChanged]
     public partial class ValveStateButton : UserControl
     {
         public ValveStateButton()
@@ -21,7 +19,7 @@ namespace MachineControlsLibrary.Controls
         }
 
 
-        public HorizontalAlignment SensorAlignment { get; set; } = HorizontalAlignment.Center;
+        [ObservableProperty] public partial HorizontalAlignment SensorAlignment { get; set; } = HorizontalAlignment.Center;
 
         public static readonly DependencyProperty CommandProperty =
            DependencyProperty.Register(
@@ -97,13 +95,13 @@ namespace MachineControlsLibrary.Controls
 
         private static void OnValveNameChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            if (d is ValveStateButton button && (string)e.NewValue != string.Empty) 
+            if (d is ValveStateButton button && (string)e.NewValue != string.Empty)
             {
                 button.SensorAlignment = HorizontalAlignment.Left;
                 button.LeftSensor.HorizontalAlignment = HorizontalAlignment.Left;
-                button.LeftSensor.Margin = new Thickness(20,3,3,3);
+                button.LeftSensor.Margin = new Thickness(20, 3, 3, 3);
                 button.RightSensor.Visibility = Visibility.Visible;
-                button.RightSensor.Margin = new Thickness(3,3,20,3);
+                button.RightSensor.Margin = new Thickness(3, 3, 20, 3);
                 button.SecondNameName.Visibility = Visibility.Visible;
                 button.SecondNameSlash.Visibility = Visibility.Visible;
             }
@@ -177,7 +175,7 @@ namespace MachineControlsLibrary.Controls
         // Using a DependencyProperty as the backing store for SensorIsOn.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty Sensor_1_IsOnProperty =
             DependencyProperty.Register("Sensor_1_IsOn", typeof(bool), typeof(ValveStateButton), new PropertyMetadata(false));
-        
+
         public bool Sensor_2_IsOn
         {
             get { return (bool)GetValue(Sensor_2_IsOnProperty); }
@@ -187,6 +185,6 @@ namespace MachineControlsLibrary.Controls
         // Using a DependencyProperty as the backing store for SensorIsOn.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty Sensor_2_IsOnProperty =
             DependencyProperty.Register("Sensor_2_IsOn", typeof(bool), typeof(ValveStateButton), new PropertyMetadata(false));
-                     
+
     }
 }
