@@ -8,7 +8,8 @@
     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
     xmlns:local="clr-namespace:MachineControlsLibrary.Controls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    d:DataContext="{d:DesignInstance IsDesignTimeCreatable=False, Type=local:SpecimenWindow}"
+    d:DataContext="{d:DesignInstance IsDesignTimeCreatable=False,
+                                     Type=local:SpecimenWindow}"
     mc:Ignorable="d">
 
     <Grid

@@ -18,7 +18,13 @@ public readonly struct Transform2D
         M21 = m21; M22 = m22;
         DX = dx; DY = dy;
     }
-
+    public Transform2D(float[] elements) : this(elements[0], elements[1],
+                                                elements[2], elements[3],
+                                                elements[4], elements[5])
+    {
+    }
+    
+        public float[] GetTransformation() => [M11, M12, M21, M22, DX, DY];
 
     public static readonly Transform2D Identity =
         new(1, 0, 0, 1, 0, 0);
@@ -29,6 +35,13 @@ public readonly struct Transform2D
             p.X * M11 + p.Y * M12 + DX,
             p.X * M21 + p.Y * M22 + DY
         );
+    }
+    public float Determinant => M11 * M22 - M12 * M21;
+    public bool ReversesOrientation => Determinant < 0;
+    public (float X, float Y) Apply(float x, float y)
+    {
+        return (x * M11 + y * M12 + DX,
+                x * M21 + y * M22 + DY );
     }
     public SKRect Apply(SKRect rect)
     {

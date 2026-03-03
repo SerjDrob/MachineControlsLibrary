@@ -23,7 +23,7 @@ public record CutZone(SKRect Rect, CutStyle Style, string[] ForLayers);
 
 public partial class SKEditor : UserControl
 {
-    private float _zoom = 0.01f;
+    private float _zoom = 1f;
     private readonly List<CutZone> _cutZones = new();
     private readonly Stack<IEditorCommand> _undo = new();
     private readonly Stack<IEditorCommand> _redo = new();
@@ -35,6 +35,7 @@ public partial class SKEditor : UserControl
     private bool _cutEnable;
     private CutStyle _cutStyle = CutStyle.Contains;
     private readonly SkiaScene _scene = new();
+    private float _currentModelScale = 1;
     private Transform2D _modelTransform = Transform2D.Identity;
     private SKPoint _selectionStartWorld;
     private SKRect? _currentSelectionWorld;
@@ -58,13 +59,14 @@ public partial class SKEditor : UserControl
     public SKEditor()
     {
         InitializeComponent();
-        W = 60000;
-        H = 48000;
+        W = 60;
+        H = 48;
         _substrateWorld = new SKRect(0, 0, W, H);
         _substrateSize = new SKSize(W, H);
         RebuildSubstrateAnchors();
     }
-
+    public event Action<float[]>? TransformChanged;
+    public event Action<IList<CutZone>>? CutZoneChanged;
     private void RebuildSubstrateAnchors()
     {
         float w = _substrateSize.Width;
@@ -108,9 +110,11 @@ public partial class SKEditor : UserControl
 
     public void FitToView(SKElement element)
     {
-        if (_scene.Bounds.IsEmpty) return;
+        //if (_scene.Bounds.IsEmpty) return;
 
-        var bounds = SKRect.Union(_scene.Bounds, _substrateWorld);
+        var scaledBounds = _modelTransform.Apply(_scene.Bounds);
+
+        var bounds = SKRect.Union(scaledBounds, _substrateWorld);
         float viewW = element.CanvasSize.Width;
         float viewH = element.CanvasSize.Height;
         if (viewW <= 0 || viewH <= 0) return;
@@ -131,7 +135,25 @@ public partial class SKEditor : UserControl
 
         element.InvalidateVisual();
     }
-
+    public void SetSubstrateDim(float w, float h)
+    {
+        W = w;
+        H = h;
+        _substrateSize = new SKSize(w, h);
+        _substrateWorld = new SKRect(0, 0, w, h);
+        RebuildSubstrateAnchors();
+        Application.Current.Dispatcher.Invoke(Canvas.InvalidateVisual);
+    }
+    public void SetTopologyScale((float oldScale, float newScale) scales)
+    {
+        _currentModelScale = scales.newScale;
+        _modelTransform = Transform2D.Scale(scales.oldScale, scales.oldScale, new SKPoint(0, 0))
+            .Then(_modelTransform);
+        _modelTransform = Transform2D.Scale(1f / scales.newScale, 1f / scales.newScale, new SKPoint(0, 0))
+            .Then(_modelTransform);
+        TransformChanged?.Invoke(_modelTransform.GetTransformation());
+        Application.Current.Dispatcher.Invoke(Canvas.InvalidateVisual);
+    }
     private void DrawSubstrate(SKCanvas canvas)
     {
         using var fill = new SKPaint
@@ -183,10 +205,12 @@ public partial class SKEditor : UserControl
 
         foreach (var geometry in _scene.Geometry)
         {
+            var color = new SKColor(geometry.argb);
+            var trueColor = color == SKColors.White ? SKColors.Black : color;
             using var paint = new SKPaint
             {
-                Color = new SKColor(geometry.argb),
-                StrokeWidth = 1.2f / _zoom,
+                Color = trueColor,
+                StrokeWidth = 1.2f * _currentModelScale / _zoom,
                 Style = SKPaintStyle.Stroke,
                 IsAntialias = true,
                 StrokeCap = SKStrokeCap.Round,
@@ -203,7 +227,7 @@ public partial class SKEditor : UserControl
         {
             Color = new SKColor(255, 196, 120),   // пастельный голубой
             IsAntialias = true,
-            StrokeWidth = 2f / _zoom,
+            StrokeWidth = 2f * _currentModelScale / _zoom,
             Style = SKPaintStyle.Stroke
         };
         using var shadowPaint = new SKPaint
@@ -211,9 +235,9 @@ public partial class SKEditor : UserControl
             Color = new SKColor(0, 0, 0, 40),
             IsAntialias = true
         };
-        float r = 6f / _zoom;
+        float r = 6f * _currentModelScale / _zoom;
         canvas.DrawCircle(_hoverAnchor.Value.WorldPoint, r, paint);
-        canvas.DrawCircle(_hoverAnchor.Value.WorldPoint, r + 1, shadowPaint);
+        canvas.DrawCircle(_hoverAnchor.Value.WorldPoint, r, shadowPaint);
     }
 
     private void DrawRubberLine(SKCanvas canvas)
@@ -244,13 +268,19 @@ public partial class SKEditor : UserControl
             StrokeWidth = 2f / _zoom,
             IsAntialias = true
         };
+        using var shadowPaint = new SKPaint
+        {
+            Color = new SKColor(0, 0, 0, 40),
+            IsAntialias = true
+        };
         float r = 6f / _zoom;
+        canvas.DrawRect(_targetAnchor.Value.WorldPoint.X - r, _targetAnchor.Value.WorldPoint.Y - r, r * 2, r * 2, shadowPaint);
         canvas.DrawRect(_targetAnchor.Value.WorldPoint.X - r, _targetAnchor.Value.WorldPoint.Y - r, r * 2, r * 2, paint);
     }
 
     private void DrawPivot(SKCanvas canvas)
     {
-        const float r = 500f;
+        const float r = 0.5f;
         using var paint = new SKPaint { Color = SKColors.Red, StrokeWidth = 1f / _zoom, Style = SKPaintStyle.Stroke, IsAntialias = true };
         canvas.DrawLine(_pivotWorld.X - r, _pivotWorld.Y, _pivotWorld.X + r, _pivotWorld.Y, paint);
         canvas.DrawLine(_pivotWorld.X, _pivotWorld.Y - r, _pivotWorld.X, _pivotWorld.Y + r, paint);
@@ -260,11 +290,6 @@ public partial class SKEditor : UserControl
     {
         canvas.Translate(_viewOffset);
         canvas.Scale(_zoom);
-    }
-
-    private void ApplyTopology(SKCanvas canvas)
-    {
-        canvas.Translate(_topologyOffset);
     }
 
     private void ApplyModel(SKCanvas canvas)
@@ -391,7 +416,9 @@ public partial class SKEditor : UserControl
                 cmd.Execute();
                 _undo.Push(cmd);
                 _redo.Clear();
-
+                CanUndo = true;
+                CanRedo = false;
+                CutZoneChanged?.Invoke(_cutZones);
                 _currentSelectionWorld = null;
                 ApplyTransform(Transform2D.Identity);
             }
@@ -405,6 +432,9 @@ public partial class SKEditor : UserControl
         var cmd = _undo.Pop();
         cmd.Undo();
         _redo.Push(cmd);
+        CanUndo = _undo.Any();
+        CanRedo = true;
+        CutZoneChanged?.Invoke(_cutZones);
         ApplyTransform(Transform2D.Identity);
     }
 
@@ -415,10 +445,44 @@ public partial class SKEditor : UserControl
         var cmd = _redo.Pop();
         cmd.Execute();
         _undo.Push(cmd);
+        CanRedo = _redo.Any();
+        CanUndo = true;
+        CutZoneChanged?.Invoke(_cutZones);
         ApplyTransform(Transform2D.Identity);
     }
 
-    public void SwitchScissors() => _cutEnable ^= true;
+
+
+
+    public bool CanUndo
+    {
+        get { return (bool)GetValue(CanUndoProperty); }
+        set { SetValue(CanUndoProperty, value); }
+    }
+
+    // Using a DependencyProperty as the backing store for CanUndo.  This enables animation, styling, binding, etc...
+    public static readonly DependencyProperty CanUndoProperty =
+        DependencyProperty.Register(nameof(CanUndo), typeof(bool), typeof(SKEditor), new PropertyMetadata(false, UndoCallBack));
+
+    private static void UndoCallBack(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+    }
+
+    public bool CanRedo
+    {
+        get { return (bool)GetValue(CanRedoProperty); }
+        set { SetValue(CanRedoProperty, value); }
+    }
+
+    // Using a DependencyProperty as the backing store for CanRedo.  This enables animation, styling, binding, etc...
+    public static readonly DependencyProperty CanRedoProperty =
+        DependencyProperty.Register(nameof(CanRedo), typeof(bool), typeof(SKEditor), new PropertyMetadata(false));
+
+
+
+
+
+    public void SwitchScissors(bool cutEnable) => _cutEnable = cutEnable;
     private void OnMouseMove(object sender, MouseEventArgs e)
     {
         var mouse = ToSk(e.GetPosition(Canvas));
@@ -438,9 +502,10 @@ public partial class SKEditor : UserControl
 
             var tr = Transform2D.Translate(deltaWorld.X, deltaWorld.Y);
             _modelTransform = _modelTransform.Then(tr);
+            TransformChanged?.Invoke(_modelTransform.GetTransformation());
             Canvas.InvalidateVisual();
         }
-        else if(!_cutEnable)
+        else if (!_cutEnable)
         {
             float tol = 5f / _zoom;
 
@@ -553,24 +618,34 @@ public partial class SKEditor : UserControl
     private void ApplyTransform(Transform2D t)
     {
         _modelTransform = _modelTransform.Then(t);
+        TransformChanged?.Invoke(_modelTransform.GetTransformation());
         BuildScene(EntitiesView);
         Canvas.InvalidateVisual();
     }
 
-    public void Rotate90(SKPoint worldCenter)
-    {    
+    public void RotateCW(SKPoint worldCenter)
+    {
         _modelTransform = Transform2D.Rotate(90, worldCenter).Then(_modelTransform);
+        TransformChanged?.Invoke(_modelTransform.GetTransformation());
+        Canvas.InvalidateVisual();
+    }
+    public void RotateCCW(SKPoint worldCenter)
+    {
+        _modelTransform = Transform2D.Rotate(-90, worldCenter).Then(_modelTransform);
+        TransformChanged?.Invoke(_modelTransform.GetTransformation());
         Canvas.InvalidateVisual();
     }
 
     public void MirrorX(SKPoint worldCenter)
     {
         _modelTransform = Transform2D.MirrorX(worldCenter).Then(_modelTransform);
+        TransformChanged?.Invoke(_modelTransform.GetTransformation());
         Canvas.InvalidateVisual();
     }
     public void MirrorY(SKPoint worldCenter)
     {
         _modelTransform = Transform2D.MirrorY(worldCenter).Then(_modelTransform);
+        TransformChanged?.Invoke(_modelTransform.GetTransformation());
         Canvas.InvalidateVisual();
     }
     private void RebuildAnchors()
@@ -580,7 +655,7 @@ public partial class SKEditor : UserControl
     public void BuildScene(IEnumerable<CadEntity> cadEntities)
     {
         var enabledEnts = cadEntities.Where(l => l.layerEnable);
-        _enabledLayers = enabledEnts.Select(l => l.LayerName).ToList();
+        _enabledLayers = enabledEnts.Select(l => l.LayerName).Distinct().ToList();
         _scene.Clear();
         foreach (var e in enabledEnts)
         {
@@ -669,3 +744,4 @@ public partial class SKEditor : UserControl
         };
     }
 }
+
