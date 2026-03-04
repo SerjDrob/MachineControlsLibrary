@@ -33,6 +33,7 @@ public partial class SKEditor : UserControl
     private bool _panning;
     private bool _cutting;
     private bool _cutEnable;
+    private bool _motionEnable;
     private CutStyle _cutStyle = CutStyle.Contains;
     private readonly SkiaScene _scene = new();
     private float _currentModelScale = 1;
@@ -42,6 +43,9 @@ public partial class SKEditor : UserControl
     private SKRect _substrateWorld;
     private SKSize _substrateSize;
     private SKPoint _pivotWorld = new(0, 0);
+    private SKPoint _cameraViewfinder = new (0, 0);
+    private SKPoint _laserViewfinder = new (0, 0);
+
 
     private AlignState _alignState;
     private Anchor? _hoverAnchor;
@@ -67,6 +71,7 @@ public partial class SKEditor : UserControl
     }
     public event Action<float[]>? TransformChanged;
     public event Action<IList<CutZone>>? CutZoneChanged;
+    public event Action<(float x, float y)>? OnSubstrateClicked;
     private void RebuildSubstrateAnchors()
     {
         float w = _substrateSize.Width;
@@ -285,6 +290,27 @@ public partial class SKEditor : UserControl
         canvas.DrawLine(_pivotWorld.X - r, _pivotWorld.Y, _pivotWorld.X + r, _pivotWorld.Y, paint);
         canvas.DrawLine(_pivotWorld.X, _pivotWorld.Y - r, _pivotWorld.X, _pivotWorld.Y + r, paint);
     }
+    private void DrawViewfinders(SKCanvas canvas)
+    {
+        const float r = 5f;
+        using var cameraPaint = new SKPaint { Color = SKColors.Green, StrokeWidth = 1f / _zoom, Style = SKPaintStyle.Stroke, IsAntialias = true };
+        using var cameraRegion = new SKPaint 
+        {
+            Color = new SKColor(255,255,0,50),
+            Style = SKPaintStyle.Fill, 
+            IsAntialias = true 
+        };
+        using var laserPaint = new SKPaint { Color = SKColors.Violet, StrokeWidth = 1f / _zoom, Style = SKPaintStyle.Stroke, IsAntialias = true };
+        
+        canvas.DrawLine(_cameraViewfinder.X - r, _cameraViewfinder.Y, _cameraViewfinder.X + r, _cameraViewfinder.Y, cameraPaint);
+        canvas.DrawLine(_cameraViewfinder.X, _cameraViewfinder.Y - r, _cameraViewfinder.X, _cameraViewfinder.Y + r, cameraPaint);
+
+        canvas.DrawRect(_cameraViewfinder.X - 2.5f, _cameraViewfinder.Y - 2.5f, 5f, 5f, cameraRegion);
+        canvas.DrawRect(_cameraViewfinder.X - 2.5f, _cameraViewfinder.Y - 2.5f, 5f, 5f, cameraPaint);
+
+        canvas.DrawLine(_laserViewfinder.X - r, _laserViewfinder.Y, _laserViewfinder.X + r, _laserViewfinder.Y, laserPaint);
+        canvas.DrawLine(_laserViewfinder.X, _laserViewfinder.Y - r, _laserViewfinder.X, _laserViewfinder.Y + r, laserPaint);
+    }
 
     private void ApplyView(SKCanvas canvas)
     {
@@ -334,6 +360,7 @@ public partial class SKEditor : UserControl
         ApplyView(canvas);
         DrawRubberLine(canvas);
         DrawPivot(canvas);
+        DrawViewfinders(canvas);
         canvas.Restore();
     }
 
@@ -363,13 +390,22 @@ public partial class SKEditor : UserControl
     }
     private void OnMouseDown(object sender, MouseButtonEventArgs e)
     {
+        if (e.LeftButton == MouseButtonState.Pressed && _motionEnable)
+        {
+            var coors = ScreenToWorld(ToSk(e.GetPosition(Canvas)));
+            var contains = SKRect.Create(_substrateSize).Contains(coors);
+            if (contains)
+            {
+                OnSubstrateClicked?.Invoke((coors.X, coors.Y));
+            }
+            return;
+        }
         if (e.MiddleButton == MouseButtonState.Pressed)
         {
             Cursor = Cursors.Hand;
             _panning = true;
             _lastMouse = ToSk(e.GetPosition(Canvas));
         }
-
         if (e.RightButton == MouseButtonState.Pressed)
         {
             _pivotWorld = ScreenToWorldRefTopology(ToSk(e.GetPosition(Canvas)));
@@ -394,7 +430,7 @@ public partial class SKEditor : UserControl
     private void OnMouseUp(object sender, MouseButtonEventArgs e)
     {
         _panning = false;
-
+        if (_motionEnable) return;
         if (_alignState == AlignState.Dragging && _sourceAnchor is Anchor s && _targetAnchor is Anchor t && !_cutEnable)
         {
             var delta = t.WorldPoint - s.WorldPoint;
@@ -425,66 +461,9 @@ public partial class SKEditor : UserControl
         }
         Cursor = Cursors.Arrow;
     }
-    public void Undo()
-    {
-        if (_undo.Count == 0) return;
-
-        var cmd = _undo.Pop();
-        cmd.Undo();
-        _redo.Push(cmd);
-        CanUndo = _undo.Any();
-        CanRedo = true;
-        CutZoneChanged?.Invoke(_cutZones);
-        ApplyTransform(Transform2D.Identity);
-    }
-
-    public void Redo()
-    {
-        if (_redo.Count == 0) return;
-
-        var cmd = _redo.Pop();
-        cmd.Execute();
-        _undo.Push(cmd);
-        CanRedo = _redo.Any();
-        CanUndo = true;
-        CutZoneChanged?.Invoke(_cutZones);
-        ApplyTransform(Transform2D.Identity);
-    }
-
-
-
-
-    public bool CanUndo
-    {
-        get { return (bool)GetValue(CanUndoProperty); }
-        set { SetValue(CanUndoProperty, value); }
-    }
-
-    // Using a DependencyProperty as the backing store for CanUndo.  This enables animation, styling, binding, etc...
-    public static readonly DependencyProperty CanUndoProperty =
-        DependencyProperty.Register(nameof(CanUndo), typeof(bool), typeof(SKEditor), new PropertyMetadata(false, UndoCallBack));
-
-    private static void UndoCallBack(DependencyObject d, DependencyPropertyChangedEventArgs e)
-    {
-    }
-
-    public bool CanRedo
-    {
-        get { return (bool)GetValue(CanRedoProperty); }
-        set { SetValue(CanRedoProperty, value); }
-    }
-
-    // Using a DependencyProperty as the backing store for CanRedo.  This enables animation, styling, binding, etc...
-    public static readonly DependencyProperty CanRedoProperty =
-        DependencyProperty.Register(nameof(CanRedo), typeof(bool), typeof(SKEditor), new PropertyMetadata(false));
-
-
-
-
-
-    public void SwitchScissors(bool cutEnable) => _cutEnable = cutEnable;
     private void OnMouseMove(object sender, MouseEventArgs e)
     {
+        if (_motionEnable) return;
         var mouse = ToSk(e.GetPosition(Canvas));
         _currentMouseWorld = ScreenToWorld(mouse);
         if (_panning)
@@ -540,6 +519,70 @@ public partial class SKEditor : UserControl
             Canvas.InvalidateVisual();
         }
     }
+    public void Undo()
+    {
+        if (_undo.Count == 0) return;
+
+        var cmd = _undo.Pop();
+        cmd.Undo();
+        _redo.Push(cmd);
+        CanUndo = _undo.Any();
+        CanRedo = true;
+        CutZoneChanged?.Invoke(_cutZones);
+        ApplyTransform(Transform2D.Identity);
+    }
+
+    public void Redo()
+    {
+        if (_redo.Count == 0) return;
+
+        var cmd = _redo.Pop();
+        cmd.Execute();
+        _undo.Push(cmd);
+        CanRedo = _redo.Any();
+        CanUndo = true;
+        CutZoneChanged?.Invoke(_cutZones);
+        ApplyTransform(Transform2D.Identity);
+    }
+
+
+
+
+    public bool CanUndo
+    {
+        get { return (bool)GetValue(CanUndoProperty); }
+        set { SetValue(CanUndoProperty, value); }
+    }
+
+    // Using a DependencyProperty as the backing store for CanUndo.  This enables animation, styling, binding, etc...
+    public static readonly DependencyProperty CanUndoProperty =
+        DependencyProperty.Register(nameof(CanUndo), typeof(bool), typeof(SKEditor), new PropertyMetadata(false, UndoCallBack));
+
+    private static void UndoCallBack(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+    }
+
+    public bool CanRedo
+    {
+        get { return (bool)GetValue(CanRedoProperty); }
+        set { SetValue(CanRedoProperty, value); }
+    }
+
+    // Using a DependencyProperty as the backing store for CanRedo.  This enables animation, styling, binding, etc...
+    public static readonly DependencyProperty CanRedoProperty =
+        DependencyProperty.Register(nameof(CanRedo), typeof(bool), typeof(SKEditor), new PropertyMetadata(false));
+
+
+    public void SetMotionEnable(bool enable) => _motionEnable = enable;
+
+    public void SetViewfindersCoordinates((float x, float y) cameraVfCoors, (float x, float y) laserVfCoors)
+    {
+        _cameraViewfinder = new SKPoint(cameraVfCoors.x, cameraVfCoors.y);
+        _laserViewfinder = new SKPoint(laserVfCoors.x, laserVfCoors.y);
+        Canvas.InvalidateVisual();
+    }
+    public void SwitchScissors(bool cutEnable) => _cutEnable = cutEnable;
+
     private bool IsCut(CadEntity entity)
     {
         var bounds = entity.GetWorldBounds();

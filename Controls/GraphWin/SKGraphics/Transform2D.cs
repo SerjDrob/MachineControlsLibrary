@@ -72,6 +72,25 @@ public readonly struct Transform2D
             (-x * M21 + y * M11) * invDet
         );
     }
+    public (float x, float y) ApplyInverse(float pX, float pY)
+    {
+        // 1. Убираем перенос
+        float x = pX - DX;
+        float y = pY - DY;
+
+        // 2. Вычисляем детерминант
+        float det = M11 * M22 - M12 * M21;
+
+        if (Math.Abs(det) < 1e-8f) throw new InvalidOperationException("Matrix is not invertible.");
+
+        float invDet = 1f / det;
+
+        // 3. Применяем обратную матрицу
+        return (
+            (x * M22 - y * M12) * invDet,
+            (-x * M21 + y * M11) * invDet
+        );
+    }
     public SKRect ApplyInverse(SKRect rect)
     {
         var leftTop = new SKPoint(rect.Left, rect.Top);
