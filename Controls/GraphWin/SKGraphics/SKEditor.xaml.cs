@@ -43,8 +43,8 @@ public partial class SKEditor : UserControl
     private SKRect _substrateWorld;
     private SKSize _substrateSize;
     private SKPoint _pivotWorld = new(0, 0);
-    private SKPoint _cameraViewfinder = new (0, 0);
-    private SKPoint _laserViewfinder = new (0, 0);
+    private SKPoint _cameraViewfinder = new(0, 0);
+    private SKPoint _laserViewfinder = new(0, 0);
 
 
     private AlignState _alignState;
@@ -120,6 +120,30 @@ public partial class SKEditor : UserControl
         var scaledBounds = _modelTransform.Apply(_scene.Bounds);
 
         var bounds = SKRect.Union(scaledBounds, _substrateWorld);
+        float viewW = element.CanvasSize.Width;
+        float viewH = element.CanvasSize.Height;
+        if (viewW <= 0 || viewH <= 0) return;
+
+        float scaleX = viewW / bounds.Width;
+        float scaleY = viewH / bounds.Height;
+
+        _zoom = MathF.Min(scaleX, scaleY) * 0.9f;
+
+        float cx = (bounds.Left + bounds.Right) * 0.5f;
+        float cy = (bounds.Top + bounds.Bottom) * 0.5f;
+
+        float vx = viewW * 0.5f;
+        float vy = viewH * 0.5f;
+
+        _viewOffset = new SKPoint(vx - cx * _zoom, vy - cy * _zoom);
+        _topologyOffset = SKPoint.Empty;
+
+        element.InvalidateVisual();
+    }
+    public void FitToCameraViewfinder(SKElement element, SKPoint clickPoint)
+    {
+        var bounds = SKRect.Create(_cameraViewfinder - new SKPoint(2.5f,2.5f), new(5, 5));
+        if(!bounds.Contains(clickPoint)) return;
         float viewW = element.CanvasSize.Width;
         float viewH = element.CanvasSize.Height;
         if (viewW <= 0 || viewH <= 0) return;
@@ -292,21 +316,35 @@ public partial class SKEditor : UserControl
     }
     private void DrawViewfinders(SKCanvas canvas)
     {
+        //if (!_motionEnable) return;
         const float r = 5f;
         using var cameraPaint = new SKPaint { Color = SKColors.Green, StrokeWidth = 1f / _zoom, Style = SKPaintStyle.Stroke, IsAntialias = true };
-        using var cameraRegion = new SKPaint 
+        using var cameraRegion = new SKPaint
         {
-            Color = new SKColor(255,255,0,50),
-            Style = SKPaintStyle.Fill, 
-            IsAntialias = true 
+            Color = new SKColor(255, 255, 0, 50),
+            Style = SKPaintStyle.Fill,
+            IsAntialias = true
         };
         using var laserPaint = new SKPaint { Color = SKColors.Violet, StrokeWidth = 1f / _zoom, Style = SKPaintStyle.Stroke, IsAntialias = true };
-        
-        canvas.DrawLine(_cameraViewfinder.X - r, _cameraViewfinder.Y, _cameraViewfinder.X + r, _cameraViewfinder.Y, cameraPaint);
-        canvas.DrawLine(_cameraViewfinder.X, _cameraViewfinder.Y - r, _cameraViewfinder.X, _cameraViewfinder.Y + r, cameraPaint);
 
-        canvas.DrawRect(_cameraViewfinder.X - 2.5f, _cameraViewfinder.Y - 2.5f, 5f, 5f, cameraRegion);
-        canvas.DrawRect(_cameraViewfinder.X - 2.5f, _cameraViewfinder.Y - 2.5f, 5f, 5f, cameraPaint);
+
+
+        if (_motionEnable)
+        {
+            canvas.DrawLine(_cameraViewfinder.X - r, _cameraViewfinder.Y, _cameraViewfinder.X - 2.5f, _cameraViewfinder.Y, cameraPaint);
+            canvas.DrawLine(_cameraViewfinder.X + 2.5f, _cameraViewfinder.Y, _cameraViewfinder.X + r, _cameraViewfinder.Y, cameraPaint);
+
+            canvas.DrawLine(_cameraViewfinder.X, _cameraViewfinder.Y - r, _cameraViewfinder.X, _cameraViewfinder.Y - 2.5f, cameraPaint);
+            canvas.DrawLine(_cameraViewfinder.X, _cameraViewfinder.Y + 2.5f, _cameraViewfinder.X, _cameraViewfinder.Y + r, cameraPaint);
+
+            canvas.DrawRect(_cameraViewfinder.X - 2.5f, _cameraViewfinder.Y - 2.5f, 5f, 5f, cameraRegion);
+            canvas.DrawRect(_cameraViewfinder.X - 2.5f, _cameraViewfinder.Y - 2.5f, 5f, 5f, cameraPaint);
+        }
+        else
+        {
+            canvas.DrawLine(_cameraViewfinder.X - r, _cameraViewfinder.Y, _cameraViewfinder.X + r, _cameraViewfinder.Y, cameraPaint);
+            canvas.DrawLine(_cameraViewfinder.X, _cameraViewfinder.Y - r, _cameraViewfinder.X, _cameraViewfinder.Y + r, cameraPaint);
+        }
 
         canvas.DrawLine(_laserViewfinder.X - r, _laserViewfinder.Y, _laserViewfinder.X + r, _laserViewfinder.Y, laserPaint);
         canvas.DrawLine(_laserViewfinder.X, _laserViewfinder.Y - r, _laserViewfinder.X, _laserViewfinder.Y + r, laserPaint);
@@ -400,7 +438,7 @@ public partial class SKEditor : UserControl
             }
             return;
         }
-        if (e.MiddleButton == MouseButtonState.Pressed)
+        if (e.MiddleButton == MouseButtonState.Pressed && !_motionEnable)
         {
             Cursor = Cursors.Hand;
             _panning = true;
@@ -408,8 +446,16 @@ public partial class SKEditor : UserControl
         }
         if (e.RightButton == MouseButtonState.Pressed)
         {
-            _pivotWorld = ScreenToWorldRefTopology(ToSk(e.GetPosition(Canvas)));
-            Canvas.InvalidateVisual();
+            if (_motionEnable)
+            {
+                var clickPoint = ScreenToWorld(ToSk(e.GetPosition(Canvas)));
+                FitToCameraViewfinder(Canvas, clickPoint);
+            }
+            else
+            {
+                _pivotWorld = ScreenToWorldRefTopology(ToSk(e.GetPosition(Canvas)));
+                Canvas.InvalidateVisual();
+            }
         }
 
         if (_hoverAnchor is Anchor a && e.LeftButton == MouseButtonState.Pressed && !_cutEnable)
@@ -573,7 +619,11 @@ public partial class SKEditor : UserControl
         DependencyProperty.Register(nameof(CanRedo), typeof(bool), typeof(SKEditor), new PropertyMetadata(false));
 
 
-    public void SetMotionEnable(bool enable) => _motionEnable = enable;
+    public void SetMotionEnable(bool enable)
+    {
+        _motionEnable = enable;
+        Canvas.InvalidateVisual();
+    }
 
     public void SetViewfindersCoordinates((float x, float y) cameraVfCoors, (float x, float y) laserVfCoors)
     {
