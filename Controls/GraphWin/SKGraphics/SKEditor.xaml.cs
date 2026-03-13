@@ -37,7 +37,10 @@ public partial class SKEditor : UserControl
     private CutStyle _cutStyle = CutStyle.Contains;
     private readonly SkiaScene _scene = new();
     private float _currentModelScale = 1;
+    
     private Transform2D _modelTransform = Transform2D.Identity;
+    private Transform2D _modelTransformWithoutTranslation = Transform2D.Identity;
+
     private SKPoint _selectionStartWorld;
     private SKRect? _currentSelectionWorld;
     private SKRect _substrateWorld;
@@ -45,8 +48,7 @@ public partial class SKEditor : UserControl
     private SKPoint _pivotWorld = new(0, 0);
     private SKPoint _cameraViewfinder = new(0, 0);
     private SKPoint _laserViewfinder = new(0, 0);
-
-
+    private SKRect _cameraViewRegion = new();
     private AlignState _alignState;
     private Anchor? _hoverAnchor;
     private Anchor? _sourceAnchor;
@@ -56,6 +58,7 @@ public partial class SKEditor : UserControl
     private List<Anchor> _topologyAnchors = new();
     private List<Anchor> _substrateAnchors;
     private List<string> _enabledLayers;
+    private bool _teachPointsEnable;
 
     public float W { get; set; }
     public float H { get; set; }
@@ -67,11 +70,17 @@ public partial class SKEditor : UserControl
         H = 48;
         _substrateWorld = new SKRect(0, 0, W, H);
         _substrateSize = new SKSize(W, H);
+
+
+        SetViewfindersCoordinates((0, 0), (0, 0));
+
+
         RebuildSubstrateAnchors();
     }
-    public event Action<float[]>? TransformChanged;
+    public event Action<(float[] full, float[] withouTranslation)>? TransformChanged;
     public event Action<IList<CutZone>>? CutZoneChanged;
     public event Action<(float x, float y)>? OnSubstrateClicked;
+    public event Action<(float x, float y)>? OnTopologyPointClicked;
     private void RebuildSubstrateAnchors()
     {
         float w = _substrateSize.Width;
@@ -142,19 +151,18 @@ public partial class SKEditor : UserControl
     }
     public void FitToCameraViewfinder(SKElement element, SKPoint clickPoint)
     {
-        var bounds = SKRect.Create(_cameraViewfinder - new SKPoint(2.5f,2.5f), new(5, 5));
-        if(!bounds.Contains(clickPoint)) return;
+        if(!_cameraViewRegion.Contains(clickPoint)) return;
         float viewW = element.CanvasSize.Width;
         float viewH = element.CanvasSize.Height;
         if (viewW <= 0 || viewH <= 0) return;
 
-        float scaleX = viewW / bounds.Width;
-        float scaleY = viewH / bounds.Height;
+        float scaleX = viewW / _cameraViewRegion.Width;
+        float scaleY = viewH / _cameraViewRegion.Height;
 
         _zoom = MathF.Min(scaleX, scaleY) * 0.9f;
 
-        float cx = (bounds.Left + bounds.Right) * 0.5f;
-        float cy = (bounds.Top + bounds.Bottom) * 0.5f;
+        float cx = (_cameraViewRegion.Left + _cameraViewRegion.Right) * 0.5f;
+        float cy = (_cameraViewRegion.Top + _cameraViewRegion.Bottom) * 0.5f;
 
         float vx = viewW * 0.5f;
         float vy = viewH * 0.5f;
@@ -180,9 +188,17 @@ public partial class SKEditor : UserControl
             .Then(_modelTransform);
         _modelTransform = Transform2D.Scale(1f / scales.newScale, 1f / scales.newScale, new SKPoint(0, 0))
             .Then(_modelTransform);
-        TransformChanged?.Invoke(_modelTransform.GetTransformation());
+        
+        _modelTransformWithoutTranslation = Transform2D.Scale(scales.oldScale, scales.oldScale, new SKPoint(0, 0))
+            .Then(_modelTransformWithoutTranslation);
+        _modelTransformWithoutTranslation = Transform2D.Scale(1f / scales.newScale, 1f / scales.newScale, new SKPoint(0, 0))
+            .Then(_modelTransformWithoutTranslation);
+
+        InvokeTransformationsChangedEvent();
         Application.Current.Dispatcher.Invoke(Canvas.InvalidateVisual);
     }
+
+    private void InvokeTransformationsChangedEvent() => TransformChanged?.Invoke((_modelTransform.GetTransformation(), _modelTransformWithoutTranslation.GetTransformation()));
     private void DrawSubstrate(SKCanvas canvas)
     {
         using var fill = new SKPaint
@@ -252,21 +268,47 @@ public partial class SKEditor : UserControl
     private void DrawSourceAnchor(SKCanvas canvas)
     {
         if (_hoverAnchor == null) return;
-        using var paint = new SKPaint
+        if (!_teachPointsEnable)
         {
-            Color = new SKColor(255, 196, 120),   // пастельный голубой
-            IsAntialias = true,
-            StrokeWidth = 2f * _currentModelScale / _zoom,
-            Style = SKPaintStyle.Stroke
-        };
-        using var shadowPaint = new SKPaint
+            using var paint = new SKPaint
+            {
+                Color = new SKColor(255, 196, 120),   // пастельный голубой
+                IsAntialias = true,
+                StrokeWidth = 2f * _currentModelScale / _zoom,
+                Style = SKPaintStyle.Stroke
+            };
+            using var shadowPaint = new SKPaint
+            {
+                Color = new SKColor(0, 0, 0, 40),
+                IsAntialias = true
+            };
+            float r = 6f * _currentModelScale / _zoom;
+            canvas.DrawCircle(_hoverAnchor.Value.WorldPoint, r, paint);
+            canvas.DrawCircle(_hoverAnchor.Value.WorldPoint, r, shadowPaint); 
+        }
+        else
         {
-            Color = new SKColor(0, 0, 0, 40),
-            IsAntialias = true
-        };
-        float r = 6f * _currentModelScale / _zoom;
-        canvas.DrawCircle(_hoverAnchor.Value.WorldPoint, r, paint);
-        canvas.DrawCircle(_hoverAnchor.Value.WorldPoint, r, shadowPaint);
+            using var paint = new SKPaint
+            {
+                Color = new SKColor(0, 255, 20),   // пастельный голубой
+                IsAntialias = true,
+                StrokeWidth = 3f * _currentModelScale / _zoom,
+                Style = SKPaintStyle.Stroke
+            };
+            using var shadowPaint = new SKPaint
+            {
+                Color = new SKColor(0, 0, 0, 40),
+                IsAntialias = true
+            };
+            float r = 6f * _currentModelScale / _zoom;
+            //canvas.DrawCircle(_hoverAnchor.Value.WorldPoint, r, paint);
+            //canvas.DrawCircle(_hoverAnchor.Value.WorldPoint, r, shadowPaint);
+            var p = new SKPoint(5 * _currentModelScale / _zoom, 5 * _currentModelScale / _zoom);
+            var p1 = new SKPoint(5 * _currentModelScale / _zoom, -5 * _currentModelScale / _zoom);
+
+            canvas.DrawLine(_hoverAnchor.Value.WorldPoint - p, _hoverAnchor.Value.WorldPoint + p, paint);
+            canvas.DrawLine(_hoverAnchor.Value.WorldPoint - p1, _hoverAnchor.Value.WorldPoint + p1, paint);
+        }
     }
 
     private void DrawRubberLine(SKCanvas canvas)
@@ -288,7 +330,7 @@ public partial class SKEditor : UserControl
 
     private void DrawTargetAnchor(SKCanvas canvas)
     {
-        if (_targetAnchor == null) return;
+        if (_targetAnchor == null || _teachPointsEnable) return;
 
         using var paint = new SKPaint
         {
@@ -337,8 +379,8 @@ public partial class SKEditor : UserControl
             canvas.DrawLine(_cameraViewfinder.X, _cameraViewfinder.Y - r, _cameraViewfinder.X, _cameraViewfinder.Y - 2.5f, cameraPaint);
             canvas.DrawLine(_cameraViewfinder.X, _cameraViewfinder.Y + 2.5f, _cameraViewfinder.X, _cameraViewfinder.Y + r, cameraPaint);
 
-            canvas.DrawRect(_cameraViewfinder.X - 2.5f, _cameraViewfinder.Y - 2.5f, 5f, 5f, cameraRegion);
-            canvas.DrawRect(_cameraViewfinder.X - 2.5f, _cameraViewfinder.Y - 2.5f, 5f, 5f, cameraPaint);
+            canvas.DrawRect(_cameraViewRegion, cameraRegion);
+            canvas.DrawRect(_cameraViewRegion, cameraPaint);
         }
         else
         {
@@ -428,6 +470,15 @@ public partial class SKEditor : UserControl
     }
     private void OnMouseDown(object sender, MouseButtonEventArgs e)
     {
+        if(e.LeftButton == MouseButtonState.Pressed && _teachPointsEnable)
+        {
+            var coors = ScreenToWorld(ToSk(e.GetPosition(Canvas)));
+            if (_cameraViewRegion.Contains(coors))
+            {
+                if(_hoverAnchor is not null) OnTopologyPointClicked?.Invoke((_hoverAnchor.Value.WorldPoint.X, _hoverAnchor.Value.WorldPoint.Y));
+                return;
+            }
+        }
         if (e.LeftButton == MouseButtonState.Pressed && _motionEnable)
         {
             var coors = ScreenToWorld(ToSk(e.GetPosition(Canvas)));
@@ -509,7 +560,7 @@ public partial class SKEditor : UserControl
     }
     private void OnMouseMove(object sender, MouseEventArgs e)
     {
-        if (_motionEnable) return;
+       // if (_motionEnable) return;
         var mouse = ToSk(e.GetPosition(Canvas));
         _currentMouseWorld = ScreenToWorld(mouse);
         if (_panning)
@@ -527,7 +578,7 @@ public partial class SKEditor : UserControl
 
             var tr = Transform2D.Translate(deltaWorld.X, deltaWorld.Y);
             _modelTransform = _modelTransform.Then(tr);
-            TransformChanged?.Invoke(_modelTransform.GetTransformation());
+            InvokeTransformationsChangedEvent();
             Canvas.InvalidateVisual();
         }
         else if (!_cutEnable)
@@ -536,8 +587,11 @@ public partial class SKEditor : UserControl
 
             if (_alignState == AlignState.Idle)
             {
-                _hoverAnchor = FindTopologyAnchor(_currentMouseWorld, tol);
-                Canvas.InvalidateVisual();
+                if (!_teachPointsEnable || _cameraViewRegion.Contains(_currentMouseWorld))
+                {
+                    _hoverAnchor = FindTopologyAnchor(_currentMouseWorld, tol);
+                    Canvas.InvalidateVisual(); 
+                }
             }
             else if (_alignState == AlignState.Dragging)
             {
@@ -624,11 +678,12 @@ public partial class SKEditor : UserControl
         _motionEnable = enable;
         Canvas.InvalidateVisual();
     }
-
+    public void SetTeachPointsEnable(bool enable) => _teachPointsEnable = enable;
     public void SetViewfindersCoordinates((float x, float y) cameraVfCoors, (float x, float y) laserVfCoors)
     {
         _cameraViewfinder = new SKPoint(cameraVfCoors.x, cameraVfCoors.y);
         _laserViewfinder = new SKPoint(laserVfCoors.x, laserVfCoors.y);
+        _cameraViewRegion = SKRect.Create(_cameraViewfinder - new SKPoint(2.5f, 2.5f), new(5, 5));
         Canvas.InvalidateVisual();
     }
     public void SwitchScissors(bool cutEnable) => _cutEnable = cutEnable;
@@ -711,7 +766,7 @@ public partial class SKEditor : UserControl
     private void ApplyTransform(Transform2D t)
     {
         _modelTransform = _modelTransform.Then(t);
-        TransformChanged?.Invoke(_modelTransform.GetTransformation());
+        InvokeTransformationsChangedEvent();
         BuildScene(EntitiesView);
         Canvas.InvalidateVisual();
     }
@@ -719,26 +774,30 @@ public partial class SKEditor : UserControl
     public void RotateCW(SKPoint worldCenter)
     {
         _modelTransform = Transform2D.Rotate(90, worldCenter).Then(_modelTransform);
-        TransformChanged?.Invoke(_modelTransform.GetTransformation());
+        _modelTransformWithoutTranslation = Transform2D.Rotate(90, new SKPoint(0f,0f)).Then(_modelTransformWithoutTranslation);
+        InvokeTransformationsChangedEvent();
         Canvas.InvalidateVisual();
     }
     public void RotateCCW(SKPoint worldCenter)
     {
         _modelTransform = Transform2D.Rotate(-90, worldCenter).Then(_modelTransform);
-        TransformChanged?.Invoke(_modelTransform.GetTransformation());
+        _modelTransformWithoutTranslation = Transform2D.Rotate(-90, new SKPoint(0f, 0f)).Then(_modelTransformWithoutTranslation);
+        InvokeTransformationsChangedEvent();
         Canvas.InvalidateVisual();
     }
 
     public void MirrorX(SKPoint worldCenter)
     {
         _modelTransform = Transform2D.MirrorX(worldCenter).Then(_modelTransform);
-        TransformChanged?.Invoke(_modelTransform.GetTransformation());
+        _modelTransformWithoutTranslation = Transform2D.MirrorX(new SKPoint(0f, 0f)).Then(_modelTransformWithoutTranslation);
+        InvokeTransformationsChangedEvent();
         Canvas.InvalidateVisual();
     }
     public void MirrorY(SKPoint worldCenter)
     {
         _modelTransform = Transform2D.MirrorY(worldCenter).Then(_modelTransform);
-        TransformChanged?.Invoke(_modelTransform.GetTransformation());
+        _modelTransformWithoutTranslation = Transform2D.MirrorY(new SKPoint(0f, 0f)).Then(_modelTransformWithoutTranslation);
+        InvokeTransformationsChangedEvent();
         Canvas.InvalidateVisual();
     }
     private void RebuildAnchors()
