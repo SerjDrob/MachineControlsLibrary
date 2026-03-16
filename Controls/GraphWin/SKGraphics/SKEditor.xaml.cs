@@ -5,6 +5,7 @@ using SkiaSharp.Views.WPF;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -18,7 +19,37 @@ public enum CutStyle
     Contains,
     Intersect
 }
+public sealed class SubstrateText
+{
+    public string Text { get; set; } = "";
 
+    public LabelSide Side { get; set; }
+
+    public LabelAlignment Alignment { get; set; }
+
+    public float OffsetFromEdge { get; set; }
+
+    public float OffsetAlongEdge { get; set; }
+
+    public float FontSize { get; set; } = 16;
+
+    public SKTypeface Typeface { get; set; }
+
+    public SKColor Color { get; set; } = SKColors.White;
+}
+public enum LabelSide
+{
+    Top,
+    Bottom,
+    Left,
+    Right
+}
+public enum LabelAlignment
+{
+    Start,
+    Center,
+    End
+}
 public record CutZone(SKRect Rect, CutStyle Style, string[] ForLayers);
 
 public partial class SKEditor : UserControl
@@ -59,7 +90,7 @@ public partial class SKEditor : UserControl
     private List<Anchor> _substrateAnchors;
     private List<string> _enabledLayers;
     private bool _teachPointsEnable;
-
+    public List<SubstrateText> SubstrateTexts { get; } = new();
     public float W { get; set; }
     public float H { get; set; }
 
@@ -71,13 +102,20 @@ public partial class SKEditor : UserControl
         _substrateWorld = new SKRect(0, 0, W, H);
         _substrateSize = new SKSize(W, H);
 
-
+        //SubstrateTexts.Add(new SubstrateText
+        //{
+        //    Text = "SN 001234",
+        //    Side = LabelSide.Top,
+        //    Alignment = LabelAlignment.Center,
+        //    OffsetFromEdge = 0,
+        //    FontSize = 60*1.4f,
+        //    Color = new SKColor(255, 0, 0)
+        //});
         SetViewfindersCoordinates((0, 0), (0, 0));
-
 
         RebuildSubstrateAnchors();
     }
-    public event Action<(float[] full, float[] withouTranslation)>? TransformChanged;
+    public event Action<(float[] full, float[] withoutTranslation)>? TransformChanged;
     public event Action<IList<CutZone>>? CutZoneChanged;
     public event Action<(float x, float y)>? OnSubstrateClicked;
     public event Action<(float x, float y)>? OnTopologyPointClicked;
@@ -425,6 +463,7 @@ public partial class SKEditor : UserControl
         DrawSubstrate(canvas);
         DrawTargetAnchor(canvas);
         DrawSelection(canvas);
+        DrawSubstrateTexts(canvas);
         canvas.Restore();
 
         // --- Topology ---
@@ -442,6 +481,9 @@ public partial class SKEditor : UserControl
         DrawPivot(canvas);
         DrawViewfinders(canvas);
         canvas.Restore();
+
+        //---Text----
+       
     }
 
     private void OnMouseWheel(object sender, MouseWheelEventArgs e)
@@ -894,6 +936,126 @@ public partial class SKEditor : UserControl
                 ? -(a.EndAngleDeg + rot)
                 : (a.EndAngleDeg + rot)
         };
+    }
+
+    (SKPoint pos, float angle) GetLabelTransform(SubstrateText label)
+    {
+        var r = SKRect.Create(_substrateSize);
+
+        float cx = (float)(r.Left + r.Right) * 0.5f;
+        float cy = (float)(r.Top + r.Bottom) * 0.5f;
+
+        return label.Side switch
+        {
+            LabelSide.Top =>
+                (new SKPoint(cx + label.OffsetAlongEdge,
+                             (float)r.Top - label.OffsetFromEdge), 0),
+
+            LabelSide.Bottom =>
+                (new SKPoint(cx + label.OffsetAlongEdge,
+                             (float)r.Bottom + label.OffsetFromEdge), 0),
+
+            LabelSide.Left =>
+                (new SKPoint((float)r.Left - label.OffsetFromEdge,
+                             cy + label.OffsetAlongEdge), -MathF.PI / 2),
+
+            LabelSide.Right =>
+                (new SKPoint((float)r.Right + label.OffsetFromEdge,
+                             cy + label.OffsetAlongEdge), MathF.PI / 2),
+        };
+    }
+
+    void DrawSubstrateTexts(SKCanvas canvas)
+    {
+        foreach (var label in SubstrateTexts)
+        {
+            DrawLabel(canvas, label);
+        }
+    }
+
+    //void DrawLabel(SKCanvas canvas, SubstrateText label)
+    //{
+    //    var (pos, angle) = GetLabelTransform(label);
+
+    //    using var paint = new SKPaint
+    //    {
+    //        IsAntialias = true,
+    //        Color = label.Color
+    //    };
+    //    using var font = new SKFont
+    //    {
+    //        Typeface = label.Typeface,
+    //        Size = label.FontSize
+    //    };
+    //    font.MeasureText(label.Text, out var bounds);
+
+    //    float offsetX = label.Alignment switch
+    //    {
+    //        LabelAlignment.Start => 0,
+    //        LabelAlignment.Center => -bounds.Width / 2,
+    //        LabelAlignment.End => -bounds.Width,
+    //        _ => 0
+    //    };
+
+    //    canvas.Save();
+
+    //    canvas.Translate(pos.X, pos.Y);
+    //    canvas.RotateRadians(angle);
+
+    //    canvas.DrawText(label.Text, new SKPoint(offsetX, 0), font, paint);
+    //    canvas.Restore();
+    //}
+
+    void DrawLabel(SKCanvas canvas, SubstrateText label)
+    {
+        var (pos, angle) = GetLabelTransform(label);
+
+        using var paint = new SKPaint
+        {
+            IsAntialias = true,
+            Color = label.Color
+        };
+
+        using var font = new SKFont
+        {
+            Typeface = label.Typeface,
+            Size = label.FontSize
+        };
+
+        font.MeasureText(label.Text, out var bounds);
+
+        float offsetX = label.Alignment switch
+        {
+            LabelAlignment.Start => 0,
+            LabelAlignment.Center => -bounds.Width / 2,
+            LabelAlignment.End => -bounds.Width,
+            _ => 0
+        };
+
+        var metrics = font.Metrics;
+        float baseline = -metrics.Ascent;
+
+        canvas.Save();
+
+        canvas.Translate(pos.X, pos.Y);
+        canvas.RotateRadians(angle);
+
+        canvas.DrawText(label.Text, new SKPoint(offsetX, baseline), font, paint);
+
+        canvas.Restore();
+    }
+
+    public void AddSubstrateText(string text)
+    {
+        SubstrateTexts.Add(new SubstrateText
+        {
+            Text = text,
+            Side = LabelSide.Top,
+            Alignment = LabelAlignment.Center,
+            OffsetFromEdge = 5
+        });
+
+       Canvas.InvalidateVisual();
     }
 }
 
