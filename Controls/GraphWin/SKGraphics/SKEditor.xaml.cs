@@ -5,7 +5,7 @@ using SkiaSharp.Views.WPF;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Emit;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -54,6 +54,8 @@ public record CutZone(SKRect Rect, CutStyle Style, string[] ForLayers);
 
 public partial class SKEditor : UserControl
 {
+    const int FRAME_TIME_MS = 16; // ~60 FPS
+
     private float _zoom = 1f;
     private readonly List<CutZone> _cutZones = new();
     private readonly Stack<IEditorCommand> _undo = new();
@@ -68,7 +70,7 @@ public partial class SKEditor : UserControl
     private CutStyle _cutStyle = CutStyle.Contains;
     private readonly SkiaScene _scene = new();
     private float _currentModelScale = 1;
-    
+    private long _lastRedrawTime;
     private Transform2D _modelTransform = Transform2D.Identity;
     private Transform2D _modelTransformWithoutTranslation = Transform2D.Identity;
 
@@ -85,11 +87,15 @@ public partial class SKEditor : UserControl
     private Anchor? _sourceAnchor;
     private Anchor? _targetAnchor;
     private SKPoint _currentMouseWorld;
-
+    private SKPicture? _scenePicture;//topology cash
+    private SKPath? _scenePath;
+    private Dictionary<uint, SKPath> _scenePaths = new();
     private List<Anchor> _topologyAnchors = new();
     private List<Anchor> _substrateAnchors;
     private List<string> _enabledLayers;
     private bool _teachPointsEnable;
+    private bool _redrawPending;
+
     public List<SubstrateText> SubstrateTexts { get; } = new();
     public float W { get; set; }
     public float H { get; set; }
@@ -97,6 +103,7 @@ public partial class SKEditor : UserControl
     public SKEditor()
     {
         InitializeComponent();
+        //Canvas.RenderContinuously = false;
         W = 60;
         H = 48;
         _substrateWorld = new SKRect(0, 0, W, H);
@@ -152,9 +159,14 @@ public partial class SKEditor : UserControl
         if (d is SKEditor editor && e.NewValue is IEnumerable<CadEntity> entities)
         {
             editor.EntitiesView = new(entities);
+
             editor.BuildScene(entities);
+
+            //editor.RebuildScenePicture();
+            editor.RebuildScenePaths();
+
             editor.RebuildAnchors();
-            editor.Canvas.InvalidateVisual();
+            editor.InvalidateCanvas(true);
         }
     }
 
@@ -189,7 +201,7 @@ public partial class SKEditor : UserControl
     }
     public void FitToCameraViewfinder(SKElement element, SKPoint clickPoint)
     {
-        if(!_cameraViewRegion.Contains(clickPoint)) return;
+        if (!_cameraViewRegion.Contains(clickPoint)) return;
         float viewW = element.CanvasSize.Width;
         float viewH = element.CanvasSize.Height;
         if (viewW <= 0 || viewH <= 0) return;
@@ -226,7 +238,7 @@ public partial class SKEditor : UserControl
             .Then(_modelTransform);
         _modelTransform = Transform2D.Scale(1f / scales.newScale, 1f / scales.newScale, new SKPoint(0, 0))
             .Then(_modelTransform);
-        
+
         _modelTransformWithoutTranslation = Transform2D.Scale(scales.oldScale, scales.oldScale, new SKPoint(0, 0))
             .Then(_modelTransformWithoutTranslation);
         _modelTransformWithoutTranslation = Transform2D.Scale(1f / scales.newScale, 1f / scales.newScale, new SKPoint(0, 0))
@@ -253,6 +265,7 @@ public partial class SKEditor : UserControl
 
         canvas.DrawRect(_substrateWorld, fill);
         canvas.DrawRect(_substrateWorld, stroke);
+
     }
     private void DrawSelection(SKCanvas canvas)
     {
@@ -281,8 +294,83 @@ public partial class SKEditor : UserControl
             canvas.DrawRect(selection, stroke);
         }
     }
+    private readonly SKPaint _scenePaint = new()
+    {
+        Style = SKPaintStyle.Stroke,
+        IsAntialias = true,
+        StrokeCap = SKStrokeCap.Round,
+        StrokeJoin = SKStrokeJoin.Round
+    };
 
-    private void DrawScene(SKCanvas canvas)
+    //private void DrawScene(SKCanvas canvas)
+    //{
+    //    if (_scene.Geometry.Count == 0) return;
+    //    foreach (var geometry in _scene.Geometry)
+    //    {
+    //        var color = new SKColor(geometry.argb);
+    //        var trueColor = color == SKColors.White ? SKColors.Black : color;
+
+    //        _scenePaint.Color = trueColor;
+    //        _scenePaint.StrokeWidth = 1.2f * _currentModelScale / _zoom;
+
+    //        canvas.DrawPath(geometry.path, _scenePaint);
+    //    }
+    //}
+    //private void DrawScene(SKCanvas canvas)
+    //{
+    //    if (_scenePicture == null)
+    //        return;
+
+    //    canvas.Save();
+
+    //    //canvas.Scale(1 / _zoom); // компенсируем масштаб
+
+    //    canvas.DrawPicture(_scenePicture);
+
+    //    canvas.Restore();
+    //}
+    //private void DrawScene(SKCanvas canvas)
+    //{
+    //    //if (_scenePath == null)
+    //    //    return;
+
+    //    //_scenePaint.StrokeWidth = 1.2f * _currentModelScale / _zoom;
+
+    //    //canvas.DrawPath(_scenePath, _scenePaint);
+    //    DrawScenePaths(canvas);
+    //}
+    private void RebuildScenePicture()
+    {
+        var recorder = new SKPictureRecorder();
+        var canvas = recorder.BeginRecording(SKRect.Create(-1_000_000, -1_000_000, 2_000_000, 2_000_000));
+
+        // DrawSceneGeometry(canvas);
+        DrawScenePaths(canvas);
+        _scenePicture = recorder.EndRecording();
+    }
+    private void RebuildScenePaths()
+    {
+        if (_scenePaths != null)
+        {
+            foreach (var p in _scenePaths.Values)
+                p.Dispose();
+        }
+
+        _scenePaths = _scene.Geometry
+            .GroupBy(g => g.argb)
+            .ToDictionary(
+                o => o.Key,
+                o =>
+                {
+                    var path = new SKPath();
+
+                    foreach (var g in o)
+                        path.AddPath(g.path.Simplify() ?? g.path);
+
+                    return path;
+                });
+    }
+    private void DrawSceneGeometry(SKCanvas canvas)
     {
         if (_scene.Geometry.Count == 0) return;
 
@@ -290,19 +378,27 @@ public partial class SKEditor : UserControl
         {
             var color = new SKColor(geometry.argb);
             var trueColor = color == SKColors.White ? SKColors.Black : color;
-            using var paint = new SKPaint
-            {
-                Color = trueColor,
-                StrokeWidth = 1.2f * _currentModelScale / _zoom,
-                Style = SKPaintStyle.Stroke,
-                IsAntialias = true,
-                StrokeCap = SKStrokeCap.Round,
-                StrokeJoin = SKStrokeJoin.Round
-            };
-            canvas.DrawPath(geometry.path, paint);
+
+            _scenePaint.Color = trueColor;
+            _scenePaint.StrokeWidth = 1.2f * _currentModelScale / _zoom;
+
+            canvas.DrawPath(geometry.path, _scenePaint);
         }
     }
+    private void DrawScenePaths(SKCanvas canvas)
+    {
+        if (!_scenePaths.Any()) return;
+        foreach (var (argb, path) in _scenePaths)
+        {
+            var color = new SKColor(argb);
+            var trueColor = color == SKColors.White ? SKColors.Black : color;
 
+            _scenePaint.Color = trueColor;
+            _scenePaint.StrokeWidth = 1.2f * _currentModelScale / _zoom;
+
+            canvas.DrawPath(path, _scenePaint);
+        }
+    }
     private void DrawSourceAnchor(SKCanvas canvas)
     {
         if (_hoverAnchor == null) return;
@@ -322,7 +418,7 @@ public partial class SKEditor : UserControl
             };
             float r = 6f * _currentModelScale / _zoom;
             canvas.DrawCircle(_hoverAnchor.Value.WorldPoint, r, paint);
-            canvas.DrawCircle(_hoverAnchor.Value.WorldPoint, r, shadowPaint); 
+            canvas.DrawCircle(_hoverAnchor.Value.WorldPoint, r, shadowPaint);
         }
         else
         {
@@ -394,6 +490,13 @@ public partial class SKEditor : UserControl
         canvas.DrawLine(_pivotWorld.X - r, _pivotWorld.Y, _pivotWorld.X + r, _pivotWorld.Y, paint);
         canvas.DrawLine(_pivotWorld.X, _pivotWorld.Y - r, _pivotWorld.X, _pivotWorld.Y + r, paint);
     }
+    private SKPoint SubstrateToScreen(SKPoint p)
+    {
+        return new SKPoint(
+            p.X * _zoom + _viewOffset.X,
+            p.Y * _zoom + _viewOffset.Y
+        );
+    }
     private void DrawViewfinders(SKCanvas canvas)
     {
         //if (!_motionEnable) return;
@@ -407,27 +510,28 @@ public partial class SKEditor : UserControl
         };
         using var laserPaint = new SKPaint { Color = SKColors.Violet, StrokeWidth = 1f / _zoom, Style = SKPaintStyle.Stroke, IsAntialias = true };
 
-
+        var cameraVF = SubstrateToScreen(_cameraViewfinder);
+        var laserVF = SubstrateToScreen(_laserViewfinder);
 
         if (_motionEnable)
         {
-            canvas.DrawLine(_cameraViewfinder.X - r, _cameraViewfinder.Y, _cameraViewfinder.X - 2.5f, _cameraViewfinder.Y, cameraPaint);
-            canvas.DrawLine(_cameraViewfinder.X + 2.5f, _cameraViewfinder.Y, _cameraViewfinder.X + r, _cameraViewfinder.Y, cameraPaint);
+            canvas.DrawLine(cameraVF.X - r, cameraVF.Y, cameraVF.X - 2.5f, cameraVF.Y, cameraPaint);
+            canvas.DrawLine(cameraVF.X + 2.5f, cameraVF.Y, cameraVF.X + r, cameraVF.Y, cameraPaint);
 
-            canvas.DrawLine(_cameraViewfinder.X, _cameraViewfinder.Y - r, _cameraViewfinder.X, _cameraViewfinder.Y - 2.5f, cameraPaint);
-            canvas.DrawLine(_cameraViewfinder.X, _cameraViewfinder.Y + 2.5f, _cameraViewfinder.X, _cameraViewfinder.Y + r, cameraPaint);
+            canvas.DrawLine(cameraVF.X, cameraVF.Y - r, cameraVF.X, cameraVF.Y - 2.5f, cameraPaint);
+            canvas.DrawLine(cameraVF.X, cameraVF.Y + 2.5f, cameraVF.X, cameraVF.Y + r, cameraPaint);
 
             canvas.DrawRect(_cameraViewRegion, cameraRegion);
             canvas.DrawRect(_cameraViewRegion, cameraPaint);
         }
         else
         {
-            canvas.DrawLine(_cameraViewfinder.X - r, _cameraViewfinder.Y, _cameraViewfinder.X + r, _cameraViewfinder.Y, cameraPaint);
-            canvas.DrawLine(_cameraViewfinder.X, _cameraViewfinder.Y - r, _cameraViewfinder.X, _cameraViewfinder.Y + r, cameraPaint);
+            canvas.DrawLine(cameraVF.X - r, cameraVF.Y, cameraVF.X + r, cameraVF.Y, cameraPaint);
+            canvas.DrawLine(cameraVF.X, cameraVF.Y - r, cameraVF.X, cameraVF.Y + r, cameraPaint);
         }
 
-        canvas.DrawLine(_laserViewfinder.X - r, _laserViewfinder.Y, _laserViewfinder.X + r, _laserViewfinder.Y, laserPaint);
-        canvas.DrawLine(_laserViewfinder.X, _laserViewfinder.Y - r, _laserViewfinder.X, _laserViewfinder.Y + r, laserPaint);
+        canvas.DrawLine(laserVF.X - r, laserVF.Y, laserVF.X + r, laserVF.Y, laserPaint);
+        canvas.DrawLine(laserVF.X, laserVF.Y - r, laserVF.X, laserVF.Y + r, laserPaint);
     }
 
     private void ApplyView(SKCanvas canvas)
@@ -446,10 +550,7 @@ public partial class SKEditor : UserControl
     {
         var canvas = e.Surface.Canvas;
         var info = e.Info;
-
-        //var background = new SKColor(245, 247, 250);   // мягкий серо-голубой
         var background = new SKColor(250, 248, 244);   // теплый светло-бежевый
-        //var background = new SKColor(120, 120, 100);   // мягкий bluish gray
 
         canvas.Clear(background);
 
@@ -466,24 +567,43 @@ public partial class SKEditor : UserControl
         DrawSubstrateTexts(canvas);
         canvas.Restore();
 
+
         // --- Topology ---
         canvas.Save();
         ApplyView(canvas);
         ApplyModel(canvas);
         DrawSourceAnchor(canvas);
-        DrawScene(canvas);
+        // DrawScene(canvas);
+        if (_redrawTopology || _scenePicture is null)
+        {
+            RebuildScenePicture();
+            //DrawScenePaths(canvas);
+            canvas.DrawPicture(_scenePicture);
+            _redrawTopology = false;
+        }
+        else
+        {
+            canvas.DrawPicture(_scenePicture);
+        }
         canvas.Restore();
 
-        // --- Overlay ---
+        // --- Overlay (world space) ---
         canvas.Save();
         ApplyView(canvas);
         DrawRubberLine(canvas);
         DrawPivot(canvas);
-        DrawViewfinders(canvas);
         canvas.Restore();
 
-        //---Text----
-       
+        // --- Overlay (screen space) ---
+        DrawViewfinders(canvas);
+
+    }
+    private bool _redrawTopology;
+
+    private void InvalidateCanvas(bool withTopology = false)
+    {
+        _redrawTopology = withTopology;
+        Canvas.InvalidateVisual();
     }
 
     private void OnMouseWheel(object sender, MouseWheelEventArgs e)
@@ -508,16 +628,16 @@ public partial class SKEditor : UserControl
         _viewOffset.X += deltaWorld.X * _zoom;
         _viewOffset.Y += deltaWorld.Y * _zoom;
 
-        Canvas.InvalidateVisual();
+        InvalidateCanvas(true);
     }
     private void OnMouseDown(object sender, MouseButtonEventArgs e)
     {
-        if(e.LeftButton == MouseButtonState.Pressed && _teachPointsEnable)
+        if (e.LeftButton == MouseButtonState.Pressed && _teachPointsEnable)
         {
             var coors = ScreenToWorld(ToSk(e.GetPosition(Canvas)));
             if (_cameraViewRegion.Contains(coors))
             {
-                if(_hoverAnchor is not null) OnTopologyPointClicked?.Invoke((_hoverAnchor.Value.WorldPoint.X, _hoverAnchor.Value.WorldPoint.Y));
+                if (_hoverAnchor is not null) OnTopologyPointClicked?.Invoke((_hoverAnchor.Value.WorldPoint.X, _hoverAnchor.Value.WorldPoint.Y));
                 return;
             }
         }
@@ -547,7 +667,7 @@ public partial class SKEditor : UserControl
             else
             {
                 _pivotWorld = ScreenToWorldRefTopology(ToSk(e.GetPosition(Canvas)));
-                Canvas.InvalidateVisual();
+                InvalidateCanvas();
             }
         }
 
@@ -602,7 +722,7 @@ public partial class SKEditor : UserControl
     }
     private void OnMouseMove(object sender, MouseEventArgs e)
     {
-       // if (_motionEnable) return;
+        // if (_motionEnable) return;
         var mouse = ToSk(e.GetPosition(Canvas));
         _currentMouseWorld = ScreenToWorld(mouse);
         if (_panning)
@@ -621,7 +741,7 @@ public partial class SKEditor : UserControl
             var tr = Transform2D.Translate(deltaWorld.X, deltaWorld.Y);
             _modelTransform = _modelTransform.Then(tr);
             InvokeTransformationsChangedEvent();
-            Canvas.InvalidateVisual();
+            InvalidateCanvas(true);
         }
         else if (!_cutEnable)
         {
@@ -632,7 +752,7 @@ public partial class SKEditor : UserControl
                 if (!_teachPointsEnable || _cameraViewRegion.Contains(_currentMouseWorld))
                 {
                     _hoverAnchor = FindTopologyAnchor(_currentMouseWorld, tol);
-                    Canvas.InvalidateVisual(); 
+                    InvalidateCanvas();
                 }
             }
             else if (_alignState == AlignState.Dragging)
@@ -640,12 +760,12 @@ public partial class SKEditor : UserControl
                 if (TryFindSubstrateCornerAnchor(_currentMouseWorld, tol, out var corner))
                 {
                     _targetAnchor = corner;
-                    Canvas.InvalidateVisual();
+                    InvalidateCanvas();
                 }
                 else
                 {
                     _targetAnchor = null;
-                    Canvas.InvalidateVisual();
+                    InvalidateCanvas();
                 }
             }
         }
@@ -658,7 +778,7 @@ public partial class SKEditor : UserControl
                 Math.Min(_selectionStartWorld.Y, currentWorld.Y),
                 Math.Abs(currentWorld.X - _selectionStartWorld.X),
                 Math.Abs(currentWorld.Y - _selectionStartWorld.Y));
-            Canvas.InvalidateVisual();
+            InvalidateCanvas();
         }
     }
     public void Undo()
@@ -718,7 +838,7 @@ public partial class SKEditor : UserControl
     public void SetMotionEnable(bool enable)
     {
         _motionEnable = enable;
-        Canvas.InvalidateVisual();
+        InvalidateCanvas();
     }
     public void SetTeachPointsEnable(bool enable) => _teachPointsEnable = enable;
     public void SetViewfindersCoordinates((float x, float y) cameraVfCoors, (float x, float y) laserVfCoors)
@@ -726,7 +846,25 @@ public partial class SKEditor : UserControl
         _cameraViewfinder = new SKPoint(cameraVfCoors.x, cameraVfCoors.y);
         _laserViewfinder = new SKPoint(laserVfCoors.x, laserVfCoors.y);
         _cameraViewRegion = SKRect.Create(_cameraViewfinder - new SKPoint(2.5f, 2.5f), new(5, 5));
-        Canvas.InvalidateVisual();
+
+
+        long now = Environment.TickCount64;
+
+        if (now - _lastRedrawTime > FRAME_TIME_MS)
+        {
+            _lastRedrawTime = now;
+            InvalidateCanvas();
+        }
+        else if (!_redrawPending)
+        {
+            _redrawPending = true;
+
+            Task.Delay(FRAME_TIME_MS).ContinueWith(_ =>
+            {
+                _redrawPending = false;
+                Canvas.Dispatcher.Invoke(InvalidateCanvas);
+            });
+        }
     }
     public void SwitchScissors(bool cutEnable) => _cutEnable = cutEnable;
 
@@ -810,22 +948,22 @@ public partial class SKEditor : UserControl
         _modelTransform = _modelTransform.Then(t);
         InvokeTransformationsChangedEvent();
         BuildScene(EntitiesView);
-        Canvas.InvalidateVisual();
+        InvalidateCanvas(true);
     }
 
     public void RotateCW(SKPoint worldCenter)
     {
         _modelTransform = Transform2D.Rotate(90, worldCenter).Then(_modelTransform);
-        _modelTransformWithoutTranslation = Transform2D.Rotate(90, new SKPoint(0f,0f)).Then(_modelTransformWithoutTranslation);
+        _modelTransformWithoutTranslation = Transform2D.Rotate(90, new SKPoint(0f, 0f)).Then(_modelTransformWithoutTranslation);
         InvokeTransformationsChangedEvent();
-        Canvas.InvalidateVisual();
+        InvalidateCanvas(true);
     }
     public void RotateCCW(SKPoint worldCenter)
     {
         _modelTransform = Transform2D.Rotate(-90, worldCenter).Then(_modelTransform);
         _modelTransformWithoutTranslation = Transform2D.Rotate(-90, new SKPoint(0f, 0f)).Then(_modelTransformWithoutTranslation);
         InvokeTransformationsChangedEvent();
-        Canvas.InvalidateVisual();
+        InvalidateCanvas(true);
     }
 
     public void MirrorX(SKPoint worldCenter)
@@ -833,14 +971,14 @@ public partial class SKEditor : UserControl
         _modelTransform = Transform2D.MirrorX(worldCenter).Then(_modelTransform);
         _modelTransformWithoutTranslation = Transform2D.MirrorX(new SKPoint(0f, 0f)).Then(_modelTransformWithoutTranslation);
         InvokeTransformationsChangedEvent();
-        Canvas.InvalidateVisual();
+        InvalidateCanvas(true);
     }
     public void MirrorY(SKPoint worldCenter)
     {
         _modelTransform = Transform2D.MirrorY(worldCenter).Then(_modelTransform);
         _modelTransformWithoutTranslation = Transform2D.MirrorY(new SKPoint(0f, 0f)).Then(_modelTransformWithoutTranslation);
         InvokeTransformationsChangedEvent();
-        Canvas.InvalidateVisual();
+        InvalidateCanvas(true);
     }
     private void RebuildAnchors()
     {
@@ -853,9 +991,11 @@ public partial class SKEditor : UserControl
         _scene.Clear();
         foreach (var e in enabledEnts)
         {
-            if (IsCut(e)) continue;
+            if (IsCut(e))
+                continue;
             _scene.AddPath(e);
         }
+        RebuildScenePaths();
     }
     static IEnumerable<Anchor> GetTopologyAnchors(IEnumerable<CadEntity> entities)
     {
@@ -878,65 +1018,65 @@ public partial class SKEditor : UserControl
             }
         }
     }
-    static CadEntity Transform(CadEntity e, Transform2D t) => e switch
-    {
-        PolylineEntity pl => Transform(pl, t),
-        CircleEntity c => Transform(c, t),
-        ArcEntity a => Transform(a, t),
-        _ => e
-    };
-    static PolylineEntity Transform(PolylineEntity pl, Transform2D t)
-    {
-        bool mirror =
-            t.M11 * t.M22 - t.M12 * t.M21 < 0; // det < 0
+    //static CadEntity Transform(CadEntity e, Transform2D t) => e switch
+    //{
+    //    PolylineEntity pl => Transform(pl, t),
+    //    CircleEntity c => Transform(c, t),
+    //    ArcEntity a => Transform(a, t),
+    //    _ => e
+    //};
+    //static PolylineEntity Transform(PolylineEntity pl, Transform2D t)
+    //{
+    //    bool mirror =
+    //        t.M11 * t.M22 - t.M12 * t.M21 < 0; // det < 0
 
-        var verts = pl.Vertices
-            .Select(v =>
-                new PolylineVertex(
-                    t.Apply(v.Point),
-                    mirror ? -v.Bulge : v.Bulge
-                ))
-            .ToList();
+    //    var verts = pl.Vertices
+    //        .Select(v =>
+    //            new PolylineVertex(
+    //                t.Apply(v.Point),
+    //                mirror ? -v.Bulge : v.Bulge
+    //            ))
+    //        .ToList();
 
-        return pl with { Vertices = verts };
-    }
+    //    return pl with { Vertices = verts };
+    //}
 
-    static CircleEntity Transform(CircleEntity c, Transform2D t)
-    {
-        var center = t.Apply(c.Center);
+    //static CircleEntity Transform(CircleEntity c, Transform2D t)
+    //{
+    //    var center = t.Apply(c.Center);
 
-        // предполагаем равномерный scale
-        float scale =
-            MathF.Sqrt(t.M11 * t.M11 + t.M21 * t.M21);
+    //    // предполагаем равномерный scale
+    //    float scale =
+    //        MathF.Sqrt(t.M11 * t.M11 + t.M21 * t.M21);
 
-        return c with
-        {
-            Center = center,
-            Radius = c.Radius * scale
-        };
-    }
-    static ArcEntity Transform(ArcEntity a, Transform2D t)
-    {
-        var center = t.Apply(a.Center);
+    //    return c with
+    //    {
+    //        Center = center,
+    //        Radius = c.Radius * scale
+    //    };
+    //}
+    //static ArcEntity Transform(ArcEntity a, Transform2D t)
+    //{
+    //    var center = t.Apply(a.Center);
 
-        bool mirror =
-            t.M11 * t.M22 - t.M12 * t.M21 < 0;
+    //    bool mirror =
+    //        t.M11 * t.M22 - t.M12 * t.M21 < 0;
 
-        float rot =
-            MathF.Atan2(t.M12, t.M11) * 180f / MathF.PI;
+    //    float rot =
+    //        MathF.Atan2(t.M12, t.M11) * 180f / MathF.PI;
 
-        return a with
-        {
-            Center = center,
-            StartAngleDeg = mirror
-                ? -(a.StartAngleDeg + rot)
-                : (a.StartAngleDeg + rot),
+    //    return a with
+    //    {
+    //        Center = center,
+    //        StartAngleDeg = mirror
+    //            ? -(a.StartAngleDeg + rot)
+    //            : (a.StartAngleDeg + rot),
 
-            EndAngleDeg = mirror
-                ? -(a.EndAngleDeg + rot)
-                : (a.EndAngleDeg + rot)
-        };
-    }
+    //        EndAngleDeg = mirror
+    //            ? -(a.EndAngleDeg + rot)
+    //            : (a.EndAngleDeg + rot)
+    //    };
+    //}
 
     (SKPoint pos, float angle) GetLabelTransform(SubstrateText label)
     {
@@ -1055,7 +1195,7 @@ public partial class SKEditor : UserControl
             OffsetFromEdge = 5
         });
 
-       Canvas.InvalidateVisual();
+        InvalidateCanvas();
     }
 }
 
