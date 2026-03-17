@@ -197,7 +197,7 @@ public partial class SKEditor : UserControl
         _viewOffset = new SKPoint(vx - cx * _zoom, vy - cy * _zoom);
         _topologyOffset = SKPoint.Empty;
 
-        InvalidateElement(element,true);
+        InvalidateElement(element, true);
     }
     public void FitToCameraViewfinder(SKElement element, SKPoint clickPoint)
     {
@@ -245,7 +245,7 @@ public partial class SKEditor : UserControl
             .Then(_modelTransformWithoutTranslation);
 
         InvokeTransformationsChangedEvent();
-        Application.Current.Dispatcher.Invoke(()=>InvalidateCanvas(true));
+        Application.Current.Dispatcher.Invoke(() => InvalidateCanvas(true));
     }
 
     private void InvokeTransformationsChangedEvent() => TransformChanged?.Invoke((_modelTransform.GetTransformation(), _modelTransformWithoutTranslation.GetTransformation()));
@@ -501,7 +501,13 @@ public partial class SKEditor : UserControl
     {
         //if (!_motionEnable) return;
         const float r = 5f;
-        using var cameraPaint = new SKPaint { Color = SKColors.Green, StrokeWidth = 1f / _zoom, Style = SKPaintStyle.Stroke, IsAntialias = true };
+        using var cameraPaint = new SKPaint
+        {
+            Color = SKColors.Green,
+            StrokeWidth = 1f / _zoom,
+            Style = SKPaintStyle.Stroke,
+            IsAntialias = true
+        };
         using var cameraRegion = new SKPaint
         {
             Color = new SKColor(255, 255, 0, 50),
@@ -510,8 +516,8 @@ public partial class SKEditor : UserControl
         };
         using var laserPaint = new SKPaint { Color = SKColors.Violet, StrokeWidth = 1f / _zoom, Style = SKPaintStyle.Stroke, IsAntialias = true };
 
-        var cameraVF = SubstrateToScreen(_cameraViewfinder);
-        var laserVF = SubstrateToScreen(_laserViewfinder);
+        var cameraVF = _cameraViewfinder;// SubstrateToScreen(_cameraViewfinder);
+        var laserVF = _laserViewfinder;// SubstrateToScreen(_laserViewfinder);
 
         if (_motionEnable)
         {
@@ -591,11 +597,12 @@ public partial class SKEditor : UserControl
         canvas.Save();
         ApplyView(canvas);
         DrawRubberLine(canvas);
+        DrawViewfinders(canvas);
         DrawPivot(canvas);
         canvas.Restore();
 
         // --- Overlay (screen space) ---
-        DrawViewfinders(canvas);
+
 
     }
     private bool _redrawTopology;
@@ -846,8 +853,12 @@ public partial class SKEditor : UserControl
         InvalidateCanvas();
     }
     public void SetTeachPointsEnable(bool enable) => _teachPointsEnable = enable;
+
+    private (float x, float y) _cameraVfCoorsTemp = (0f, 0f);
     public void SetViewfindersCoordinates((float x, float y) cameraVfCoors, (float x, float y) laserVfCoors)
     {
+        if (Math.Abs(_cameraVfCoorsTemp.x - cameraVfCoors.x) < 0.003f && Math.Abs(_cameraVfCoorsTemp.y - cameraVfCoors.y) < 0.003f) return;
+        _cameraVfCoorsTemp = cameraVfCoors;
         _cameraViewfinder = new SKPoint(cameraVfCoors.x, cameraVfCoors.y);
         _laserViewfinder = new SKPoint(laserVfCoors.x, laserVfCoors.y);
         _cameraViewRegion = SKRect.Create(_cameraViewfinder - new SKPoint(2.5f, 2.5f), new(5, 5));
@@ -858,7 +869,7 @@ public partial class SKEditor : UserControl
         if (now - _lastRedrawTime > FRAME_TIME_MS)
         {
             _lastRedrawTime = now;
-            InvalidateCanvas();
+            Canvas.Dispatcher.Invoke(() => InvalidateCanvas());
         }
         else if (!_redrawPending)
         {
@@ -867,7 +878,7 @@ public partial class SKEditor : UserControl
             Task.Delay(FRAME_TIME_MS).ContinueWith(_ =>
             {
                 _redrawPending = false;
-                Canvas.Dispatcher.Invoke(InvalidateCanvas);
+                Canvas.Dispatcher.Invoke(() => InvalidateCanvas());
             });
         }
     }

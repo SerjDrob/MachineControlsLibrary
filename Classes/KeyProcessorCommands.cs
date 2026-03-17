@@ -101,7 +101,7 @@ namespace MachineControlsLibrary.Classes
             if (parameter is KeyEventArgs args)
             {
                 if (args.Handled) return;
-                Debug.WriteLine($"{args.Key} {args.RoutedEvent.Name}, repeat is {args.IsRepeat}");
+              //  Debug.WriteLine($"{args.Key} {args.RoutedEvent.Name}, repeat is {args.IsRepeat}");
 
                 if (args.OriginalSource is not null && notProcessingControls.Any(t => t.IsAssignableFrom(args.OriginalSource.GetType()))) return;
 
