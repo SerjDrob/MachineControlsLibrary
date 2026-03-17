@@ -197,7 +197,7 @@ public partial class SKEditor : UserControl
         _viewOffset = new SKPoint(vx - cx * _zoom, vy - cy * _zoom);
         _topologyOffset = SKPoint.Empty;
 
-        element.InvalidateVisual();
+        InvalidateElement(element,true);
     }
     public void FitToCameraViewfinder(SKElement element, SKPoint clickPoint)
     {
@@ -220,7 +220,7 @@ public partial class SKEditor : UserControl
         _viewOffset = new SKPoint(vx - cx * _zoom, vy - cy * _zoom);
         _topologyOffset = SKPoint.Empty;
 
-        element.InvalidateVisual();
+        InvalidateElement(element, true);
     }
     public void SetSubstrateDim(float w, float h)
     {
@@ -229,7 +229,7 @@ public partial class SKEditor : UserControl
         _substrateSize = new SKSize(w, h);
         _substrateWorld = new SKRect(0, 0, w, h);
         RebuildSubstrateAnchors();
-        Application.Current.Dispatcher.Invoke(Canvas.InvalidateVisual);
+        Application.Current.Dispatcher.Invoke(() => InvalidateCanvas(true));
     }
     public void SetTopologyScale((float oldScale, float newScale) scales)
     {
@@ -245,7 +245,7 @@ public partial class SKEditor : UserControl
             .Then(_modelTransformWithoutTranslation);
 
         InvokeTransformationsChangedEvent();
-        Application.Current.Dispatcher.Invoke(Canvas.InvalidateVisual);
+        Application.Current.Dispatcher.Invoke(()=>InvalidateCanvas(true));
     }
 
     private void InvokeTransformationsChangedEvent() => TransformChanged?.Invoke((_modelTransform.GetTransformation(), _modelTransformWithoutTranslation.GetTransformation()));
@@ -604,6 +604,11 @@ public partial class SKEditor : UserControl
     {
         _redrawTopology = withTopology;
         Canvas.InvalidateVisual();
+    }
+    private void InvalidateElement(SKElement element, bool withTopology = false)
+    {
+        _redrawTopology = withTopology;
+        element.InvalidateVisual();
     }
 
     private void OnMouseWheel(object sender, MouseWheelEventArgs e)
