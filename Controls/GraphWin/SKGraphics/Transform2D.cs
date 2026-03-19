@@ -173,6 +173,16 @@ public readonly struct Transform2D
             .Then(new Transform2D(c, s, -s, c, 0, 0))
             .Then(Translate(center.X, center.Y));
     }
+    public static Transform2D RotateRadians(
+        float angleRad, SKPoint center)
+    {
+        float c = MathF.Cos(angleRad);
+        float s = MathF.Sin(angleRad);
+
+        return Translate(-center.X, -center.Y)
+            .Then(new Transform2D(c, s, -s, c, 0, 0))
+            .Then(Translate(center.X, center.Y));
+    }
     public static Transform2D MirrorX(SKPoint center) =>
         Scale(1, -1, center);
 

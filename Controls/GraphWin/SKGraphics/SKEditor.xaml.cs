@@ -761,7 +761,7 @@ public partial class SKEditor : UserControl
 
             if (_alignState == AlignState.Idle)
             {
-                if (!_teachPointsEnable || _cameraViewRegion.Contains(_currentMouseWorld))
+                if ((!_teachPointsEnable || _cameraViewRegion.Contains(_currentMouseWorld)) && (!_motionEnable || _teachPointsEnable))
                 {
                     _hoverAnchor = FindTopologyAnchor(_currentMouseWorld, tol);
                     InvalidateCanvas();
