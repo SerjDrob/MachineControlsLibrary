@@ -120,19 +120,35 @@ public readonly struct Transform2D
         };
     }
 
+    //public Transform2D Then(Transform2D next)
+    //{
+    //    return new Transform2D(
+    //        M11 * next.M11 + M12 * next.M21,
+    //        M11 * next.M12 + M12 * next.M22,
+
+    //        M21 * next.M11 + M22 * next.M21,
+    //        M21 * next.M12 + M22 * next.M22,
+
+    //        DX * next.M11 + DY * next.M21 + next.DX,
+    //        DX * next.M12 + DY * next.M22 + next.DY
+    //    );
+    //}
+
     public Transform2D Then(Transform2D next)
     {
-        return new Transform2D(
-            M11 * next.M11 + M12 * next.M21,
-            M11 * next.M12 + M12 * next.M22,
+        // Матрица: next.M × this.M (умножение слева!)
+        float m11 = next.M11 * M11 + next.M12 * M21;
+        float m12 = next.M11 * M12 + next.M12 * M22;
+        float m21 = next.M21 * M11 + next.M22 * M21;
+        float m22 = next.M21 * M12 + next.M22 * M22;
 
-            M21 * next.M11 + M22 * next.M21,
-            M21 * next.M12 + M22 * next.M22,
+        // Перенос: next.M × this.t + next.t
+        float dx = next.M11 * DX + next.M12 * DY + next.DX;
+        float dy = next.M21 * DX + next.M22 * DY + next.DY;
 
-            DX * next.M11 + DY * next.M21 + next.DX,
-            DX * next.M12 + DY * next.M22 + next.DY
-        );
+        return new Transform2D(m11, m12, m21, m22, dx, dy);
     }
+
     public Transform2D Remove(Transform2D t) => Then(t.Inverse());
     public Transform2D Inverse()
     {
@@ -183,6 +199,7 @@ public readonly struct Transform2D
             .Then(new Transform2D(c, s, -s, c, 0, 0))
             .Then(Translate(center.X, center.Y));
     }
+
     public static Transform2D MirrorX(SKPoint center) =>
         Scale(1, -1, center);
 
@@ -512,5 +529,19 @@ public readonly struct Transform2D
         float dy = p.Y - dst.Y;
 
         return MathF.Sqrt(dx * dx + dy * dy);
+    }
+
+    public static void SelfTest()
+    {
+        var p = new SKPoint(10, 20);
+
+        var t1 = Translate(100, 50);
+        var t2 = Rotate(30, new SKPoint(0, 0));
+        var a = t2.Apply(t1.Apply(p));
+        var b = t1.Then(t2).Apply(p);
+
+        if (Math.Abs(a.X - b.X) > 0.001 ||
+            Math.Abs(a.Y - b.Y) > 0.001)
+            throw new Exception("Transform composition broken");
     }
 }

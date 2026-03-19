@@ -109,6 +109,7 @@ public partial class SKEditor : UserControl
         _substrateWorld = new SKRect(0, 0, W, H);
         _substrateSize = new SKSize(W, H);
 
+        Transform2D.SelfTest();
         //SubstrateTexts.Add(new SubstrateText
         //{
         //    Text = "SN 001234",
