@@ -250,52 +250,47 @@ public readonly struct Transform2D
 
         return rs.Then(Transform2D.Translate(dx, dy));
     }
-    public static Transform2D FromThreePoints( SKPoint p1, SKPoint p2, SKPoint p3, SKPoint q1, SKPoint q2, SKPoint q3)
+    public static Transform2D FromThreePoints(
+    SKPoint p1, SKPoint p2, SKPoint p3,
+    SKPoint q1, SKPoint q2, SKPoint q3)
     {
+        // Матрица исходных точек (с однородной координатой)
+        // | p1.x  p1.y  1 |
+        // | p2.x  p2.y  1 |
+        // | p3.x  p3.y  1 |
+
         float det =
             p1.X * (p2.Y - p3.Y) -
-            p2.X * (p1.Y - p3.Y) +
-            p3.X * (p1.Y - p2.Y);
+            p1.Y * (p2.X - p3.X) +
+            (p2.X * p3.Y - p2.Y * p3.X);
 
-        if (MathF.Abs(det) < 1e-6f) throw new ArgumentException("Source points are collinear");
+        if (MathF.Abs(det) < 1e-6f)
+            throw new ArgumentException("Source points are collinear");
 
         float invDet = 1f / det;
 
+        // ✅ Правильные коэффициенты обратной матрицы (транспонированная матрица алгебраических дополнений)
         float a11 = (p2.Y - p3.Y) * invDet;
-        float a12 = (p3.X - p2.X) * invDet;
-        float a13 = (p2.X * p3.Y - p3.X * p2.Y) * invDet;
+        float a12 = (p3.Y - p1.Y) * invDet;  // ❗ Было (p3.X - p2.X)
+        float a13 = (p1.Y - p2.Y) * invDet;  // ❗ Было (p1.Y - p2.Y)
 
-        float a21 = (p3.Y - p1.Y) * invDet;
+        float a21 = (p3.X - p2.X) * invDet;  // ❗ Было (p3.Y - p1.Y)
         float a22 = (p1.X - p3.X) * invDet;
-        float a23 = (p3.X * p1.Y - p1.X * p3.Y) * invDet;
+        float a23 = (p2.X - p1.X) * invDet;  // ❗ Было (p2.X - p1.X)
 
-        float a31 = (p1.Y - p2.Y) * invDet;
-        float a32 = (p2.X - p1.X) * invDet;
-        float a33 = (p1.X * p2.Y - p2.X * p1.Y) * invDet;
+        float a31 = (p2.X * p3.Y - p2.Y * p3.X) * invDet;
+        float a32 = (p3.X * p1.Y - p3.Y * p1.X) * invDet;  // ❗ Было (p3.X*p1.Y - p1.X*p3.Y)
+        float a33 = (p1.X * p2.Y - p1.Y * p2.X) * invDet;  // ❗ Было (p1.X*p2.Y - p2.X*p1.Y)
 
-        float m11 =
-            a11 * q1.X + a12 * q2.X + a13 * q3.X;
+        // ✅ Правильное сопоставление
+        float m11 = a11 * q1.X + a12 * q2.X + a13 * q3.X;
+        float m12 = a21 * q1.X + a22 * q2.X + a23 * q3.X;
+        float m21 = a11 * q1.Y + a12 * q2.Y + a13 * q3.Y;
+        float m22 = a21 * q1.Y + a22 * q2.Y + a23 * q3.Y;
+        float dx = a31 * q1.X + a32 * q2.X + a33 * q3.X;
+        float dy = a31 * q1.Y + a32 * q2.Y + a33 * q3.Y;
 
-        float m12 =
-            a11 * q1.Y + a12 * q2.Y + a13 * q3.Y;
-
-        float m21 =
-            a21 * q1.X + a22 * q2.X + a23 * q3.X;
-
-        float m22 =
-            a21 * q1.Y + a22 * q2.Y + a23 * q3.Y;
-
-        float dx =
-            a31 * q1.X + a32 * q2.X + a33 * q3.X;
-
-        float dy =
-            a31 * q1.Y + a32 * q2.Y + a33 * q3.Y;
-
-        return new Transform2D(
-            m11, m12,
-            m21, m22,
-            dx, dy
-        );
+        return new Transform2D(m11, m12, m21, m22, dx, dy);
     }
 
     public static Transform2D FromPointSets(
