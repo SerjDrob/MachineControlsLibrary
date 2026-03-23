@@ -371,21 +371,21 @@ public partial class SKEditor : UserControl
                     return path;
                 });
     }
-    private void DrawSceneGeometry(SKCanvas canvas)
-    {
-        if (_scene.Geometry.Count == 0) return;
+    //private void DrawSceneGeometry(SKCanvas canvas)
+    //{
+    //    if (_scene.Geometry.Count == 0) return;
 
-        foreach (var geometry in _scene.Geometry)
-        {
-            var color = new SKColor(geometry.argb);
-            var trueColor = color == SKColors.White ? SKColors.Black : color;
+    //    foreach (var geometry in _scene.Geometry)
+    //    {
+    //        var color = new SKColor(geometry.argb);
+    //        var trueColor = color == SKColors.White ? SKColors.Black : color;
 
-            _scenePaint.Color = trueColor;
-            _scenePaint.StrokeWidth = 1.2f * _currentModelScale / _zoom;
+    //        _scenePaint.Color = trueColor;
+    //        _scenePaint.StrokeWidth = 1.2f * _currentModelScale / _zoom;
 
-            canvas.DrawPath(geometry.path, _scenePaint);
-        }
-    }
+    //        canvas.DrawPath(geometry.path, _scenePaint);
+    //    }
+    //}
     private void DrawScenePaths(SKCanvas canvas)
     {
         if (!_scenePaths.Any()) return;
