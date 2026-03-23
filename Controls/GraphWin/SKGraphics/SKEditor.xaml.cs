@@ -244,9 +244,8 @@ public partial class SKEditor : UserControl
             .Then(_modelTransformWithoutTranslation);
         _modelTransformWithoutTranslation = Transform2D.Scale(1f / scales.newScale, 1f / scales.newScale, new SKPoint(0, 0))
             .Then(_modelTransformWithoutTranslation);
-
         InvokeTransformationsChangedEvent();
-        Application.Current.Dispatcher.Invoke(() => InvalidateCanvas(true));
+        Fit();
     }
 
     private void InvokeTransformationsChangedEvent() => TransformChanged?.Invoke((_modelTransform.GetTransformation(), _modelTransformWithoutTranslation.GetTransformation()));
