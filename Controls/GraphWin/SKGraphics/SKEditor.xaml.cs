@@ -95,6 +95,8 @@ public partial class SKEditor : UserControl
     private List<string> _enabledLayers;
     private bool _teachPointsEnable;
     private bool _redrawPending;
+    private bool _modelRotated = false;
+    private bool _canBeAnchored = false;
 
     public List<SubstrateText> SubstrateTexts { get; } = new();
     public float W { get; set; }
@@ -159,13 +161,11 @@ public partial class SKEditor : UserControl
     {
         if (d is SKEditor editor && e.NewValue is IEnumerable<CadEntity> entities)
         {
-            editor.EntitiesView = new(entities);
-
+            //editor._modelTransform = new(0f, -0.001f, 0.001f, 0f, 48f, 0f);
+            editor.EntitiesView = [.. entities];
             editor.BuildScene(entities);
-
             //editor.RebuildScenePicture();
             editor.RebuildScenePaths();
-
             editor.RebuildAnchors();
             editor.InvalidateCanvas(true);
         }
@@ -683,7 +683,7 @@ public partial class SKEditor : UserControl
             }
         }
 
-        if (_hoverAnchor is Anchor a && e.LeftButton == MouseButtonState.Pressed && !_cutEnable)
+        if (_hoverAnchor is Anchor a && e.LeftButton == MouseButtonState.Pressed && !_cutEnable && _canBeAnchored)
         {
             var transformed = _modelTransform.Apply(a.WorldPoint);
             _sourceAnchor = a with { WorldPoint = transformed };
@@ -761,7 +761,7 @@ public partial class SKEditor : UserControl
 
             if (_alignState == AlignState.Idle)
             {
-                if ((!_teachPointsEnable || _cameraViewRegion.Contains(_currentMouseWorld)) && (!_motionEnable || _teachPointsEnable))
+                if ((!_teachPointsEnable || _cameraViewRegion.Contains(_currentMouseWorld)) && (!_motionEnable || _teachPointsEnable) && (_canBeAnchored || _teachPointsEnable))
                 {
                     _hoverAnchor = FindTopologyAnchor(_currentMouseWorld, tol);
                     InvalidateCanvas();
@@ -966,33 +966,80 @@ public partial class SKEditor : UserControl
         BuildScene(EntitiesView);
         InvalidateCanvas(true);
     }
-
-    public void RotateCW(SKPoint worldCenter)
+    public void EnableAnchors(bool enable) => _canBeAnchored = enable;
+    public void RotateCW(SKPoint worldCenter, bool relCenter = false)
     {
+        if (relCenter)
+        {
+            var bounds = _scene.Bounds;
+            worldCenter = new SKPoint(bounds.MidX, bounds.MidY);
+        }
         _modelTransform = Transform2D.Rotate(90, worldCenter).Then(_modelTransform);
         _modelTransformWithoutTranslation = Transform2D.Rotate(90, new SKPoint(0f, 0f)).Then(_modelTransformWithoutTranslation);
         InvokeTransformationsChangedEvent();
+        _modelRotated ^= true;
         InvalidateCanvas(true);
     }
-    public void RotateCCW(SKPoint worldCenter)
+    public void RotateCCW(SKPoint worldCenter, bool relCenter = false)
     {
+        if (relCenter)
+        {
+            var bounds = _scene.Bounds;
+            worldCenter = new SKPoint(bounds.MidX, bounds.MidY);
+        }
         _modelTransform = Transform2D.Rotate(-90, worldCenter).Then(_modelTransform);
         _modelTransformWithoutTranslation = Transform2D.Rotate(-90, new SKPoint(0f, 0f)).Then(_modelTransformWithoutTranslation);
         InvokeTransformationsChangedEvent();
+        _modelRotated ^= true;
         InvalidateCanvas(true);
     }
 
-    public void MirrorX(SKPoint worldCenter)
+    public void MirrorX(SKPoint worldCenter, bool relCenter = false)
     {
-        _modelTransform = Transform2D.MirrorX(worldCenter).Then(_modelTransform);
+        if (relCenter && _scenePicture is not null)
+        {
+            var bounds = _scene.Bounds;
+            worldCenter = new SKPoint(bounds.MidX, bounds.MidY);
+        }
+        if (!_modelRotated)
+        {
+            _modelTransform = Transform2D.MirrorX(worldCenter).Then(_modelTransform);
+        }
+        else
+        {
+            _modelTransform = Transform2D.MirrorY(worldCenter).Then(_modelTransform);
+        }
         _modelTransformWithoutTranslation = Transform2D.MirrorX(new SKPoint(0f, 0f)).Then(_modelTransformWithoutTranslation);
         InvokeTransformationsChangedEvent();
         InvalidateCanvas(true);
     }
-    public void MirrorY(SKPoint worldCenter)
+    public void MirrorY(SKPoint worldCenter, bool relCenter = false)
     {
-        _modelTransform = Transform2D.MirrorY(worldCenter).Then(_modelTransform);
+        if (relCenter && _scenePicture is not null)
+        {
+            var bounds = _scene.Bounds;
+            worldCenter = new SKPoint(bounds.MidX, bounds.MidY);
+        }
+        if (!_modelRotated)
+        {
+            _modelTransform = Transform2D.MirrorY(worldCenter).Then(_modelTransform);
+        }
+        else
+        {
+            _modelTransform = Transform2D.MirrorX(worldCenter).Then(_modelTransform);
+        }
         _modelTransformWithoutTranslation = Transform2D.MirrorY(new SKPoint(0f, 0f)).Then(_modelTransformWithoutTranslation);
+        InvokeTransformationsChangedEvent();
+        InvalidateCanvas(true);
+    }
+    public void PushToCenter()
+    {
+        var bounds = _scene.Bounds;
+
+        _modelTransform = Transform2D.Translate(-bounds.MidX, -bounds.MidY)
+            .Then(_modelTransformWithoutTranslation)
+            .Then(Transform2D.Translate(W / 2, H / 2));
+
         InvokeTransformationsChangedEvent();
         InvalidateCanvas(true);
     }
