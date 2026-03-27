@@ -105,6 +105,10 @@ public partial class SKEditor : UserControl
     public SKEditor()
     {
         InitializeComponent();
+        SizeChanged += (s, e) =>
+        {
+            Fit();
+        };
         //Canvas.RenderContinuously = false;
         W = 60;
         H = 48;
@@ -583,14 +587,9 @@ public partial class SKEditor : UserControl
         if (_redrawTopology || _scenePicture is null)
         {
             RebuildScenePicture();
-            //DrawScenePaths(canvas);
-            canvas.DrawPicture(_scenePicture);
             _redrawTopology = false;
         }
-        else
-        {
-            canvas.DrawPicture(_scenePicture);
-        }
+        canvas.DrawPicture(_scenePicture);
         canvas.Restore();
 
         // --- Overlay (world space) ---

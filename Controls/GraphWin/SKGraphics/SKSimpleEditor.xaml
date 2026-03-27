@@ -1,0 +1,50 @@
+﻿<UserControl
+    x:Class="MachineControlsLibrary.Controls.GraphWin.SKGraphics.SKSimpleEditor"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:loc="clr-namespace:MachineControlsLibrary.Classes.SkEditor"
+    xmlns:local="clr-namespace:MachineControlsLibrary.Controls.GraphWin.SKGraphics"
+    xmlns:lucide="http://metro.mahapps.com/winfx/xaml/iconpacks"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:skia="clr-namespace:SkiaSharp.Views.WPF;assembly=SkiaSharp.Views.WPF"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    mc:Ignorable="d">
+    <Grid>
+        <ToolBarTray VerticalAlignment="Top" Panel.ZIndex="2">
+            <ToolBarTray.Resources>
+                <Style
+                    x:Key="{x:Static ToolBar.ButtonStyleKey}"
+                    BasedOn="{StaticResource BaseStyle}"
+                    TargetType="{x:Type Button}">
+                    <Setter Property="Padding" Value="2" />
+                </Style>
+                <Style
+                    x:Key="{x:Static ToolBar.ToggleButtonStyleKey}"
+                    BasedOn="{StaticResource BaseStyle}"
+                    TargetType="{x:Type ToggleButton}">
+                    <Setter Property="Padding" Value="2" />
+                    <Setter Property="Margin" Value="2,0,2,0" />
+                    <Style.Triggers>
+
+                        <!--  Когда нажата (включена)  -->
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter Property="Foreground" Value="{StaticResource SuccessBrush}" />
+                        </Trigger>
+
+                    </Style.Triggers>
+                </Style>
+            </ToolBarTray.Resources>
+            <ToolBar x:Name="Tools">
+                <Button x:Name="SnapTool" Content="{lucide:Lucide Kind=Magnet}" />
+                <Button x:Name="CircleTool" Content="{lucide:Lucide Kind=Radius}" />
+                <Button x:Name="CurveTool" Content="{lucide:Lucide Kind=Waypoints}" />
+                <Button x:Name="LineTool" Content="{lucide:Lucide Kind=Slash}" />
+                <Button x:Name="SplineTool" Content="{lucide:Lucide Kind=Spline}" />
+                <Button x:Name="WipeTool" Content="{lucide:Lucide Kind=BrushCleaning}" />
+            </ToolBar>
+        </ToolBarTray>
+        <loc:SimpleSkEditor x:Name="editor" />
+    </Grid>
+</UserControl>
