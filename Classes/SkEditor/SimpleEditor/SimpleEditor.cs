@@ -3,6 +3,7 @@ using SkiaSharp.Views.Desktop;
 using SkiaSharp.Views.WPF;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 
@@ -69,7 +70,14 @@ public class SimpleSkEditor : SKElement, IDisposable
 
     // Paints
     readonly SKPaint _gridPaint = new() { Color = new SKColor(220, 220, 220), StrokeWidth = 1 };
-    readonly SKPaint _shapePaint = new() { Color = SKColors.Black, StrokeWidth = 2, IsStroke = true, IsAntialias = true };
+    readonly SKPaint _shapePaint = new()
+    {
+        Color = SKColors.Black,
+        StrokeWidth = 2,
+        IsStroke = true,
+        IsAntialias = true,
+        StrokeCap = SKStrokeCap.Round
+    };
     readonly SKPaint _previewPaint = new() { Color = SKColors.Red, StrokeWidth = 2, IsStroke = true };
     readonly SKPaint _selectPaint = new() { Color = SKColors.Orange, StrokeWidth = 3, IsStroke = true };
     readonly SKPaint _handlePaint = new() { Color = SKColors.Blue, IsStroke = false };
@@ -88,6 +96,7 @@ public class SimpleSkEditor : SKElement, IDisposable
     {
         _viewOffset = GetScreenCenter();
     }
+    public (IList<Shape> shapes, float factor) GetShapes() => (_shapes.ToList(), _zoom / (float)ActualHeight);
     public void DeleteAllShapes()
     {
         // Удаляем все созданные фигуры
@@ -112,6 +121,8 @@ public class SimpleSkEditor : SKElement, IDisposable
     {
         base.OnRenderSizeChanged(sizeInfo);
         // ✅ Просто перецентрируем (0,0) в новый центр
+        var factor = sizeInfo.NewSize.Height / sizeInfo.PreviousSize.Height;
+        if (double.IsFinite(factor)) _zoom *= (float)factor;
         CenterOrigin();
         InvalidateVisual();
     }
@@ -145,8 +156,7 @@ public class SimpleSkEditor : SKElement, IDisposable
         canvas.Translate(_viewOffset);
         canvas.Scale(_zoom);
 
-        foreach (var s in _shapes)
-            s.Draw(canvas, s == _selected ? _selectPaint : _shapePaint);
+        foreach (var s in _shapes) s.Draw(canvas, s == _selected ? _selectPaint : _shapePaint);
 
         if (_drawing) DrawPreview(canvas);
         if (_selected != null) DrawHandles(canvas);
@@ -208,7 +218,7 @@ public class SimpleSkEditor : SKElement, IDisposable
 
     void DrawGrid(SKCanvas canvas)
     {
-        if(!SnapEnabled) return;
+        if (!SnapEnabled) return;
         float step = _gridStep * _zoom;
         var origin = WorldToScreen(new SKPoint(0, 0));
 
@@ -258,7 +268,7 @@ public class SimpleSkEditor : SKElement, IDisposable
                         canvas.DrawCircle(_poly[0], HANDLE_SIZE * 1.5f / _zoom, _closePointPaint);
                     }
                 }
-            break;
+                break;
         }
     }
 
@@ -285,14 +295,14 @@ public class SimpleSkEditor : SKElement, IDisposable
             if (_polyClosedPending)
                 perimeter += Distance(_poly[^1], _poly[0]); // Замкнутая длина
 
-             return _polyClosedPending
-                ? $"Close: L={perimeter:0.##}"
-                : $"L={perimeter:0.##} | {Distance(_poly[^1], _current):0.##}";
+            return _polyClosedPending
+               ? $"Close: L={perimeter:0.##}"
+               : $"L={perimeter:0.##} | {Distance(_poly[^1], _current):0.##}";
         };
         string text = CurrentTool switch
         {
             Tool.Line => Distance(_start, _current).ToString("0.##"),
-            Tool.Circle => "Ø " + (Distance(_start, _current) * 2).ToString("0.##"),
+            Tool.Circle => "Ø " + (Distance(_start, _current)).ToString("0.##"),
             //Tool.Polyline when _poly.Count > 0 => Distance(_poly[^1], _current).ToString("0.##"),
             Tool.Polyline when _poly.Count >= 3 => getMeasure(),
             Tool.Polyline when _poly.Count > 0 =>
@@ -336,7 +346,7 @@ public class SimpleSkEditor : SKElement, IDisposable
         {
             if (!_filletPreview)
                 StartFillet(p);
-            else 
+            else
                 ConfirmFillet();
 
             InvalidateVisual();
@@ -494,6 +504,7 @@ public class SimpleSkEditor : SKElement, IDisposable
     }
     protected override void OnMouseWheel(MouseWheelEventArgs e)
     {
+        return;
         var mousePos = ToSK(e.GetPosition(this));
         var worldBefore = ScreenToWorld(mousePos);
 
@@ -671,7 +682,7 @@ public class SimpleSkEditor : SKElement, IDisposable
         if (_activeHandle != null) { _activeHandle.Move(p); InvalidateVisual(); return; }
         if (_drawing) InvalidateVisual();
     }
-   
+
     protected override void OnMouseUp(MouseButtonEventArgs e)
     {
         var p = Snap(ScreenToWorld(ToSK(e.GetPosition(this))));
@@ -724,421 +735,8 @@ public class SimpleSkEditor : SKElement, IDisposable
 
     SKPoint ToSK(Point p) => new((float)p.X, (float)p.Y);
 
-    // ==================== Shape hierarchy ====================
-
-    abstract class Shape
-    {
-        public abstract void Draw(SKCanvas c, SKPaint p);
-        public abstract bool HitTest(SKPoint p, float tol);
-        public abstract List<Handle> GetHandles();
-    }
-
-    class LineShape(SKPoint a, SKPoint b) : Shape
-    {
-        public SKPoint A = a, B = b;
-        public override void Draw(SKCanvas c, SKPaint p) => c.DrawLine(A, B, p);
-        public override bool HitTest(SKPoint p, float tol) => DistanceToSegment(p, A, B) < tol;
-        public override List<Handle> GetHandles() => new()
-        {
-            new Handle(() => A, v => A = v),
-            new Handle(() => B, v => B = v),
-            new Handle(() => Mid(), MoveMid)
-        };
-        SKPoint Mid() => new((A.X + B.X) / 2, (A.Y + B.Y) / 2);
-        void MoveMid(SKPoint p)
-        {
-            var mid = Mid();
-            var dx = p.X - mid.X;
-            var dy = p.Y - mid.Y;
-            A = new SKPoint(A.X + dx, A.Y + dy);
-            B = new SKPoint(B.X + dx, B.Y + dy);
-        }
-        static float DistanceToSegment(SKPoint p, SKPoint a, SKPoint b)
-        {
-            float dx = b.X - a.X, dy = b.Y - a.Y;
-            float t = ((p.X - a.X) * dx + (p.Y - a.Y) * dy) / (dx * dx + dy * dy);
-            t = Math.Clamp(t, 0, 1);
-            var proj = new SKPoint(a.X + t * dx, a.Y + t * dy);
-            return Distance(p, proj);
-        }
-    }
-
-    class CircleShape(SKPoint c, float r) : Shape
-    {
-        public SKPoint C = c;
-        public float R = r;
-        public override void Draw(SKCanvas c, SKPaint p) => c.DrawCircle(C, R, p);
-        public override bool HitTest(SKPoint p, float tol) => Math.Abs(Distance(p, C) - R) < tol;
-        public override List<Handle> GetHandles() => new()
-        {
-            new Handle(() => C, v => C = v),
-            new Handle(() => new SKPoint(C.X + R, C.Y), p => R = Distance(C, p))
-        };
-    }
-
-    class PolyShape : Shape
-    {
-        public bool IsClosed { get; }
-        public class Segment
-        {
-            public bool IsArc;
-            public SKPoint A, B;
-            public SKPoint Center;
-            public float Radius, StartAngle, Sweep;
-        }
-
-        public List<SKPoint> Points { get; } = new();
-        readonly List<Segment> _segments = new();
-        public List<Segment> Segments => _segments;
-
-        public PolyShape(List<SKPoint> points)
-        {
-            Points.AddRange(points);
-            for (int i = 1; i < points.Count; i++) AddLine(points[i - 1], points[i]);
-        }
-        public PolyShape(List<SKPoint> points, bool closed = false) : this(points)
-        {
-            IsClosed = closed;
-            if (closed && points.Count > 2)
-            {
-                // Добавляем сегмент замыкания
-                AddLine(points[^1], points[0]);
-            }
-        }
-        public void AddLine(SKPoint a, SKPoint b) => _segments.Add(new Segment { IsArc = false, A = a, B = b });
-
-        public override void Draw(SKCanvas c, SKPaint p)
-        {
-            foreach (var s in _segments)
-            {
-                if (!s.IsArc) c.DrawLine(s.A, s.B, p);
-                else
-                {
-                    using var path = new SKPath();
-                    var rect = new SKRect(s.Center.X - s.Radius, s.Center.Y - s.Radius,
-                                          s.Center.X + s.Radius, s.Center.Y + s.Radius);
-                    path.AddArc(rect, s.StartAngle, s.Sweep);
-                    c.DrawPath(path, p);
-                }
-            }
-        }
-
-        public void AddFilletFromPreview(
-       int segBeforeIndex,
-       int segAfterIndex,
-       SKPoint t1, SKPoint t2, SKPoint center,
-       float radius, float startAngle, float sweep)
-        {
-            if (segBeforeIndex < 0 || segAfterIndex >= _segments.Count) return;
-
-            var segBefore = _segments[segBeforeIndex];
-            var segAfter = _segments[segAfterIndex];
-
-            if (segBefore.IsArc || segAfter.IsArc) return;
-
-            // Обрезаем сегменты
-            segBefore.B = t1;
-            segAfter.A = t2;
-
-            // Создаём дугу
-            var arc = new Segment
-            {
-                IsArc = true,
-                A = t1,
-                B = t2,
-                Center = center,
-                Radius = radius,
-                StartAngle = startAngle,
-                Sweep = sweep
-            };
-
-            // ✅ Для замкнутой полилинии: если segBeforeIndex > segAfterIndex 
-            // (замыкание через 0), корректно вставляем
-            if (IsClosed && segBeforeIndex > segAfterIndex)
-            {
-                // Случай: последний сегмент -> первый сегмент
-                // Вставляем после segBefore (в конец) — он фактически перед segAfter
-                _segments.Add(arc);
-            }
-            else
-            {
-                // Обычный случай
-                _segments.Insert(segAfterIndex, arc);
-            }
-
-            RebuildPoints();
-        }
-        //public override bool HitTest(SKPoint p, float tol)
-        //{
-        //    foreach (var s in _segments)
-        //    {
-        //        if (!s.IsArc) { if (DistToSegment(p, s.A, s.B) < tol) return true; }
-        //        else if (Math.Abs(SKPoint.Distance(p, s.Center) - s.Radius) < tol) return true;
-        //    }
-        //    return false;
-        //}
-
-        public override bool HitTest(SKPoint p, float tol)
-        {
-            // Проверка ребер (без base.HitTest)
-            foreach (var s in _segments)
-            {
-                if (!s.IsArc)
-                {
-                    if (DistToSegment(p, s.A, s.B) < tol) return true;
-                }
-                else if (Math.Abs(SKPoint.Distance(p, s.Center) - s.Radius) < tol)
-                    return true;
-            }
-
-            // Для замкнутой — проверяем внутренность
-            if (IsClosed && IsPointInPolygon(p)) return true;
-
-            return false;
-        }
-        bool IsPointInPolygon(SKPoint p)
-        {
-            bool inside = false;
-            for (int i = 0, j = Points.Count - 1; i < Points.Count; j = i++)
-            {
-                var pi = Points[i];
-                var pj = Points[j];
-                if (((pi.Y > p.Y) != (pj.Y > p.Y)) &&
-                    (p.X < (pj.X - pi.X) * (p.Y - pi.Y) / (pj.Y - pi.Y) + pi.X))
-                    inside = !inside;
-            }
-            return inside;
-        }
-        //public override List<Handle> GetHandles()
-        //{
-        //    var handles = new List<Handle>();
-        //    var uniquePoints = new HashSet<(float x, float y)>();
-
-        //    void AddHandle(SKPoint pt, Action<SKPoint> setter, int segIndex, bool isStart)
-        //    {
-        //        var key = (pt.X, pt.Y);
-        //        if (!uniquePoints.Add(key)) return; // Пропускаем дубликаты
-
-        //        handles.Add(new Handle(() => pt, p =>
-        //        {
-        //            setter(p);
-        //            // Синхронизируем соседние сегменты
-        //            if (isStart && segIndex > 0)
-        //                _segments[segIndex - 1].B = p;
-        //            if (!isStart && segIndex + 1 < _segments.Count)
-        //                _segments[segIndex + 1].A = p;
-        //        }));
-        //    }
-
-        //    for (int i = 0; i < _segments.Count; i++)
-        //    {
-        //        var s = _segments[i];
-        //        int idx = i;
-        //        if (i == 0)
-        //            AddHandle(s.A, p => _segments[idx].A = p, i, true);
-        //        AddHandle(s.B, p => _segments[idx].B = p, i, false);
-        //    }
-        //    return handles;
-        //}
-        public override List<Handle> GetHandles()
-        {
-            var handles = new List<Handle>();
-            var uniquePoints = new HashSet<(float x, float y)>();
-
-            void AddHandle(SKPoint pt, Action<SKPoint> setter, int segIndex, bool isStart)
-            {
-                var key = (pt.X, pt.Y);
-                if (!uniquePoints.Add(key)) return;
-
-                handles.Add(new Handle(() => pt, p =>
-                {
-                    setter(p);
-                    // Синхронизируем соседние сегменты
-                    if (isStart && segIndex > 0)
-                        _segments[segIndex - 1].B = p;
-                    if (!isStart && segIndex + 1 < _segments.Count)
-                        _segments[segIndex + 1].A = p;
-
-                    // ✅ Для замкнутой полилинии обновляем замыкающие сегменты
-                    if (IsClosed)
-                    {
-                        if (isStart && segIndex == 0)
-                            _segments[^1].B = p; // Последний сегмент заканчивается на первой точке
-                        if (!isStart && segIndex == _segments.Count - 1)
-                            _segments[0].A = p; // Первый сегмент начинается на последней точке
-                    }
-
-                    RebuildPoints();
-                }));
-            }
-
-            for (int i = 0; i < _segments.Count; i++)
-            {
-                var s = _segments[i];
-                int idx = i;
-                if (i == 0)
-                    AddHandle(s.A, p => _segments[idx].A = p, i, true);
-                AddHandle(s.B, p => _segments[idx].B = p, i, false);
-            }
-            return handles;
-        }
-        static bool PointsAreEqual(SKPoint a, SKPoint b, float tol = 1e-3f)
-        {
-            return MathF.Abs(a.X - b.X) < tol && MathF.Abs(a.Y - b.Y) < tol;
-        }
-
-        void RebuildPoints()
-        {
-            Points.Clear();
-            if (_segments.Count == 0) return;
-
-            Points.Add(_segments[0].A);
-            foreach (var s in _segments)
-                Points.Add(s.B);
-
-            // Для замкнутой удаляем дубликат последней точки (она совпадает с первой)
-            if (IsClosed && Points.Count > 1 &&
-                PointsAreEqual(Points[0], Points[^1]))
-            {
-                Points.RemoveAt(Points.Count - 1);
-            }
-        }
-        public Segment GetSegmentBeforeVertex(int vertexIndex, out int segmentIndex)
-        {
-            segmentIndex = -1;
-            if (Points.Count == 0) return null;
-
-            // Для замкнутой полилинии индексы цикличны
-            if (IsClosed)
-            {
-                if (vertexIndex < 0 || vertexIndex >= Points.Count) return null;
-
-                float tol = 10f;
-                var targetPoint = Points[vertexIndex];
-
-                // Ищем сегмент, который заканчивается на targetPoint
-                for (int i = 0; i < _segments.Count; i++)
-                {
-                    var seg = _segments[i];
-                    if (!seg.IsArc && Distance(seg.B, targetPoint) < tol)
-                    {
-                        segmentIndex = i;
-                        return seg;
-                    }
-                }
-                return null;
-            }
-            else
-            {
-                // Оригинальная логика для разомкнутой
-                if (vertexIndex < 1 || vertexIndex >= Points.Count) return null;
-
-                float tol = 10f;
-                var B = Points[vertexIndex];
-
-                for (int i = 0; i < _segments.Count; i++)
-                {
-                    var seg = _segments[i];
-                    if (!seg.IsArc && Distance(seg.B, B) < tol)
-                    {
-                        segmentIndex = i;
-                        return seg;
-                    }
-                }
-                return null;
-            }
-        }
-        public void BuildPoints()
-        {
-            Points.Clear();
-            if (_segments.Count == 0) return;
-
-            // Добавляем первую точку
-            Points.Add(_segments[0].A);
-
-            // Добавляем конечные точки каждого сегмента
-            for (int i = 0; i < _segments.Count; i++)
-            {
-                Points.Add(_segments[i].B);
-            }
-        }
-        public Segment GetSegmentAfterVertex(int vertexIndex, out int segmentIndex)
-        {
-            segmentIndex = -1;
-            if (Points.Count == 0) return null;
-
-            // Для замкнутой полилинии индексы цикличны
-            if (IsClosed)
-            {
-                if (vertexIndex < 0 || vertexIndex >= Points.Count) return null;
-
-                float tol = 10f;
-                var targetPoint = Points[vertexIndex];
-
-                // Ищем сегмент, который начинается на targetPoint
-                for (int i = 0; i < _segments.Count; i++)
-                {
-                    var seg = _segments[i];
-                    if (!seg.IsArc && Distance(seg.A, targetPoint) < tol)
-                    {
-                        segmentIndex = i;
-                        return seg;
-                    }
-                }
-                return null;
-            }
-            else
-            {
-                // Оригинальная логика для разомкнутой
-                if (vertexIndex < 0 || vertexIndex >= Points.Count - 1) return null;
-
-                float tol = 10f;
-                var B = Points[vertexIndex];
-
-                for (int i = 0; i < _segments.Count; i++)
-                {
-                    var seg = _segments[i];
-                    if (!seg.IsArc && Distance(seg.A, B) < tol)
-                    {
-                        segmentIndex = i;
-                        return seg;
-                    }
-                }
-                return null;
-            }
-        }
 
 
-        // Вспомогательный метод для расстояния (если ещё нет в классе)
-        private static float Distance(SKPoint a, SKPoint b)
-        {
-            float dx = a.X - b.X, dy = a.Y - b.Y;
-            return MathF.Sqrt(dx * dx + dy * dy);
-        }
-        static float DistToSegment(SKPoint p, SKPoint a, SKPoint b)
-        {
-            var ab = new SKPoint(b.X - a.X, b.Y - a.Y);
-            var ap = new SKPoint(p.X - a.X, p.Y - a.Y);
-            float ab2 = ab.X * ab.X + ab.Y * ab.Y;
-            if (ab2 < 1e-6f) return Distance(p, a);
-            float t = Math.Max(0, Math.Min(1, (ap.X * ab.X + ap.Y * ab.Y) / ab2));
-            var proj = new SKPoint(a.X + ab.X * t, a.Y + ab.Y * t);
-            return Distance(p, proj);
-        }
-    }
-
-    // ==================== Handle ====================
-
-    class Handle
-    {
-        readonly Func<SKPoint> _getter;
-        readonly Action<SKPoint> _setter;
-        public SKPoint Position => _getter();
-        public float X => Position.X;
-        public float Y => Position.Y;
-        public Handle(Func<SKPoint> g, Action<SKPoint> s) { _getter = g; _setter = s; }
-        public void Move(SKPoint p) => _setter(p);
-    }
 
     // ==================== Geometry Helper ====================
 
@@ -1280,4 +878,418 @@ public class SimpleSkEditor : SKElement, IDisposable
         }
     }
     public void Dispose() { Dispose(true); GC.SuppressFinalize(this); }
+}
+
+// ==================== Shape hierarchy ====================
+
+public abstract class Shape
+{
+    public abstract void Draw(SKCanvas c, SKPaint p);
+    public abstract bool HitTest(SKPoint p, float tol);
+    public abstract List<Handle> GetHandles();
+    // Вспомогательный метод для расстояния (если ещё нет в классе)
+    public static float Distance(SKPoint a, SKPoint b)
+    {
+        float dx = a.X - b.X, dy = a.Y - b.Y;
+        return MathF.Sqrt(dx * dx + dy * dy);
+    }
+}
+
+public class LineShape(SKPoint a, SKPoint b) : Shape
+{
+    public SKPoint A = a, B = b;
+    public override void Draw(SKCanvas c, SKPaint p) => c.DrawLine(A, B, p);
+    public override bool HitTest(SKPoint p, float tol) => DistanceToSegment(p, A, B) < tol;
+    public override List<Handle> GetHandles() => new()
+        {
+            new Handle(() => A, v => A = v),
+            new Handle(() => B, v => B = v),
+            new Handle(() => Mid(), MoveMid)
+        };
+    SKPoint Mid() => new((A.X + B.X) / 2, (A.Y + B.Y) / 2);
+    void MoveMid(SKPoint p)
+    {
+        var mid = Mid();
+        var dx = p.X - mid.X;
+        var dy = p.Y - mid.Y;
+        A = new SKPoint(A.X + dx, A.Y + dy);
+        B = new SKPoint(B.X + dx, B.Y + dy);
+    }
+    static float DistanceToSegment(SKPoint p, SKPoint a, SKPoint b)
+    {
+        float dx = b.X - a.X, dy = b.Y - a.Y;
+        float t = ((p.X - a.X) * dx + (p.Y - a.Y) * dy) / (dx * dx + dy * dy);
+        t = Math.Clamp(t, 0, 1);
+        var proj = new SKPoint(a.X + t * dx, a.Y + t * dy);
+        return Distance(p, proj);
+    }
+}
+
+public class CircleShape(SKPoint c, float r) : Shape
+{
+    public SKPoint C = c;
+    public float R = r;
+    public override void Draw(SKCanvas c, SKPaint p) => c.DrawCircle(C, R, p);
+    public override bool HitTest(SKPoint p, float tol) => Math.Abs(Distance(p, C) - R) < tol;
+    public override List<Handle> GetHandles() => new()
+        {
+            new Handle(() => C, v => C = v),
+            new Handle(() => new SKPoint(C.X + R, C.Y), p => R = Distance(C, p))
+        };
+}
+
+public class PolyShape : Shape
+{
+    public bool IsClosed { get; }
+    public class Segment
+    {
+        public bool IsArc;
+        public SKPoint A, B;
+        public SKPoint Center;
+        public float Radius, StartAngle, Sweep;
+    }
+
+    public List<SKPoint> Points { get; } = new();
+    readonly List<Segment> _segments = new();
+    public List<Segment> Segments => _segments;
+
+    public PolyShape(List<SKPoint> points)
+    {
+        Points.AddRange(points);
+        for (int i = 1; i < points.Count; i++) AddLine(points[i - 1], points[i]);
+    }
+    public PolyShape(List<SKPoint> points, bool closed = false) : this(points)
+    {
+        IsClosed = closed;
+        if (closed && points.Count > 2)
+        {
+            // Добавляем сегмент замыкания
+            AddLine(points[^1], points[0]);
+        }
+    }
+    public void AddLine(SKPoint a, SKPoint b) => _segments.Add(new Segment { IsArc = false, A = a, B = b });
+
+    public override void Draw(SKCanvas c, SKPaint p)
+    {
+        foreach (var s in _segments)
+        {
+            if (!s.IsArc) c.DrawLine(s.A, s.B, p);
+            else
+            {
+                using var path = new SKPath();
+                var rect = new SKRect(s.Center.X - s.Radius, s.Center.Y - s.Radius,
+                                      s.Center.X + s.Radius, s.Center.Y + s.Radius);
+                path.AddArc(rect, s.StartAngle, s.Sweep);
+                c.DrawPath(path, p);
+            }
+        }
+    }
+
+    public void AddFilletFromPreview(
+   int segBeforeIndex,
+   int segAfterIndex,
+   SKPoint t1, SKPoint t2, SKPoint center,
+   float radius, float startAngle, float sweep)
+    {
+        if (segBeforeIndex < 0 || segAfterIndex >= _segments.Count) return;
+
+        var segBefore = _segments[segBeforeIndex];
+        var segAfter = _segments[segAfterIndex];
+
+        if (segBefore.IsArc || segAfter.IsArc) return;
+
+        // Обрезаем сегменты
+        segBefore.B = t1;
+        segAfter.A = t2;
+
+        // Создаём дугу
+        var arc = new Segment
+        {
+            IsArc = true,
+            A = t1,
+            B = t2,
+            Center = center,
+            Radius = radius,
+            StartAngle = startAngle,
+            Sweep = sweep
+        };
+
+        // ✅ Для замкнутой полилинии: если segBeforeIndex > segAfterIndex 
+        // (замыкание через 0), корректно вставляем
+        if (IsClosed && segBeforeIndex > segAfterIndex)
+        {
+            // Случай: последний сегмент -> первый сегмент
+            // Вставляем после segBefore (в конец) — он фактически перед segAfter
+            _segments.Add(arc);
+        }
+        else
+        {
+            // Обычный случай
+            _segments.Insert(segAfterIndex, arc);
+        }
+
+        RebuildPoints();
+    }
+    //public override bool HitTest(SKPoint p, float tol)
+    //{
+    //    foreach (var s in _segments)
+    //    {
+    //        if (!s.IsArc) { if (DistToSegment(p, s.A, s.B) < tol) return true; }
+    //        else if (Math.Abs(SKPoint.Distance(p, s.Center) - s.Radius) < tol) return true;
+    //    }
+    //    return false;
+    //}
+
+    public override bool HitTest(SKPoint p, float tol)
+    {
+        // Проверка ребер (без base.HitTest)
+        foreach (var s in _segments)
+        {
+            if (!s.IsArc)
+            {
+                if (DistToSegment(p, s.A, s.B) < tol) return true;
+            }
+            else if (Math.Abs(SKPoint.Distance(p, s.Center) - s.Radius) < tol)
+                return true;
+        }
+
+        // Для замкнутой — проверяем внутренность
+        if (IsClosed && IsPointInPolygon(p)) return true;
+
+        return false;
+    }
+    bool IsPointInPolygon(SKPoint p)
+    {
+        bool inside = false;
+        for (int i = 0, j = Points.Count - 1; i < Points.Count; j = i++)
+        {
+            var pi = Points[i];
+            var pj = Points[j];
+            if (((pi.Y > p.Y) != (pj.Y > p.Y)) &&
+                (p.X < (pj.X - pi.X) * (p.Y - pi.Y) / (pj.Y - pi.Y) + pi.X))
+                inside = !inside;
+        }
+        return inside;
+    }
+    //public override List<Handle> GetHandles()
+    //{
+    //    var handles = new List<Handle>();
+    //    var uniquePoints = new HashSet<(float x, float y)>();
+
+    //    void AddHandle(SKPoint pt, Action<SKPoint> setter, int segIndex, bool isStart)
+    //    {
+    //        var key = (pt.X, pt.Y);
+    //        if (!uniquePoints.Add(key)) return; // Пропускаем дубликаты
+
+    //        handles.Add(new Handle(() => pt, p =>
+    //        {
+    //            setter(p);
+    //            // Синхронизируем соседние сегменты
+    //            if (isStart && segIndex > 0)
+    //                _segments[segIndex - 1].B = p;
+    //            if (!isStart && segIndex + 1 < _segments.Count)
+    //                _segments[segIndex + 1].A = p;
+    //        }));
+    //    }
+
+    //    for (int i = 0; i < _segments.Count; i++)
+    //    {
+    //        var s = _segments[i];
+    //        int idx = i;
+    //        if (i == 0)
+    //            AddHandle(s.A, p => _segments[idx].A = p, i, true);
+    //        AddHandle(s.B, p => _segments[idx].B = p, i, false);
+    //    }
+    //    return handles;
+    //}
+    public override List<Handle> GetHandles()
+    {
+        var handles = new List<Handle>();
+        var uniquePoints = new HashSet<(float x, float y)>();
+
+        void AddHandle(SKPoint pt, Action<SKPoint> setter, int segIndex, bool isStart)
+        {
+            var key = (pt.X, pt.Y);
+            if (!uniquePoints.Add(key)) return;
+
+            handles.Add(new Handle(() => pt, p =>
+            {
+                setter(p);
+                // Синхронизируем соседние сегменты
+                if (isStart && segIndex > 0)
+                    _segments[segIndex - 1].B = p;
+                if (!isStart && segIndex + 1 < _segments.Count)
+                    _segments[segIndex + 1].A = p;
+
+                // ✅ Для замкнутой полилинии обновляем замыкающие сегменты
+                if (IsClosed)
+                {
+                    if (isStart && segIndex == 0)
+                        _segments[^1].B = p; // Последний сегмент заканчивается на первой точке
+                    if (!isStart && segIndex == _segments.Count - 1)
+                        _segments[0].A = p; // Первый сегмент начинается на последней точке
+                }
+
+                RebuildPoints();
+            }));
+        }
+
+        for (int i = 0; i < _segments.Count; i++)
+        {
+            var s = _segments[i];
+            int idx = i;
+            if (i == 0)
+                AddHandle(s.A, p => _segments[idx].A = p, i, true);
+            AddHandle(s.B, p => _segments[idx].B = p, i, false);
+        }
+        return handles;
+    }
+    static bool PointsAreEqual(SKPoint a, SKPoint b, float tol = 1e-3f)
+    {
+        return MathF.Abs(a.X - b.X) < tol && MathF.Abs(a.Y - b.Y) < tol;
+    }
+
+    void RebuildPoints()
+    {
+        Points.Clear();
+        if (_segments.Count == 0) return;
+
+        Points.Add(_segments[0].A);
+        foreach (var s in _segments)
+            Points.Add(s.B);
+
+        // Для замкнутой удаляем дубликат последней точки (она совпадает с первой)
+        if (IsClosed && Points.Count > 1 &&
+            PointsAreEqual(Points[0], Points[^1]))
+        {
+            Points.RemoveAt(Points.Count - 1);
+        }
+    }
+    public Segment GetSegmentBeforeVertex(int vertexIndex, out int segmentIndex)
+    {
+        segmentIndex = -1;
+        if (Points.Count == 0) return null;
+
+        // Для замкнутой полилинии индексы цикличны
+        if (IsClosed)
+        {
+            if (vertexIndex < 0 || vertexIndex >= Points.Count) return null;
+
+            float tol = 10f;
+            var targetPoint = Points[vertexIndex];
+
+            // Ищем сегмент, который заканчивается на targetPoint
+            for (int i = 0; i < _segments.Count; i++)
+            {
+                var seg = _segments[i];
+                if (!seg.IsArc && Distance(seg.B, targetPoint) < tol)
+                {
+                    segmentIndex = i;
+                    return seg;
+                }
+            }
+            return null;
+        }
+        else
+        {
+            // Оригинальная логика для разомкнутой
+            if (vertexIndex < 1 || vertexIndex >= Points.Count) return null;
+
+            float tol = 10f;
+            var B = Points[vertexIndex];
+
+            for (int i = 0; i < _segments.Count; i++)
+            {
+                var seg = _segments[i];
+                if (!seg.IsArc && Distance(seg.B, B) < tol)
+                {
+                    segmentIndex = i;
+                    return seg;
+                }
+            }
+            return null;
+        }
+    }
+    public void BuildPoints()
+    {
+        Points.Clear();
+        if (_segments.Count == 0) return;
+
+        // Добавляем первую точку
+        Points.Add(_segments[0].A);
+
+        // Добавляем конечные точки каждого сегмента
+        for (int i = 0; i < _segments.Count; i++)
+        {
+            Points.Add(_segments[i].B);
+        }
+    }
+    public Segment GetSegmentAfterVertex(int vertexIndex, out int segmentIndex)
+    {
+        segmentIndex = -1;
+        if (Points.Count == 0) return null;
+
+        // Для замкнутой полилинии индексы цикличны
+        if (IsClosed)
+        {
+            if (vertexIndex < 0 || vertexIndex >= Points.Count) return null;
+
+            float tol = 10f;
+            var targetPoint = Points[vertexIndex];
+
+            // Ищем сегмент, который начинается на targetPoint
+            for (int i = 0; i < _segments.Count; i++)
+            {
+                var seg = _segments[i];
+                if (!seg.IsArc && Distance(seg.A, targetPoint) < tol)
+                {
+                    segmentIndex = i;
+                    return seg;
+                }
+            }
+            return null;
+        }
+        else
+        {
+            // Оригинальная логика для разомкнутой
+            if (vertexIndex < 0 || vertexIndex >= Points.Count - 1) return null;
+
+            float tol = 10f;
+            var B = Points[vertexIndex];
+
+            for (int i = 0; i < _segments.Count; i++)
+            {
+                var seg = _segments[i];
+                if (!seg.IsArc && Distance(seg.A, B) < tol)
+                {
+                    segmentIndex = i;
+                    return seg;
+                }
+            }
+            return null;
+        }
+    }
+    static float DistToSegment(SKPoint p, SKPoint a, SKPoint b)
+    {
+        var ab = new SKPoint(b.X - a.X, b.Y - a.Y);
+        var ap = new SKPoint(p.X - a.X, p.Y - a.Y);
+        float ab2 = ab.X * ab.X + ab.Y * ab.Y;
+        if (ab2 < 1e-6f) return Distance(p, a);
+        float t = Math.Max(0, Math.Min(1, (ap.X * ab.X + ap.Y * ab.Y) / ab2));
+        var proj = new SKPoint(a.X + ab.X * t, a.Y + ab.Y * t);
+        return Distance(p, proj);
+    }
+}
+
+// ==================== Handle ====================
+
+public class Handle
+{
+    readonly Func<SKPoint> _getter;
+    readonly Action<SKPoint> _setter;
+    public SKPoint Position => _getter();
+    public float X => Position.X;
+    public float Y => Position.Y;
+    public Handle(Func<SKPoint> g, Action<SKPoint> s) { _getter = g; _setter = s; }
+    public void Move(SKPoint p) => _setter(p);
 }

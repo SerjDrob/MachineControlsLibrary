@@ -69,6 +69,7 @@ public partial class SKEditor : UserControl
     private bool _motionEnable;
     private CutStyle _cutStyle = CutStyle.Contains;
     private readonly SkiaScene _scene = new();
+    private readonly SkiaScene _substrateLayerScene = new();
     private float _currentModelScale = 1;
     private long _lastRedrawTime;
     private Transform2D _modelTransform = Transform2D.Identity;
@@ -88,8 +89,8 @@ public partial class SKEditor : UserControl
     private Anchor? _targetAnchor;
     private SKPoint _currentMouseWorld;
     private SKPicture? _scenePicture;//topology cash
-    private SKPath? _scenePath;
     private Dictionary<uint, SKPath> _scenePaths = new();
+    private List<SKPath> _substrateLayerPaths = new();
     private List<Anchor> _topologyAnchors = new();
     private List<Anchor> _substrateAnchors;
     private List<string> _enabledLayers;
@@ -271,6 +272,20 @@ public partial class SKEditor : UserControl
         canvas.DrawRect(_substrateWorld, stroke);
 
     }
+
+    private void DrawSuabstrateLayer(SKCanvas canvas)
+    {
+        using var stroke = new SKPaint
+        {
+            Color = SKColors.Black,
+            Style = SKPaintStyle.Stroke,
+            StrokeWidth = 2f / _zoom
+        };
+        foreach (var path in _substrateLayerPaths)
+        {
+            canvas.DrawPath(path, stroke);
+        }
+    }
     private void DrawSelection(SKCanvas canvas)
     {
         if (_currentSelectionWorld is SKRect selection)
@@ -306,43 +321,6 @@ public partial class SKEditor : UserControl
         StrokeJoin = SKStrokeJoin.Round
     };
 
-    //private void DrawScene(SKCanvas canvas)
-    //{
-    //    if (_scene.Geometry.Count == 0) return;
-    //    foreach (var geometry in _scene.Geometry)
-    //    {
-    //        var color = new SKColor(geometry.argb);
-    //        var trueColor = color == SKColors.White ? SKColors.Black : color;
-
-    //        _scenePaint.Color = trueColor;
-    //        _scenePaint.StrokeWidth = 1.2f * _currentModelScale / _zoom;
-
-    //        canvas.DrawPath(geometry.path, _scenePaint);
-    //    }
-    //}
-    //private void DrawScene(SKCanvas canvas)
-    //{
-    //    if (_scenePicture == null)
-    //        return;
-
-    //    canvas.Save();
-
-    //    //canvas.Scale(1 / _zoom); // компенсируем масштаб
-
-    //    canvas.DrawPicture(_scenePicture);
-
-    //    canvas.Restore();
-    //}
-    //private void DrawScene(SKCanvas canvas)
-    //{
-    //    //if (_scenePath == null)
-    //    //    return;
-
-    //    //_scenePaint.StrokeWidth = 1.2f * _currentModelScale / _zoom;
-
-    //    //canvas.DrawPath(_scenePath, _scenePaint);
-    //    DrawScenePaths(canvas);
-    //}
     private void RebuildScenePicture()
     {
         var recorder = new SKPictureRecorder();
@@ -374,21 +352,7 @@ public partial class SKEditor : UserControl
                     return path;
                 });
     }
-    //private void DrawSceneGeometry(SKCanvas canvas)
-    //{
-    //    if (_scene.Geometry.Count == 0) return;
 
-    //    foreach (var geometry in _scene.Geometry)
-    //    {
-    //        var color = new SKColor(geometry.argb);
-    //        var trueColor = color == SKColors.White ? SKColors.Black : color;
-
-    //        _scenePaint.Color = trueColor;
-    //        _scenePaint.StrokeWidth = 1.2f * _currentModelScale / _zoom;
-
-    //        canvas.DrawPath(geometry.path, _scenePaint);
-    //    }
-    //}
     private void DrawScenePaths(SKCanvas canvas)
     {
         if (!_scenePaths.Any()) return;
@@ -575,6 +539,7 @@ public partial class SKEditor : UserControl
         DrawTargetAnchor(canvas);
         DrawSelection(canvas);
         DrawSubstrateTexts(canvas);
+        DrawSuabstrateLayer(canvas);
         canvas.Restore();
 
 
@@ -1048,7 +1013,7 @@ public partial class SKEditor : UserControl
     }
     public void BuildScene(IEnumerable<CadEntity> cadEntities)
     {
-        var enabledEnts = cadEntities.Where(l => l.layerEnable);
+        var enabledEnts = cadEntities.Where(l => l.LayerEnable);
         _enabledLayers = enabledEnts.Select(l => l.LayerName).Distinct().ToList();
         _scene.Clear();
         foreach (var e in enabledEnts)
@@ -1080,65 +1045,6 @@ public partial class SKEditor : UserControl
             }
         }
     }
-    //static CadEntity Transform(CadEntity e, Transform2D t) => e switch
-    //{
-    //    PolylineEntity pl => Transform(pl, t),
-    //    CircleEntity c => Transform(c, t),
-    //    ArcEntity a => Transform(a, t),
-    //    _ => e
-    //};
-    //static PolylineEntity Transform(PolylineEntity pl, Transform2D t)
-    //{
-    //    bool mirror =
-    //        t.M11 * t.M22 - t.M12 * t.M21 < 0; // det < 0
-
-    //    var verts = pl.Vertices
-    //        .Select(v =>
-    //            new PolylineVertex(
-    //                t.Apply(v.Point),
-    //                mirror ? -v.Bulge : v.Bulge
-    //            ))
-    //        .ToList();
-
-    //    return pl with { Vertices = verts };
-    //}
-
-    //static CircleEntity Transform(CircleEntity c, Transform2D t)
-    //{
-    //    var center = t.Apply(c.Center);
-
-    //    // предполагаем равномерный scale
-    //    float scale =
-    //        MathF.Sqrt(t.M11 * t.M11 + t.M21 * t.M21);
-
-    //    return c with
-    //    {
-    //        Center = center,
-    //        Radius = c.Radius * scale
-    //    };
-    //}
-    //static ArcEntity Transform(ArcEntity a, Transform2D t)
-    //{
-    //    var center = t.Apply(a.Center);
-
-    //    bool mirror =
-    //        t.M11 * t.M22 - t.M12 * t.M21 < 0;
-
-    //    float rot =
-    //        MathF.Atan2(t.M12, t.M11) * 180f / MathF.PI;
-
-    //    return a with
-    //    {
-    //        Center = center,
-    //        StartAngleDeg = mirror
-    //            ? -(a.StartAngleDeg + rot)
-    //            : (a.StartAngleDeg + rot),
-
-    //        EndAngleDeg = mirror
-    //            ? -(a.EndAngleDeg + rot)
-    //            : (a.EndAngleDeg + rot)
-    //    };
-    //}
 
     (SKPoint pos, float angle) GetLabelTransform(SubstrateText label)
     {
@@ -1258,6 +1164,24 @@ public partial class SKEditor : UserControl
         });
 
         InvalidateCanvas();
+    }
+
+    public void AddEntitiesToSubstrateLayer(IEnumerable<CadEntity> cadEntities)
+    {
+        //var enabledEnts = cadEntities.Where(l => l.LayerEnable);
+        //_enabledLayers = enabledEnts.Select(l => l.LayerName).Distinct().ToList();
+        _substrateLayerScene.Clear();
+        foreach (var e in cadEntities)
+        {
+            _substrateLayerScene.AddPath(e);
+        }
+        if (_substrateLayerPaths != null)
+        {
+            foreach (var p in _substrateLayerPaths)
+                p.Dispose();
+        }
+
+        _substrateLayerPaths = _substrateLayerScene.Geometry.Select(g => g.path).ToList();
     }
 }
 

@@ -1,5 +1,9 @@
 ﻿using MachineControlsLibrary.Classes.SkEditor;
+using System;
+using System.Collections.Generic;
+using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 
 namespace MachineControlsLibrary.Controls.GraphWin.SKGraphics;
@@ -10,6 +14,33 @@ namespace MachineControlsLibrary.Controls.GraphWin.SKGraphics;
 /// </summary>
 public partial class SKSimpleEditor : UserControl
 {
+    // Вместо события — команда
+    public static readonly DependencyProperty ShapesReadyCommandProperty =
+        DependencyProperty.Register(
+            "ShapesReadyCommand",
+            typeof(ICommand),
+            typeof(SKSimpleEditor));
+
+    public ICommand ShapesReadyCommand
+    {
+        get => (ICommand)GetValue(ShapesReadyCommandProperty);
+        set => SetValue(ShapesReadyCommandProperty, value);
+    }
+
+    public static readonly DependencyProperty ShapesReadyCommandParameterProperty =
+        DependencyProperty.Register(
+            "ShapesReadyCommandParameter",
+            typeof(object),
+            typeof(SKSimpleEditor));
+
+    public object ShapesReadyCommandParameter
+    {
+        get => GetValue(ShapesReadyCommandParameterProperty);
+        set => SetValue(ShapesReadyCommandParameterProperty, value);
+    }
+     
+
+
     public SKSimpleEditor()
     {
         InitializeComponent();
@@ -19,6 +50,11 @@ public partial class SKSimpleEditor : UserControl
         {
             SwitchButton(exceptedButton: SnapTool);
             editor.CurrentTool = SimpleSkEditor.Tool.Select;
+        };
+        AddToLayerTool.Click += (s, e) =>
+        {
+            OnShapesReady(editor.GetShapes());
+            editor.DeleteAllShapes();
         };
         WipeTool.Click += (s, e) =>
         {
@@ -98,6 +134,12 @@ public partial class SKSimpleEditor : UserControl
         };
     }
 
+    private void OnShapesReady((IList<Shape> shapes, float factor) shapes)
+    {
+        ShapesReadyCommandParameter = shapes;
+        if (ShapesReadyCommand?.CanExecute(shapes) == true)
+            ShapesReadyCommand.Execute(shapes);
+    }
     private void SwitchButton(Button? turnOnButton = null, Button? exceptedButton = null)
     {
         if (turnOnButton is not null) TurnOnButton(turnOnButton);

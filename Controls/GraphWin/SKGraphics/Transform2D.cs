@@ -120,20 +120,7 @@ public readonly struct Transform2D
         };
     }
 
-    //public Transform2D Then(Transform2D next)
-    //{
-    //    return new Transform2D(
-    //        M11 * next.M11 + M12 * next.M21,
-    //        M11 * next.M12 + M12 * next.M22,
-
-    //        M21 * next.M11 + M22 * next.M21,
-    //        M21 * next.M12 + M22 * next.M22,
-
-    //        DX * next.M11 + DY * next.M21 + next.DX,
-    //        DX * next.M12 + DY * next.M22 + next.DY
-    //    );
-    //}
-
+    
     public Transform2D Then(Transform2D next)
     {
         // Матрица: next.M × this.M (умножение слева!)

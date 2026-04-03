@@ -10,7 +10,7 @@ public static class SkEditor
         var p = new SKPath();
         p.MoveTo(l.P1);
         p.LineTo(l.P2);
-        return (p, l.entityColor);
+        return (p, l.EntityColor);
     }
     public static void AddPath(this SkiaScene scene, (SKPath path, uint argb) poly)
     {
@@ -43,7 +43,7 @@ public static class SkEditor
         var path = new SKPath();
 
         if (pl.Vertices.Count < 2)
-            return (path, pl.entityColor);
+            return (path, pl.EntityColor);
 
         path.MoveTo(pl.Vertices[0].Point);
 
@@ -69,7 +69,7 @@ public static class SkEditor
         if (pl.Closed)
             path.Close();
 
-        return (path, pl.entityColor);
+        return (path, pl.EntityColor);
     }
     private static void AddBulgeArc(SKPath path, SKPoint p1, SKPoint p2, float bulge)
     {
@@ -156,7 +156,7 @@ public static class SkEditor
         path.MoveTo(start);
         path.ArcTo(oval, a.StartAngleDeg, sweepDeg, false);
 
-        return (path, a.entityColor);
+        return (path, a.EntityColor);
     }
     private static (SKPath path, uint argb) BuildCircle(CircleEntity c)
     {
@@ -164,7 +164,7 @@ public static class SkEditor
 
         path.AddCircle(c.Center.X, c.Center.Y, c.Radius);
 
-        return (path, c.entityColor);
+        return (path, c.EntityColor);
     }
     private static float DegreesToRadians(float deg) =>
            deg * MathF.PI / 180f;

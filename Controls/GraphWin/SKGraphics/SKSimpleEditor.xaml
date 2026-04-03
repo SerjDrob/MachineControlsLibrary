@@ -43,6 +43,7 @@
                 <Button x:Name="LineTool" Content="{lucide:Lucide Kind=Slash}" />
                 <Button x:Name="SplineTool" Content="{lucide:Lucide Kind=Spline}" />
                 <Button x:Name="WipeTool" Content="{lucide:Lucide Kind=BrushCleaning}" />
+                <Button x:Name="AddToLayerTool" Content="{lucide:Lucide Kind=ArrowDownToLine}" />
             </ToolBar>
         </ToolBarTray>
         <loc:SimpleSkEditor x:Name="editor" />
