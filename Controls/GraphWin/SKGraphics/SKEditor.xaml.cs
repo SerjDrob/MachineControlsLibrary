@@ -1182,6 +1182,7 @@ public partial class SKEditor : UserControl
         }
 
         _substrateLayerPaths = _substrateLayerScene.Geometry.Select(g => g.path).ToList();
+        InvalidateCanvas();
     }
 }
 
