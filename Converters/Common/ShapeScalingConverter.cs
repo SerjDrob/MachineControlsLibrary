@@ -68,7 +68,7 @@ namespace MachineControlsLibrary.Converters
                 transGroup.Children.Add(scaleTrans);
                 transGroup.Children.Add(translateTrans2);
 
-                var points = ScaledShapes.OfType<EllipseGeometry>().Where(e => e.RadiusX == 0 | e.RadiusY == 0).ToList();
+                var points = ScaledShapes.OfType<EllipseGeometry>().Where(e => e.RadiusX == 0 || e.RadiusY == 0).ToList();
                 var crosses = points?.Aggregate(new GeometryCollection(), (acc, p) => new GeometryCollection(acc.Concat(new Geometry[]
                              {
                                 new LineGeometry(new System.Windows.Point(p.Center.X - 500,p.Center.Y), new System.Windows.Point(p.Center.X+500,p.Center.Y)),

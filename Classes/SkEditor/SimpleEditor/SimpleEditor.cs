@@ -958,7 +958,7 @@ public class PolyShape : Shape
         Points.AddRange(points);
         for (int i = 1; i < points.Count; i++) AddLine(points[i - 1], points[i]);
     }
-    public PolyShape(List<SKPoint> points, bool closed = false) : this(points)
+    public PolyShape(List<SKPoint> points, bool closed) : this(points)
     {
         IsClosed = closed;
         if (closed && points.Count > 2)
