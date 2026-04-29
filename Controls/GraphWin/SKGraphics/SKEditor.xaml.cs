@@ -98,6 +98,7 @@ public partial class SKEditor : UserControl
     private bool _redrawPending;
     private bool _modelRotated = false;
     private bool _canBeAnchored = false;
+    private bool _redrawTopology;
 
     public List<SubstrateText> SubstrateTexts { get; } = new();
     public float W { get; set; }
@@ -120,11 +121,12 @@ public partial class SKEditor : UserControl
         //SubstrateTexts.Add(new SubstrateText
         //{
         //    Text = "SN 001234",
-        //    Side = LabelSide.Top,
+        //    Side = LabelSide.Bottom,
         //    Alignment = LabelAlignment.Center,
-        //    OffsetFromEdge = 0,
-        //    FontSize = 60*1.4f,
-        //    Color = new SKColor(255, 0, 0)
+        //    OffsetFromEdge = 0.2f,
+        //    FontSize = 1f,
+        //    Color = new SKColor(255, 0, 0),
+        //    Typeface = SKTypeface.Default
         //});
         SetViewfindersCoordinates((0, 0), (0, 0));
 
@@ -166,10 +168,8 @@ public partial class SKEditor : UserControl
     {
         if (d is SKEditor editor && e.NewValue is IEnumerable<CadEntity> entities)
         {
-            //editor._modelTransform = new(0f, -0.001f, 0.001f, 0f, 48f, 0f);
             editor.EntitiesView = [.. entities];
             editor.BuildScene(entities);
-            //editor.RebuildScenePicture();
             editor.RebuildScenePaths();
             editor.RebuildAnchors();
             editor.InvalidateCanvas(true);
@@ -180,8 +180,6 @@ public partial class SKEditor : UserControl
 
     public void FitToView(SKElement element)
     {
-        //if (_scene.Bounds.IsEmpty) return;
-
         var scaledBounds = _modelTransform.Apply(_scene.Bounds);
 
         var bounds = SKRect.Union(scaledBounds, _substrateWorld);
@@ -326,7 +324,6 @@ public partial class SKEditor : UserControl
         var recorder = new SKPictureRecorder();
         var canvas = recorder.BeginRecording(SKRect.Create(-1_000_000, -1_000_000, 2_000_000, 2_000_000));
 
-        // DrawSceneGeometry(canvas);
         DrawScenePaths(canvas);
         _scenePicture = recorder.EndRecording();
     }
@@ -345,10 +342,7 @@ public partial class SKEditor : UserControl
                 o =>
                 {
                     var path = new SKPath();
-
-                    foreach (var g in o)
-                        path.AddPath(g.path.Simplify() ?? g.path);
-
+                    foreach (var g in o.Select(p => p.path)) path.AddPath(g.Simplify() ?? g);
                     return path;
                 });
     }
@@ -402,9 +396,6 @@ public partial class SKEditor : UserControl
                 Color = new SKColor(0, 0, 0, 40),
                 IsAntialias = true
             };
-            float r = 6f * _currentModelScale / _zoom;
-            //canvas.DrawCircle(_hoverAnchor.Value.WorldPoint, r, paint);
-            //canvas.DrawCircle(_hoverAnchor.Value.WorldPoint, r, shadowPaint);
             var p = new SKPoint(5 * _currentModelScale / _zoom, 5 * _currentModelScale / _zoom);
             var p1 = new SKPoint(5 * _currentModelScale / _zoom, -5 * _currentModelScale / _zoom);
 
@@ -458,16 +449,8 @@ public partial class SKEditor : UserControl
         canvas.DrawLine(_pivotWorld.X - r, _pivotWorld.Y, _pivotWorld.X + r, _pivotWorld.Y, paint);
         canvas.DrawLine(_pivotWorld.X, _pivotWorld.Y - r, _pivotWorld.X, _pivotWorld.Y + r, paint);
     }
-    private SKPoint SubstrateToScreen(SKPoint p)
-    {
-        return new SKPoint(
-            p.X * _zoom + _viewOffset.X,
-            p.Y * _zoom + _viewOffset.Y
-        );
-    }
     private void DrawViewfinders(SKCanvas canvas)
     {
-        //if (!_motionEnable) return;
         const float r = 5f;
         using var cameraPaint = new SKPaint
         {
@@ -484,8 +467,8 @@ public partial class SKEditor : UserControl
         };
         using var laserPaint = new SKPaint { Color = SKColors.Violet, StrokeWidth = 1f / _zoom, Style = SKPaintStyle.Stroke, IsAntialias = true };
 
-        var cameraVF = _cameraViewfinder;// SubstrateToScreen(_cameraViewfinder);
-        var laserVF = _laserViewfinder;// SubstrateToScreen(_laserViewfinder);
+        var cameraVF = _cameraViewfinder;
+        var laserVF = _laserViewfinder;
 
         if (_motionEnable)
         {
@@ -548,7 +531,6 @@ public partial class SKEditor : UserControl
         ApplyView(canvas);
         ApplyModel(canvas);
         DrawSourceAnchor(canvas);
-        // DrawScene(canvas);
         if (_redrawTopology || _scenePicture is null)
         {
             RebuildScenePicture();
@@ -569,7 +551,6 @@ public partial class SKEditor : UserControl
 
 
     }
-    private bool _redrawTopology;
 
     private void InvalidateCanvas(bool withTopology = false)
     {
@@ -608,12 +589,12 @@ public partial class SKEditor : UserControl
     }
     private void OnMouseDown(object sender, MouseButtonEventArgs e)
     {
-        if (e.LeftButton == MouseButtonState.Pressed && _teachPointsEnable)
+        if (e.LeftButton == MouseButtonState.Pressed && _teachPointsEnable && _hoverAnchor is Anchor anchor)
         {
             var coors = ScreenToWorld(ToSk(e.GetPosition(Canvas)));
             if (_cameraViewRegion.Contains(coors))
             {
-                if (_hoverAnchor is not null) OnTopologyPointClicked?.Invoke((_hoverAnchor.Value.WorldPoint.X, _hoverAnchor.Value.WorldPoint.Y));
+                OnTopologyPointClicked?.Invoke((anchor.WorldPoint.X, anchor.WorldPoint.Y));
                 return;
             }
         }
@@ -661,7 +642,6 @@ public partial class SKEditor : UserControl
             _cutting = true;
         }
     }
-
     private void OnMouseUp(object sender, MouseButtonEventArgs e)
     {
         _panning = false;
@@ -698,7 +678,6 @@ public partial class SKEditor : UserControl
     }
     private void OnMouseMove(object sender, MouseEventArgs e)
     {
-        // if (_motionEnable) return;
         var mouse = ToSk(e.GetPosition(Canvas));
         _currentMouseWorld = ScreenToWorld(mouse);
         if (_panning)
@@ -769,7 +748,6 @@ public partial class SKEditor : UserControl
         CutZoneChanged?.Invoke(_cutZones);
         ApplyTransform(Transform2D.Identity);
     }
-
     public void Redo()
     {
         if (_redo.Count == 0) return;
@@ -794,11 +772,7 @@ public partial class SKEditor : UserControl
 
     // Using a DependencyProperty as the backing store for CanUndo.  This enables animation, styling, binding, etc...
     public static readonly DependencyProperty CanUndoProperty =
-        DependencyProperty.Register(nameof(CanUndo), typeof(bool), typeof(SKEditor), new PropertyMetadata(false, UndoCallBack));
-
-    private static void UndoCallBack(DependencyObject d, DependencyPropertyChangedEventArgs e)
-    {
-    }
+        DependencyProperty.Register(nameof(CanUndo), typeof(bool), typeof(SKEditor), new PropertyMetadata(false));
 
     public bool CanRedo
     {
@@ -1050,26 +1024,15 @@ public partial class SKEditor : UserControl
     {
         var r = SKRect.Create(_substrateSize);
 
-        float cx = (float)(r.Left + r.Right) * 0.5f;
-        float cy = (float)(r.Top + r.Bottom) * 0.5f;
+        float cx = (r.Left + r.Right) * 0.5f;
+        float cy = (r.Top + r.Bottom) * 0.5f;
 
         return label.Side switch
         {
-            LabelSide.Top =>
-                (new SKPoint(cx + label.OffsetAlongEdge,
-                             (float)r.Top - label.OffsetFromEdge), 0),
-
-            LabelSide.Bottom =>
-                (new SKPoint(cx + label.OffsetAlongEdge,
-                             (float)r.Bottom + label.OffsetFromEdge), 0),
-
-            LabelSide.Left =>
-                (new SKPoint((float)r.Left - label.OffsetFromEdge,
-                             cy + label.OffsetAlongEdge), -MathF.PI / 2),
-
-            LabelSide.Right =>
-                (new SKPoint((float)r.Right + label.OffsetFromEdge,
-                             cy + label.OffsetAlongEdge), MathF.PI / 2),
+            LabelSide.Top => (new SKPoint(cx + label.OffsetAlongEdge, r.Top + label.OffsetFromEdge), 0),
+            LabelSide.Bottom => (new SKPoint(cx + label.OffsetAlongEdge, r.Bottom - label.OffsetFromEdge), 0),
+            LabelSide.Left => (new SKPoint(r.Left + label.OffsetFromEdge, cy + label.OffsetAlongEdge), -MathF.PI / 2),
+            LabelSide.Right => (new SKPoint(r.Right - label.OffsetFromEdge, cy + label.OffsetAlongEdge), MathF.PI / 2),
         };
     }
 
@@ -1080,39 +1043,6 @@ public partial class SKEditor : UserControl
             DrawLabel(canvas, label);
         }
     }
-
-    //void DrawLabel(SKCanvas canvas, SubstrateText label)
-    //{
-    //    var (pos, angle) = GetLabelTransform(label);
-
-    //    using var paint = new SKPaint
-    //    {
-    //        IsAntialias = true,
-    //        Color = label.Color
-    //    };
-    //    using var font = new SKFont
-    //    {
-    //        Typeface = label.Typeface,
-    //        Size = label.FontSize
-    //    };
-    //    font.MeasureText(label.Text, out var bounds);
-
-    //    float offsetX = label.Alignment switch
-    //    {
-    //        LabelAlignment.Start => 0,
-    //        LabelAlignment.Center => -bounds.Width / 2,
-    //        LabelAlignment.End => -bounds.Width,
-    //        _ => 0
-    //    };
-
-    //    canvas.Save();
-
-    //    canvas.Translate(pos.X, pos.Y);
-    //    canvas.RotateRadians(angle);
-
-    //    canvas.DrawText(label.Text, new SKPoint(offsetX, 0), font, paint);
-    //    canvas.Restore();
-    //}
 
     void DrawLabel(SKCanvas canvas, SubstrateText label)
     {
@@ -1140,36 +1070,46 @@ public partial class SKEditor : UserControl
             _ => 0
         };
 
-        var metrics = font.Metrics;
-        float baseline = -metrics.Ascent;
+        var dy = label.Side switch
+        {
+            LabelSide.Top => label.FontSize,
+            LabelSide.Left => label.FontSize,
+            LabelSide.Right => label.FontSize,
+            _ => 0
+        };
 
         canvas.Save();
-
+        canvas.Translate(0, _substrateWorld.Height);
+        canvas.Scale(1, -1);
         canvas.Translate(pos.X, pos.Y);
         canvas.RotateRadians(angle);
 
-        canvas.DrawText(label.Text, new SKPoint(offsetX, baseline), font, paint);
+        canvas.DrawText(label.Text, new SKPoint(offsetX, dy), font, paint);
 
         canvas.Restore();
     }
 
-    public void AddSubstrateText(string text)
+    public void AddSubstrateText(string text, float textSize, float edgeOffset)
     {
         SubstrateTexts.Add(new SubstrateText
         {
             Text = text,
             Side = LabelSide.Top,
             Alignment = LabelAlignment.Center,
-            OffsetFromEdge = 5
+            OffsetFromEdge = edgeOffset,
+            FontSize = textSize,
+            Color = new SKColor(255, 0, 0),
+            Typeface = SKTypeface.Default
         });
 
         InvalidateCanvas();
     }
 
+    public void ClearSubstrateText() => SubstrateTexts.Clear();
+    public void SetSubstrateTextSide(LabelSide side) => SubstrateTexts.ForEach(text => text.Side = side);
+
     public void AddEntitiesToSubstrateLayer(IEnumerable<CadEntity> cadEntities)
     {
-        //var enabledEnts = cadEntities.Where(l => l.LayerEnable);
-        //_enabledLayers = enabledEnts.Select(l => l.LayerName).Distinct().ToList();
         _substrateLayerScene.Clear();
         foreach (var e in cadEntities)
         {
