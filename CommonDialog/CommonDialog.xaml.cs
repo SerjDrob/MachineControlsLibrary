@@ -1,13 +1,12 @@
 ﻿using System.Windows.Controls;
 
-namespace MachineControlsLibrary.CommonDialog
+namespace MachineControlsLibrary.CommonDialog;
+
+public partial class CommonDialog : UserControl, IHasTitle
 {
-    public partial class CommonDialog : UserControl, IHasTitle
+    public void SetTitle(string title) => Title.Text = title;
+    public CommonDialog()
     {
-        public void SetTitle(string title) => Title.Text = title;
-        public CommonDialog()
-        {
-            InitializeComponent();
-        }
+        InitializeComponent();
     }
 }

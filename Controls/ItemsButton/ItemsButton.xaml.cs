@@ -63,7 +63,6 @@ public partial class ItemsButton : UserControl
     {
         var itemsButton = (ItemsButton)d;
         itemsButton._index = 0;
-        //ChangeButtonContent(itemsButton);
     }
 
     public object SelectedItem
@@ -101,7 +100,7 @@ public partial class ItemsButton : UserControl
         }
     }
 
-    private static void ChangeButtonContent(ItemsButton itemsButton, object selectedItem = null)
+    private static void ChangeButtonContent(ItemsButton itemsButton)
     {
         if ((itemsButton.Items?.Any() ?? false) && (itemsButton?.ItemSelector is not null))
         {

@@ -1,10 +1,7 @@
-﻿namespace MachineControlsLibrary.CommonDialog
+﻿namespace MachineControlsLibrary.CommonDialog;
+
+public interface ICommonDialog
 {
-    public interface ICommonDialog
-    {
-        public void CloseWithSuccess();
-        public void CloseWithCancel();
-    }
-
-
+    public void CloseWithSuccess();
+    public void CloseWithCancel();
 }

@@ -1,0 +1,125 @@
+﻿<UserControl
+    x:Class="MachineControlsLibrary.GrowlMessage.GrowlPanel"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:lucide="http://metro.mahapps.com/winfx/xaml/iconpacks">
+
+    <Grid Background="Transparent" IsHitTestVisible="True">
+        <ItemsControl
+            x:Name="MyMessages"
+            Margin="10"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Top"
+            ItemsSource="{Binding Messages}">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <StackPanel Orientation="Vertical" />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Border
+                        MinWidth="250"
+                        MaxWidth="350"
+                        Margin="0,5,0,0"
+                        Padding="10,10"
+                        HorizontalAlignment="Left"
+                        Background="{StaticResource BackgroundBrush}"
+                        BorderThickness="1"
+                        CornerRadius="4"
+                        IsHitTestVisible="True"
+                        Opacity="0.95">
+                        <Border.Effect>
+                            <DropShadowEffect
+                                BlurRadius="8"
+                                Opacity="0.4"
+                                ShadowDepth="2" />
+                        </Border.Effect>
+                        <Border.Triggers>
+                            <EventTrigger RoutedEvent="Loaded">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation
+                                            Storyboard.TargetProperty="Opacity"
+                                            From="0"
+                                            To="0.95"
+                                            Duration="0:0:0.2" />
+                                        <ThicknessAnimation
+                                            Storyboard.TargetProperty="Margin"
+                                            From="300,-10,0,5"
+                                            To="0,5,0,0"
+                                            Duration="0:0:0.2" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                        </Border.Triggers>
+                        <DockPanel>
+
+                            <!--  Индикатор типа  -->
+                            <Viewbox
+                                Width="30"
+                                Height="30"
+                                Margin="0,0,10,0"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Top"
+                                DockPanel.Dock="Left">
+                                <lucide:PackIconBootstrapIcons
+                                    x:Name="TypeIcon"
+                                    Width="30"
+                                    Height="30"
+                                    Margin="0,0,10,0"
+                                    Foreground="{StaticResource InfoBrush}">
+
+                                    <lucide:PackIconBootstrapIcons.Style>
+                                        <Style TargetType="lucide:PackIconBootstrapIcons">
+                                            <Setter Property="Kind" Value="InfoCircleFill" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Type}" Value="Success">
+                                                    <Setter Property="Kind" Value="CheckCircleFill" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Type}" Value="Warning">
+                                                    <Setter Property="Kind" Value="ExclamationTriangleFill" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Type}" Value="Error">
+                                                    <Setter Property="Kind" Value="XCircleFill" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </lucide:PackIconBootstrapIcons.Style>
+                                </lucide:PackIconBootstrapIcons>
+                            </Viewbox>
+                            <Button
+                                Margin="10,0,0,0"
+                                VerticalAlignment="Top"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Command="{Binding DataContext.CloseMessageCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                CommandParameter="{Binding}"
+                                Content="✕"
+                                Cursor="Hand"
+                                DockPanel.Dock="Right"
+                                Foreground="#999" />
+                            <!--  Текст  -->
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                DockPanel.Dock="Top"
+                                Foreground="{StaticResource PrimaryTextBrush}"
+                                Text="{Binding Text}"
+                                TextWrapping="Wrap" />
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                DockPanel.Dock="Bottom"
+                                FontSize="10"
+                                Foreground="{StaticResource SecondaryTextBrush}"
+                                Text="{Binding CreatedAt, StringFormat='dd.MM.yyyy HH:mm'}" />
+
+                            <!--  Закрыть  -->
+
+                        </DockPanel>
+                    </Border>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+    </Grid>
+</UserControl>

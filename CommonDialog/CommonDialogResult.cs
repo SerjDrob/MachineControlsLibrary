@@ -1,18 +1,7 @@
-﻿namespace MachineControlsLibrary.CommonDialog
+﻿namespace MachineControlsLibrary.CommonDialog;
+
+public class CommonDialogResult<T>
 {
-    public class CommonDialogResult<T>
-    {
-        public bool Success
-        {
-            get;
-            set;
-        }
-        public T CommonResult
-        {
-            get;
-            set;
-        }
-    }
-
-
+    public bool Success { get; set; }
+    public T CommonResult {get; set; }
 }
