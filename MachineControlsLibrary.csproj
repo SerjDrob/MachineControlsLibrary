@@ -26,6 +26,8 @@
     <None Remove="Controls\Sources\15475245161548336226-16.png" />
     <None Remove="Controls\Sources\15655417491530273517-16.png" />
     <None Remove="Controls\Sources\7362273661548336122-16.png" />
+    <None Remove="Fonts\InterVariable-Italic.ttf" />
+    <None Remove="Fonts\InterVariable.ttf" />
   </ItemGroup>
 
   <ItemGroup>
@@ -58,6 +60,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Controls\Sources\7362273661548336122-16.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Fonts\InterVariable-Italic.ttf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Fonts\InterVariable.ttf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
   </ItemGroup>

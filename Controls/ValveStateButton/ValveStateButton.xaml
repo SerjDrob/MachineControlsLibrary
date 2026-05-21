@@ -118,8 +118,9 @@
                         Background="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Background}"
                         BorderBrush="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Background}"
                         DockPanel.Dock="Bottom"
+                        FontFamily="/Fonts/#Inter"
                         FontStretch="ExtraExpanded"
-                        FontWeight="UltraBold">
+                        FontWeight="Bold">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="{Binding Valve_1_Name}" />
                             <TextBlock

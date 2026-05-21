@@ -13,7 +13,7 @@ public class AvlDialog
     private Action? _initializeAction;
     private string _title = string.Empty;
 
-    public AvlDialog SetDataContext<TContext>(Action<TContext> action) where TContext : ICommonDialog, new() 
+    public AvlDialog SetDataContext<TContext>(Action<TContext> action) where TContext : ICommonDialog, new()
     {
         _context = new TContext();
         var commonDialog = (ICommonDialog)_context;
@@ -37,18 +37,18 @@ public class AvlDialog
     }
     public AvlDialog SetDialogTitle(string title)
     {
-       _title = title;
+        _title = title;
         return this;
     }
     public CommonDialogResult<TResult> Show<TResult>(Window? owner = null)
     {
-        if (_context is not AvlCommonDialogResultable<TResult> context)
+        if (_context is not IDialogResultable<CommonDialogResult<TResult>> context)
             throw new ArgumentException($"Context must be AvlCommonDialogResultable<{typeof(TResult).Name}>");
 
         var _dialog = new AvlCommonDialog
         {
             DataContext = context,
-            Owner = owner ?? Application.Current?.MainWindow            
+            Owner = owner ?? Application.Current?.MainWindow
         };
 
         _dialog.SetTitle(_title);
@@ -67,11 +67,14 @@ public class AvlDialog
             _dialog.Close();
         }));
 
-        _dialog.Closing += (s, e) =>
+        if (_context is ICommonDialog dialog)
         {
-            if (context.Result == null)
-                context.CloseWithCancel();
-        };
+            _dialog.Closing += (s, e) =>
+            {
+                if (object.Equals(context.Result, default(TResult)))
+                    dialog.CloseWithCancel();
+            };
+        }
 
         _initializeAction?.Invoke();
         _dialog.ShowDialog();

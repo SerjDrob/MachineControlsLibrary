@@ -131,6 +131,7 @@
                 <TextBlock
                     Grid.RowSpan="2"
                     HorizontalAlignment="Center"
+                    FontFamily="/Fonts/#Inter"
                     FontSize="20"
                     FontWeight="Bold"
                     Text="{Binding StringFormat='{}{0}', Path=CoordinateName}" />
@@ -140,6 +141,7 @@
                     Grid.Column="1"
                     Grid.ColumnSpan="3"
                     HorizontalAlignment="Left"
+                    FontFamily="/Fonts/#Inter"
                     Text="{Binding StringFormat=' Line: {0:N3}', Path=Coordinate}" />
 
                 <TextBlock
@@ -147,6 +149,7 @@
                     Grid.Column="1"
                     Grid.ColumnSpan="3"
                     HorizontalAlignment="Left"
+                    FontFamily="/Fonts/#Inter"
                     Text="{Binding StringFormat='Cmd: {0:N3}', Path=CmdCoordinate}" />
 
                 <UniformGrid

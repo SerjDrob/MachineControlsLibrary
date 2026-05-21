@@ -6,11 +6,19 @@ using System.Text.Json.Serialization;
 
 namespace MachineControlsLibrary.AvlCommonDialog;
 
+
+
+public interface IDialogResultable<T>
+{
+    T Result { get; set; }
+
+    Action CloseAction { get; set; }
+}
 /// <summary>
 /// Inherits CommunityToolkit.Mvvm.ComponentModel.ObservableValidator
 /// </summary>
 /// <typeparam name="T"></typeparam>
-public abstract class AvlCommonDialogResultable<T> : ObservableValidator, ICommonDialog
+public abstract class AvlCommonDialogResultable<T> : ObservableValidator, ICommonDialog, IDialogResultable<CommonDialogResult<T>>
 {
     [Browsable(false)]
     [JsonIgnore]
