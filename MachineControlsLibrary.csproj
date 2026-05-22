@@ -50,6 +50,7 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="OpenTK.GLWpfControl" Version="4.3.6" />
     <PackageReference Include="SkiaSharp.Views.WPF" Version="3.119.2" />
+    <PackageReference Include="Stateless" Version="5.20.1" />
   </ItemGroup>
 
   <ItemGroup>

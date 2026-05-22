@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Stateless;
 
 namespace MachineControlsLibrary.Classes;
 
@@ -15,7 +16,40 @@ public enum KeyCommandExecutionMode
     SingleExecution,
     ConcurrentExecution
 }
+public static class KeyHelper
+{
+    [DllImport("user32.dll")]
+    private static extern int ToUnicode(
+        uint wVirtKey,
+        uint wScanCode,
+        byte[] lpKeyState,
+        [Out, MarshalAs(UnmanagedType.LPWStr)] StringBuilder pwszBuff,
+        int cchBuff,
+        uint wFlags);
 
+    [DllImport("user32.dll")]
+    private static extern bool GetKeyboardState(byte[] lpKeyState);
+
+    [DllImport("user32.dll")]
+    private static extern uint MapVirtualKey(uint uCode, uint uMapType);
+
+    public static string KeyToChar(Key key)
+    {
+        int virtualKey = KeyInterop.VirtualKeyFromKey(key);
+        byte[] keyboardState = new byte[256];
+        GetKeyboardState(keyboardState);
+
+        uint scanCode = MapVirtualKey((uint)virtualKey, 0);
+
+        StringBuilder buffer = new StringBuilder(2);
+        int result = ToUnicode((uint)virtualKey, scanCode, keyboardState, buffer, buffer.Capacity, 0);
+
+        if (result > 0)
+            return buffer.ToString().ToUpper();
+
+        return key.ToString();
+    }
+}
 public class KeyProcessorCommands : ICommand
 {
     private readonly Dictionary<(Key, ModifierKeys), (IAsyncRelayCommand command, bool isKeyRepeatProhibited)> DownKeys;
@@ -167,39 +201,181 @@ public class KeyProcessorCommands : ICommand
         return sb.ToString();
     }
 }
-
-public static class KeyHelper
+public class KeyProcessorStateCommands<TState> : ICommand where TState : Enum
 {
-    [DllImport("user32.dll")]
-    private static extern int ToUnicode(
-        uint wVirtKey,
-        uint wScanCode,
-        byte[] lpKeyState,
-        [Out, MarshalAs(UnmanagedType.LPWStr)] StringBuilder pwszBuff,
-        int cchBuff,
-        uint wFlags);
+    private readonly Dictionary<(Key, ModifierKeys), (IAsyncRelayCommand command, bool isKeyRepeatProhibited)> DownKeys;
+    private readonly Dictionary<Key, IAsyncRelayCommand> UpKeys;
+    private readonly Dictionary<(Key key,ModifierKeys modifier), string> KeysDiscription;
+    private readonly Func<object?, bool>? _canExecute;
+    private readonly Type[] notProcessingControls;
+    IAsyncRelayCommand<KeyEventArgs>? _anyKeyDownCommand;
+    IAsyncRelayCommand<KeyEventArgs>? _anyKeyUpCommand;
+    private TState _state;
 
-    [DllImport("user32.dll")]
-    private static extern bool GetKeyboardState(byte[] lpKeyState);
-
-    [DllImport("user32.dll")]
-    private static extern uint MapVirtualKey(uint uCode, uint uMapType);
-
-    public static string KeyToChar(Key key)
+    public KeyProcessorStateCommands(Func<object?, bool>? canExecute = null, params Type[] notProcessingControls)
     {
-        int virtualKey = KeyInterop.VirtualKeyFromKey(key);
-        byte[] keyboardState = new byte[256];
-        GetKeyboardState(keyboardState);
+        _canExecute = canExecute;
+        DownKeys = new();
+        UpKeys = new();
+        KeysDiscription = new();
+        this.notProcessingControls = notProcessingControls;
+    }
 
-        uint scanCode = MapVirtualKey((uint)virtualKey, 0);
+    public KeyProcessorStateCommands<TState> Subscribe<TTrigger>(StateMachine<TState,TTrigger> stateMachine)
+    {
+        stateMachine.OnTransitioned(t => ChangeCurrentState(t.Destination));
+        return this;
+    }
 
-        StringBuilder buffer = new StringBuilder(2);
-        int result = ToUnicode((uint)virtualKey, scanCode, keyboardState, buffer, buffer.Capacity, 0);
+    private void ChangeCurrentState(TState state)=>_state = state;
 
-        if (result > 0)
-            return buffer.ToString().ToUpper();
+    public event EventHandler? CanExecuteChanged
+    {
+        add { CommandManager.RequerySuggested += value; }
+        remove { CommandManager.RequerySuggested -= value; }
+    }
 
-        return key.ToString();
+    public bool CanExecute(object? parameter)
+    {
+        return _canExecute?.Invoke(parameter) ?? true;
+    }
+
+    public KeyProcessorStateCommands<TState> CreateKeyDownCommand(Key key,
+                                                                  ModifierKeys modifier,
+                                                                  Func<Task> task,
+                                                                  IList<TState>? allowingStates = null,
+                                                                  IList<TState>? forbidingStates = null,
+                                                                  bool isKeyRepeatProhibited = true,
+                                                                  KeyCommandExecutionMode executionMode = KeyCommandExecutionMode.SingleExecution,
+                                                                  string note = "")
+    {
+        var options = executionMode == KeyCommandExecutionMode.ConcurrentExecution
+                                                       ? AsyncRelayCommandOptions.AllowConcurrentExecutions
+                                                       : AsyncRelayCommandOptions.None;
+        var canExecute = GetPredicate(allowingStates, forbidingStates);
+        var command = new AsyncRelayCommand(task, canExecute, options);
+        DownKeys[(key, modifier)] = (command, isKeyRepeatProhibited);
+        if(note!="") KeysDiscription[(key,modifier)] = note;
+        return this;
+    }
+    public KeyProcessorStateCommands<TState> CreateKeyDownCommand(Key key, ModifierKeys modifier, IAsyncRelayCommand relayCommand, bool isKeyRepeatProhibited = true, string note = "")
+    {
+        var command = relayCommand;
+        DownKeys[(key, modifier)] = (command, isKeyRepeatProhibited);
+        if (note != "") KeysDiscription[(key,modifier)] = note;
+        return this;
+    }
+    public KeyProcessorStateCommands<TState> CreateKeyUpCommand(Key key, Func<Task> task, IList<TState>? allowingStates = null, IList<TState>? forbidingStates = null)
+    {
+        var canExecute = GetPredicate(allowingStates, forbidingStates);
+        var command = new AsyncRelayCommand(task, canExecute);
+        UpKeys[key] = command;
+        return this;
+    }  
+
+
+    public KeyProcessorStateCommands<TState> CreateAnyKeyDownCommand(Func<KeyEventArgs?, Task> task, IList<TState>? allowingStates = null, IList<TState>? forbidingStates = null)
+    {
+        Predicate<KeyEventArgs?> predicate = key => GetPredicate(allowingStates,forbidingStates).Invoke();
+        _anyKeyDownCommand = new AsyncRelayCommand<KeyEventArgs>(task, predicate);
+        return this;
+    }
+    public KeyProcessorStateCommands<TState> CreateAnyKeyUpCommand(Func<KeyEventArgs?, Task> task, IList<TState>? allowingStates = null, IList<TState>? forbidingStates = null)
+    {
+        Predicate<KeyEventArgs?> predicate = key => GetPredicate(allowingStates, forbidingStates).Invoke();
+        _anyKeyUpCommand = new AsyncRelayCommand<KeyEventArgs>(task, predicate);
+        return this;
+    }
+
+    private Func<bool> GetPredicate(IList<TState>? allowingStates, IList<TState>? forbidingStates)
+    {
+        return () =>
+        {
+            return (allowingStates is null || allowingStates.Any(s => s.HasFlag(_state))) && (forbidingStates is null || !forbidingStates.Any(s => s.HasFlag(_state)));
+        };
+    }
+    public async void Execute(object? parameter)
+    {
+        if (!CanExecute(parameter)) return;
+        //_ = Application.Current.Dispatcher.InvokeAsync(async () =>
+        //{
+        try
+        {
+            await ExecuteAsync(parameter);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex);
+        }
+        //}, System.Windows.Threading.DispatcherPriority.Background);
+    }
+
+    public async Task ExecuteAsync(object? parameter)
+    {
+        if (parameter is KeyEventArgs args)
+        {
+            if (args.Handled) return;
+            //  Debug.WriteLine($"{args.Key} {args.RoutedEvent.Name}, repeat is {args.IsRepeat}");
+
+            if (args.OriginalSource is not null && notProcessingControls.Any(t => t.IsAssignableFrom(args.OriginalSource.GetType()))) return;
+
+            if (args.RoutedEvent == Keyboard.KeyDownEvent || args.RoutedEvent == Keyboard.PreviewKeyDownEvent)
+            {
+                var key = args.Key == Key.System ? args.SystemKey : args.Key;
+                var clue = (key, args.KeyboardDevice.Modifiers);
+                if (DownKeys.TryGetValue(clue, out var commandPair))
+                {
+                    if (!(args.IsRepeat && commandPair.isKeyRepeatProhibited))
+                    {
+                        var canExec = commandPair.command.CanExecute(null);
+                        if (canExec)
+                        {
+                            args.Handled = true;
+                            await commandPair.command.ExecuteAsync(null);
+                        }
+                    }
+                }
+                else if (_anyKeyDownCommand != null)
+                {
+                    if (_anyKeyDownCommand.CanExecute(args))
+                    {
+                        args.Handled = true;
+                        await _anyKeyDownCommand.ExecuteAsync(args);
+                    }
+                }
+            }
+            else if (args.RoutedEvent == Keyboard.KeyUpEvent || args.RoutedEvent == Keyboard.PreviewKeyUpEvent)
+            {
+                if (UpKeys.TryGetValue(args.Key, out var command))
+                {
+                    args.Handled = true;
+                    await command.ExecuteAsync(null);
+                }
+                else if (_anyKeyUpCommand is not null && _anyKeyUpCommand.CanExecute(args))
+                {
+                    args.Handled = true;
+                    await _anyKeyUpCommand.ExecuteAsync(args);
+                }
+            }
+        }
+    }
+
+    public override string ToString()
+    {
+        var sb = new StringBuilder();
+        foreach (var item in KeysDiscription)
+        {
+            var mod = item.Key.modifier != ModifierKeys.None ? item.Key.modifier.ToString() : "";
+            sb.Append(mod);
+            if (mod != "") sb.Append(" + ");
+            sb.Append(KeyHelper.KeyToChar(item.Key.key));
+            sb.Append(" - ");
+            sb.Append(item.Value);
+            sb.AppendLine();
+        }
+        return sb.ToString();
     }
 }
+
+
 
