@@ -100,8 +100,6 @@ public partial class AvlMessageBox : Window
                 break;
         }
 
-
-
     }
 
     private void Ok_Click(object sender, RoutedEventArgs e)
@@ -143,7 +141,8 @@ public partial class AvlMessageBox : Window
     private static MessageBoxResult IvokeMessage(string message, string caption, MsgKind msgKind, Window owner)
     {
         var msg = new AvlMessageBox(message, caption, msgKind);
-        msg.Owner = owner ?? Application.Current.MainWindow;
+        owner ??= Application.Current.MainWindow;
+        if(owner is not AvlMessageBox) msg.Owner = owner;
         var result = msg.ShowDialog();
         if (result is null) return MessageBoxResult.None;
         return result.Value ? MessageBoxResult.OK : MessageBoxResult.Cancel;

@@ -122,8 +122,6 @@ public class KeyProcessorCommands : ICommand
     public async void Execute(object? parameter)
     {
         if (!CanExecute(parameter)) return;
-        //_ = Application.Current.Dispatcher.InvokeAsync(async () =>
-        //{
         try
         {
             await ExecuteAsync(parameter);
@@ -132,17 +130,13 @@ public class KeyProcessorCommands : ICommand
         {
             Debug.WriteLine(ex);
         }
-        //}, System.Windows.Threading.DispatcherPriority.Background);
     }
 
     public async Task ExecuteAsync(object? parameter)
     {
-        if (parameter is KeyEventArgs args)
+        if (parameter is KeyEventArgs args && !args.Handled)
         {
-            if (args.Handled) return;
-            //  Debug.WriteLine($"{args.Key} {args.RoutedEvent.Name}, repeat is {args.IsRepeat}");
-
-            if (args.OriginalSource is not null && notProcessingControls.Any(t => t.IsAssignableFrom(args.OriginalSource.GetType()))) return;
+            if (args.OriginalSource is not null && notProcessingControls.Any(t => t.IsInstanceOfType(args.OriginalSource))) return;
 
             if (args.RoutedEvent == Keyboard.KeyDownEvent || args.RoutedEvent == Keyboard.PreviewKeyDownEvent)
             {
@@ -160,13 +154,10 @@ public class KeyProcessorCommands : ICommand
                         }
                     }
                 }
-                else if (_anyKeyDownCommand != null)
+                else if (_anyKeyDownCommand != null && _anyKeyDownCommand.CanExecute(args))
                 {
-                    if (_anyKeyDownCommand.CanExecute(args))
-                    {
-                        args.Handled = true;
-                        await _anyKeyDownCommand.ExecuteAsync(args);
-                    }
+                    args.Handled = true;
+                    await _anyKeyDownCommand.ExecuteAsync(args);
                 }
             }
             else if (args.RoutedEvent == Keyboard.KeyUpEvent || args.RoutedEvent == Keyboard.PreviewKeyUpEvent)
@@ -245,6 +236,7 @@ public class KeyProcessorStateCommands<TState> : ICommand where TState : Enum
                                                                   Func<Task> task,
                                                                   IList<TState>? allowingStates = null,
                                                                   IList<TState>? forbidingStates = null,
+                                                                  Func<bool>? canExecFunc = null,
                                                                   bool isKeyRepeatProhibited = true,
                                                                   KeyCommandExecutionMode executionMode = KeyCommandExecutionMode.SingleExecution,
                                                                   string note = "")
@@ -252,7 +244,7 @@ public class KeyProcessorStateCommands<TState> : ICommand where TState : Enum
         var options = executionMode == KeyCommandExecutionMode.ConcurrentExecution
                                                        ? AsyncRelayCommandOptions.AllowConcurrentExecutions
                                                        : AsyncRelayCommandOptions.None;
-        var canExecute = GetPredicate(allowingStates, forbidingStates);
+        var canExecute = () => { return GetPredicate(allowingStates, forbidingStates).Invoke() && (canExecFunc?.Invoke() ?? true); };
         var command = new AsyncRelayCommand(task, canExecute, options);
         DownKeys[(key, modifier)] = (command, isKeyRepeatProhibited);
         if(note!="") KeysDiscription[(key,modifier)] = note;
