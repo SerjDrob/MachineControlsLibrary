@@ -143,7 +143,7 @@ public partial class AvlMessageBox : Window
         var msg = new AvlMessageBox(message, caption, msgKind);
         owner ??= Application.Current.MainWindow;
         if(owner is not AvlMessageBox) msg.Owner = owner;
-        var result = msg.ShowDialog();
+        var result = Application.Current.Dispatcher.Invoke(msg.ShowDialog);
         if (result is null) return MessageBoxResult.None;
         return result.Value ? MessageBoxResult.OK : MessageBoxResult.Cancel;
     }
