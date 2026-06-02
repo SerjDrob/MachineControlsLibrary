@@ -23,6 +23,7 @@ public partial class AvlMessageBox : Window
         InitializeComponent();
         TxtMessage.Text = message;
         Caption.Text = caption;
+        CancellButton.Focus();
         switch (msgKind)
         {
             case MsgKind.Ask:
@@ -46,6 +47,7 @@ public partial class AvlMessageBox : Window
                         Height = 30,
                     };
                     CancellButton.Visibility = Visibility.Collapsed;
+                    OkButton.Focus();
                 }
                 break;
             case MsgKind.Warn:
@@ -58,6 +60,8 @@ public partial class AvlMessageBox : Window
                         Height = 30
                     };
                     CancellButton.Visibility = Visibility.Collapsed;
+                    OkButton.Focus();
+
                 }
                 break;
             case MsgKind.Error:
@@ -70,6 +74,8 @@ public partial class AvlMessageBox : Window
                         Height = 30
                     };
                     CancellButton.Visibility = Visibility.Collapsed;
+                    OkButton.Focus();
+
                 }
                 break;
             case MsgKind.Success:
@@ -82,6 +88,8 @@ public partial class AvlMessageBox : Window
                         Height = 30
                     };
                     CancellButton.Visibility = Visibility.Collapsed;
+                    OkButton.Focus();
+
                 }
                 break;
             case MsgKind.Fatal:
@@ -94,6 +102,8 @@ public partial class AvlMessageBox : Window
                         Height = 30
                     };
                     CancellButton.Visibility = Visibility.Collapsed;
+                    OkButton.Focus();
+
                 }
                 break;
             default:
