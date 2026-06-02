@@ -113,39 +113,42 @@ public partial class AvlMessageBox : Window
     }
 
     // Static helper to make it easy to call
-    public static MessageBoxResult Ask(string message, string caption = "", Window owner = null)
+    public static MessageBoxResult Ask(string message, string caption = "", Window? owner = null)
     {
         return IvokeMessage(message, caption, MsgKind.Ask, owner);
     }
-    public static MessageBoxResult Info(string message, string caption = "", Window owner = null)
+    public static MessageBoxResult Info(string message, string caption = "", Window? owner = null)
     {
         return IvokeMessage(message, caption, MsgKind.Info, owner);
     }
-    public static MessageBoxResult Warning(string message, string caption = "", Window owner = null)
+    public static MessageBoxResult Warning(string message, string caption = "", Window? owner = null)
     {
         return IvokeMessage(message, caption, MsgKind.Warn, owner);
     }
-    public static MessageBoxResult Error(string message, string caption = "", Window owner = null)
+    public static MessageBoxResult Error(string message, string caption = "", Window? owner = null)
     {
         return IvokeMessage(message, caption, MsgKind.Error, owner);
     }
-    public static MessageBoxResult Success(string message, string caption = "", Window owner = null)
+    public static MessageBoxResult Success(string message, string caption = "", Window? owner = null)
     {
         return IvokeMessage(message, caption, MsgKind.Success, owner);
     }
-    public static MessageBoxResult Fatal(string message, string caption = "", Window owner = null)
+    public static MessageBoxResult Fatal(string message, string caption = "", Window? owner = null)
     {
         return IvokeMessage(message, caption, MsgKind.Fatal, owner);
     }
 
-    private static MessageBoxResult IvokeMessage(string message, string caption, MsgKind msgKind, Window owner)
+    private static MessageBoxResult IvokeMessage(string message, string caption, MsgKind msgKind, Window? owner)
     {
-        var msg = new AvlMessageBox(message, caption, msgKind);
-        owner ??= Application.Current.MainWindow;
-        if(owner is not AvlMessageBox) msg.Owner = owner;
-        var result = msg.ShowDialog();
-        if (result is null) return MessageBoxResult.None;
-        return result.Value ? MessageBoxResult.OK : MessageBoxResult.Cancel;
+        return Application.Current.Dispatcher.Invoke(() =>
+        {
+            var msg = new AvlMessageBox(message, caption, msgKind);
+            owner ??= Application.Current.MainWindow;
+            if (owner is not AvlMessageBox) msg.Owner = owner;
+            var result = msg.ShowDialog();
+            if (result is null) return MessageBoxResult.None;
+            return result.Value ? MessageBoxResult.OK : MessageBoxResult.Cancel;
+        });
     }
 }
 
