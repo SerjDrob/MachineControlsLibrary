@@ -8,7 +8,7 @@ namespace MachineControlsLibrary.AttachedProperties;
 
 public static class AttachedOverwriter
 {
-    private const int MaxDecimalDigits = 3;
+    private const int MaxDecimalDigits = 15;
     private static bool _isUpdating = false; // Защита от рекурсии
     public static string GetMyText(DependencyObject obj)
     {
