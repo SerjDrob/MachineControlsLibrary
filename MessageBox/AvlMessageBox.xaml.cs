@@ -1,4 +1,5 @@
 ﻿using MahApps.Metro.IconPacks;
+using System;
 using System.Windows;
 using System.Windows.Media;
 
@@ -154,7 +155,17 @@ public partial class AvlMessageBox : Window
         {
             var msg = new AvlMessageBox(message, caption, msgKind);
             owner ??= Application.Current.MainWindow;
-            if (owner is not AvlMessageBox) msg.Owner = owner;
+
+            // Проверяем, что owner не null, не AvlMessageBox и окно уже загружено/показано
+            if (owner is not AvlMessageBox && owner != null)
+            {
+                // Проверяем, что окно загружено или у него есть handle
+                if (owner.IsLoaded || new System.Windows.Interop.WindowInteropHelper(owner).Handle != IntPtr.Zero)
+                {
+                    msg.Owner = owner;
+                }
+            }
+
             var result = msg.ShowDialog();
             if (result is null) return MessageBoxResult.None;
             return result.Value ? MessageBoxResult.OK : MessageBoxResult.Cancel;
