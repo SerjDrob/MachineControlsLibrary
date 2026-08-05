@@ -62,6 +62,7 @@ public partial class SKEditor : UserControl
     private readonly Stack<IEditorCommand> _redo = new();
     private SKPoint _viewOffset = new SKPoint(0, 0);      // zoom + центрирование
     private SKPoint _topologyOffset = new SKPoint(0, 0);  // Паннинг топологии
+    private bool _isFitToCaneraViewfinder = false;
     private SKPoint _lastMouse;
     private bool _panning;
     private bool _cutting;
@@ -223,7 +224,7 @@ public partial class SKEditor : UserControl
 
         _viewOffset = new SKPoint(vx - cx * _zoom, vy - cy * _zoom);
         _topologyOffset = SKPoint.Empty;
-
+        _isFitToCaneraViewfinder = true;
         InvalidateElement(element, true);
     }
     public void SetSubstrateDim(float w, float h)
@@ -386,7 +387,7 @@ public partial class SKEditor : UserControl
         {
             using var paint = new SKPaint
             {
-                Color = new SKColor(0, 255, 20),   // пастельный голубой
+                Color = new SKColor(0, 255, 20),  
                 IsAntialias = true,
                 StrokeWidth = 3f * _currentModelScale / _zoom,
                 Style = SKPaintStyle.Stroke
@@ -454,8 +455,8 @@ public partial class SKEditor : UserControl
         const float r = 5f;
         using var cameraPaint = new SKPaint
         {
-            Color = SKColors.Green,
-            StrokeWidth = 1f / _zoom,
+            Color = _isFitToCaneraViewfinder ? SKColors.Blue : SKColors.Green,
+            StrokeWidth = (_isFitToCaneraViewfinder ? 10f : 1f) / _zoom,
             Style = SKPaintStyle.Stroke,
             IsAntialias = true
         };
@@ -573,6 +574,7 @@ public partial class SKEditor : UserControl
 
     private void ZoomAt(SKPoint screenPoint, float scale)
     {
+        _isFitToCaneraViewfinder = false;
         var worldBefore = ScreenToWorldRefTopology(screenPoint);
 
         _zoom *= scale;
@@ -704,7 +706,9 @@ public partial class SKEditor : UserControl
 
             if (_alignState == AlignState.Idle)
             {
-                if ((!_teachPointsEnable || _cameraViewRegion.Contains(_currentMouseWorld)) && (!_motionEnable || _teachPointsEnable) && (_canBeAnchored || _teachPointsEnable))
+                if ((!_teachPointsEnable || (_cameraViewRegion.Contains(_currentMouseWorld) && _isFitToCaneraViewfinder)) 
+                    && (!_motionEnable || _teachPointsEnable) 
+                    && (_canBeAnchored || _teachPointsEnable))
                 {
                     _hoverAnchor = FindTopologyAnchor(_currentMouseWorld, tol);
                     InvalidateCanvas();
@@ -1000,7 +1004,7 @@ public partial class SKEditor : UserControl
     }
     static IEnumerable<Anchor> GetTopologyAnchors(IEnumerable<CadEntity> entities)
     {
-        foreach (var e in entities)
+        foreach (var e in entities.Where(e=>e.LayerEnable))
         {
             switch (e)
             {
