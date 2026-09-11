@@ -17,7 +17,8 @@ public partial class AvlMessageBox : Window
         Warn,
         Error,
         Success,
-        Fatal
+        Fatal,
+        Description
     }
     private AvlMessageBox(string message, string caption, MsgKind msgKind)
     {
@@ -107,6 +108,21 @@ public partial class AvlMessageBox : Window
 
                 }
                 break;
+            case MsgKind.Description:
+                {
+                    Icon.Content = null;
+                    //new PackIconBootstrapIcons
+                    //{
+                    //    Kind = PackIconBootstrapIconsKind.ExclamationSquareFill,
+                    //    Foreground = Brushes.LightSeaGreen,
+                    //    Width = 30,
+                    //    Height = 30
+                    //};
+                    CancellButton.Visibility = Visibility.Collapsed;
+                    OkButton.Focus();
+
+                }
+                break;
             default:
                 break;
         }
@@ -147,6 +163,10 @@ public partial class AvlMessageBox : Window
     public static MessageBoxResult Fatal(string message, string caption = "", Window? owner = null)
     {
         return IvokeMessage(message, caption, MsgKind.Fatal, owner);
+    }
+    public static MessageBoxResult Description(string message, string caption = "", Window? owner = null)
+    {
+        return IvokeMessage(message, caption, MsgKind.Description, owner);
     }
 
     private static MessageBoxResult IvokeMessage(string message, string caption, MsgKind msgKind, Window? owner)

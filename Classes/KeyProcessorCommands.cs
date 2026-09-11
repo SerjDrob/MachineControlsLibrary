@@ -181,16 +181,79 @@ public class KeyProcessorCommands : ICommand
         var sb = new StringBuilder();
         foreach (var item in KeysDiscription)
         {
-            var mod = item.Key.modifier != ModifierKeys.None ? item.Key.modifier.ToString() : "";
-            sb.Append(mod);
-            if (mod != "") sb.Append(" + ");
-            sb.Append(KeyHelper.KeyToChar(item.Key.key));
-            sb.Append(" - ");
-            sb.Append(item.Value);
-            sb.AppendLine();
+            // 1. Модификаторы в верхний регистр
+            var mod = item.Key.modifier != ModifierKeys.None
+                ? item.Key.modifier.ToString().ToUpperInvariant()
+                : "";
+
+            if (!string.IsNullOrEmpty(mod))
+            {
+                sb.Append(mod).Append(" + ");
+            }
+
+            // 2. Получаем красивое латинское имя клавиши
+            var keyName = GetFriendlyKeyName(item.Key.key);
+
+            sb.Append(keyName)
+              .Append(" - ")
+              .Append(item.Value)
+              .AppendLine();
         }
         return sb.ToString();
     }
+
+    // Метод-маппер для перевода системных имен WPF в латинские символы
+    private static string GetFriendlyKeyName(Key key)
+    {
+        return key switch
+        {
+            // Буквы на Numpad
+            Key.NumPad0 => "NUMPAD 0",
+            Key.NumPad1 => "NUMPAD 1",
+            Key.NumPad2 => "NUMPAD 2",
+            Key.NumPad3 => "NUMPAD 3",
+            Key.NumPad4 => "NUMPAD 4",
+            Key.NumPad5 => "NUMPAD 5",
+            Key.NumPad6 => "NUMPAD 6",
+            Key.NumPad7 => "NUMPAD 7",
+            Key.NumPad8 => "NUMPAD 8",
+            Key.NumPad9 => "NUMPAD 9",
+            Key.Multiply => "*",
+            Key.Add => "+",
+            Key.Subtract => "-",
+            Key.Decimal => ".",
+            Key.Divide => "/",
+
+            // Основные спецсимволы (Латиница)
+            Key.OemPlus => "+",
+            Key.OemMinus => "-",
+            Key.OemComma => ",",
+            Key.OemPeriod => ".",
+            Key.OemQuestion => "/",
+            Key.OemQuotes => "\"",
+            Key.OemSemicolon => ";",
+            Key.OemOpenBrackets => "[",
+            Key.OemCloseBrackets => "]",
+            Key.OemPipe => "\\",
+            Key.OemTilde => "`",
+
+            // Обычные цифры над буквами (убираем префикс "D")
+            Key.D0 => "0",
+            Key.D1 => "1",
+            Key.D2 => "2",
+            Key.D3 => "3",
+            Key.D4 => "4",
+            Key.D5 => "5",
+            Key.D6 => "6",
+            Key.D7 => "7",
+            Key.D8 => "8",
+            Key.D9 => "9",
+
+            // Для всех остальных (A-Z, F1-F12, Space, Enter, Escape и т.д.)
+            _ => key.ToString().ToUpperInvariant()
+        };
+    }
+
 }
 public class KeyProcessorStateCommands<TState> : ICommand where TState : Enum
 {
