@@ -402,3 +402,5 @@ obj/
 /wwwroot/node_modules
 
 # End of https://www.toptal.com/developers/gitignore/api/csharp,dotnetcore
+/Patches/0001-feat-added-ResetEditor.patch
+/Patches/SKEditor.Patch

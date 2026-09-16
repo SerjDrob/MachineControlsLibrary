@@ -816,6 +816,18 @@ public partial class SKEditor : UserControl
     }
     public void SwitchScissors(bool cutEnable) => _cutEnable = cutEnable;
 
+    public void SetCutZones(IEnumerable<CutZone> cutZones)
+    {
+        _cutZones.Clear();
+        _cutZones.AddRange(cutZones);
+        _undo.Clear();
+        _redo.Clear();
+        CanUndo = false;
+        CanRedo = false;
+        CutZoneChanged?.Invoke(_cutZones);
+        InvalidateCanvas();
+    }
+
     private bool IsCut(CadEntity entity)
     {
         var bounds = entity.GetWorldBounds();
