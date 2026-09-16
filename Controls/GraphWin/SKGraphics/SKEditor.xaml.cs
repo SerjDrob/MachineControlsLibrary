@@ -112,23 +112,13 @@ public partial class SKEditor : UserControl
         {
             Fit();
         };
-        //Canvas.RenderContinuously = false;
         W = 60;
         H = 48;
         _substrateWorld = new SKRect(0, 0, W, H);
         _substrateSize = new SKSize(W, H);
 
         Transform2D.SelfTest();
-        //SubstrateTexts.Add(new SubstrateText
-        //{
-        //    Text = "SN 001234",
-        //    Side = LabelSide.Bottom,
-        //    Alignment = LabelAlignment.Center,
-        //    OffsetFromEdge = 0.2f,
-        //    FontSize = 1f,
-        //    Color = new SKColor(255, 0, 0),
-        //    Typeface = SKTypeface.Default
-        //});
+       
         SetViewfindersCoordinates((0, 0), (0, 0));
 
         RebuildSubstrateAnchors();
@@ -1127,6 +1117,60 @@ public partial class SKEditor : UserControl
 
         _substrateLayerPaths = _substrateLayerScene.Geometry.Select(g => g.path).ToList();
         InvalidateCanvas();
+    }
+
+    public void ResetEditor()
+    {
+        // --- Трансформации топологии ---
+        _modelTransform = Transform2D.Identity;
+        _modelTransformWithoutTranslation = Transform2D.Identity;
+
+        // --- Масштаб топологии ---
+        _currentModelScale = 1f;
+
+        // --- Вид редактора ---
+        _zoom = 1f;
+        _viewOffset = SKPoint.Empty;
+        _topologyOffset = SKPoint.Empty;
+
+        // --- Паннинг ---
+        _panning = false;
+        _lastMouse = SKPoint.Empty;
+
+        // --- Ножницы ---
+        _cutting = false;
+        _currentSelectionWorld = null;
+
+        // --- Выравнивание по якорям ---
+        _alignState = AlignState.Idle;
+        _sourceAnchor = null;
+        _targetAnchor = null;
+        _hoverAnchor = null;
+
+        // --- Опорная точка ---
+        _pivotWorld = SKPoint.Empty;
+
+        // --- История команд ---
+        _undo.Clear();
+        _redo.Clear();
+        _cutZones.Clear();
+        CanUndo = false;
+        CanRedo = false;
+
+        // --- Состояние курсора ---
+        Cursor = Cursors.Arrow;
+
+        // --- Перестроение сцены ---
+        if(Entities?.Any() ?? false) BuildScene(EntitiesView);
+
+        // --- Уведомления ---
+        InvokeTransformationsChangedEvent();
+
+        CutZoneChanged?.Invoke(_cutZones);
+
+        // --- Перерисовка ---
+        
+        FitToView(Canvas);
     }
 }
 
