@@ -50,7 +50,51 @@ public enum LabelAlignment
     Center,
     End
 }
-public record CutZone(SKRect Rect, CutStyle Style, string[] ForLayers);
+public record CutZone(SKRect Rect, CutStyle Style, string[] ForLayers)
+{
+    public virtual bool Equals(CutZone? other)
+    {
+        if (other is null) return false;
+        if (ReferenceEquals(this, other)) return true;
+
+        return Rect.Equals(other.Rect) &&
+               Style == other.Style &&
+               ForLayers.SequenceEqual(other.ForLayers); // Сравнение элементов массива
+    }
+
+    public override int GetHashCode()
+    {
+        var hash = new HashCode();
+        hash.Add(Rect);
+        hash.Add(Style);
+
+        if (ForLayers != null)
+        {
+            foreach (var layer in ForLayers)
+            {
+                hash.Add(layer);
+            }
+        }
+
+        return hash.ToHashCode();
+    }
+}
+
+
+/// <summary>Serializable editor state used by work-process files.</summary>
+public sealed record EditorStateSnapshot(
+    float[] Transformation,
+    float[] PartialTransformation,
+    IReadOnlyList<CutZoneSnapshot> CutZones,
+    IReadOnlyList<CutZoneSnapshot> UndoZones,
+    IReadOnlyList<CutZoneSnapshot> RedoZones);
+
+public sealed record CutZoneSnapshot(float Left, float Top, float Right, float Bottom, CutStyle Style, string[] ForLayers)
+{
+    public static CutZoneSnapshot From(CutZone zone) => new(zone.Rect.Left, zone.Rect.Top, zone.Rect.Right, zone.Rect.Bottom, zone.Style, zone.ForLayers);
+
+    public CutZone ToCutZone() => new(new SKRect(Left, Top, Right, Bottom), Style, ForLayers ?? Array.Empty<string>());
+}
 
 public partial class SKEditor : UserControl
 {
@@ -826,6 +870,37 @@ public partial class SKEditor : UserControl
         CanRedo = false;
         CutZoneChanged?.Invoke(_cutZones);
         InvalidateCanvas();
+    }
+
+    public EditorStateSnapshot ExportState() => new(
+        _modelTransform.GetTransformation(),
+        _modelTransformWithoutTranslation.GetTransformation(),
+        _cutZones.Select(CutZoneSnapshot.From).ToList(),
+        _undo.OfType<AddCutZoneCommand>().Select(command => CutZoneSnapshot.From(command.Zone)).ToList(),
+        _redo.OfType<AddCutZoneCommand>().Select(command => CutZoneSnapshot.From(command.Zone)).ToList());
+
+    public void RestoreState(EditorStateSnapshot state)
+    {
+        ArgumentNullException.ThrowIfNull(state);
+        _modelTransform = new Transform2D(state.Transformation ?? throw new ArgumentException("Transformation is required.", nameof(state)));
+        _modelTransformWithoutTranslation = new Transform2D(state.PartialTransformation ?? throw new ArgumentException("Partial transformation is required.", nameof(state)));
+
+        _cutZones.Clear();
+        _cutZones.AddRange((state.CutZones ?? Array.Empty<CutZoneSnapshot>()).Select(zone => zone.ToCutZone()));
+        _undo.Clear();
+        _redo.Clear();
+        foreach (var zone in (state.UndoZones ?? Array.Empty<CutZoneSnapshot>()).Reverse())
+            _undo.Push(new AddCutZoneCommand(_cutZones, zone.ToCutZone()));
+        foreach (var zone in (state.RedoZones ?? Array.Empty<CutZoneSnapshot>()).Reverse())
+            _redo.Push(new AddCutZoneCommand(_cutZones, zone.ToCutZone()));
+
+        CanUndo = _undo.Any();
+        CanRedo = _redo.Any();
+        InvokeTransformationsChangedEvent();
+        CutZoneChanged?.Invoke(_cutZones);
+        //InvalidateCanvas();
+        ApplyTransform(Transform2D.Identity);
+
     }
 
     private bool IsCut(CadEntity entity)

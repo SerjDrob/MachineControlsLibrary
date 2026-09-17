@@ -13,6 +13,8 @@ public class AddCutZoneCommand : IEditorCommand
         _zone = zone;
     }
 
+    public CutZone Zone => _zone;
+
     public void Execute()
     {
         _zones.Add(_zone);
